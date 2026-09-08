@@ -118,7 +118,7 @@ export const GolfCourseBoard: React.FC<Props> = ({ onClose }) => {
     const [disclaimer, setDisclaimer] = useState('');
 
     useEffect(() => {
-        api('/api/golf/regions').then(d => setRegions(d.regions || [])).catch(() => {});
+        api('/api/golf-course/regions').then(d => setRegions(d.regions || [])).catch(() => {});
     }, []);
 
     // Esc 로 닫기 — 전체를 덮는 화면이라 출구가 하나뿐이면 갇힌 느낌이 든다.
@@ -148,7 +148,7 @@ export const GolfCourseBoard: React.FC<Props> = ({ onClose }) => {
         if (!navigator.geolocation) { setErr('이 기기에서는 위치를 사용할 수 없어요'); return; }
         setBusy(true); setErr(null);
         navigator.geolocation.getCurrentPosition(
-            pos => load(`/api/golf/courses?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&radius=20000`),
+            pos => load(`/api/golf-course/courses?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&radius=20000`),
             e => {
                 setBusy(false);
                 // ★거부와 실패를 구분해서 말해 준다 — "실패"만 뜨면 뭘 해야 할지 모른다.
@@ -164,7 +164,7 @@ export const GolfCourseBoard: React.FC<Props> = ({ onClose }) => {
         if (briefs[c.id]) return;                       // 이미 열었으면 다시 부르지 않는다
         setBriefs(b => ({ ...b, [c.id]: 'loading' }));
         try {
-            const d = await api(`/api/golf/briefing?name=${encodeURIComponent(c.name)}&address=${encodeURIComponent(c.address)}`);
+            const d = await api(`/api/golf-course/briefing?name=${encodeURIComponent(c.name)}&address=${encodeURIComponent(c.address)}`);
             if (d.disclaimer) setDisclaimer(d.disclaimer);
             setBriefs(b => ({ ...b, [c.id]: d.briefing as Briefing }));
         } catch {
@@ -216,7 +216,7 @@ export const GolfCourseBoard: React.FC<Props> = ({ onClose }) => {
                                 {districts.map(d => <option key={d} value={d}>{d}</option>)}
                             </select>
                             <button className="gf-go" disabled={!sido || busy}
-                                    onClick={() => load(`/api/golf/courses?sido=${encodeURIComponent(sido)}&district=${encodeURIComponent(district)}`)}>
+                                    onClick={() => load(`/api/golf-course/courses?sido=${encodeURIComponent(sido)}&district=${encodeURIComponent(district)}`)}>
                                 {busy ? '…' : '찾기'}
                             </button>
                         </div>

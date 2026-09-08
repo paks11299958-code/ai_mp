@@ -126,6 +126,8 @@
     { "source": "/api/product-extract/:path*", "destination": "http://34.50.27.95:3020/api/aimp/product-extract/:path*" },
     { "source": "/api/math-tutor",           "destination": "http://34.50.27.95:3020/api/aimp/math-tutor" },
     { "source": "/api/math-tutor/:path*",    "destination": "http://34.50.27.95:3020/api/aimp/math-tutor/:path*" },
+    { "source": "/api/golf-course",          "destination": "http://34.50.27.95:3020/api/aimp/golf-course" },
+    { "source": "/api/golf-course/:path*",   "destination": "http://34.50.27.95:3020/api/aimp/golf-course/:path*" },
     { "source": "/api/golf",                 "destination": "http://34.50.27.95:3020/api/aimp/golf" },
     { "source": "/api/golf/:path*",          "destination": "http://34.50.27.95:3020/api/aimp/golf/:path*" },
     { "source": "/api/stock-report",         "destination": "http://34.50.27.95:3020/api/aimp/stock-report" },
@@ -135,7 +137,6 @@
     { "source": "/api/news",                 "destination": "http://34.50.27.95:3020/api/aimp/news" },
     { "source": "/api/news/:path*",          "destination": "http://34.50.27.95:3020/api/aimp/news/:path*" },
     { "source": "/api/desk/:path*",          "destination": "http://34.50.27.95:3020/api/aimp/desk/:path*" },
-    { "source": "/api/golf/:path*",          "destination": "http://34.50.27.95:3020/api/aimp/golf/:path*" },
     { "source": "/attend/:sheetUuid", "destination": "/index.html" },
     { "source": "/news", "destination": "/index.html" },
 
