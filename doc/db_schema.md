@@ -212,8 +212,12 @@ errorMessage(nullable), createdAt, updatedAt
 
 ## 기타 모델
 ```
-GolfCourse          ← 골프장 정보 (hasAuto, bookingUrl, advanceDays, openHour, openMinute)
-GolfBookingSchedule ← 예약 스케줄 (scheduledAt, openAt, preferredTime ← 희망 티타임 HH:MM)
+GolfCourse          ← 골프장 마스터 20곳. ★남긴다(2026-09-08) — 예약 '실행'은 폐지했지만
+                       bookingUrl 은 여전히 쓸모가 있다(카카오맵이 예약처 URL 을 주지 않는다).
+                       ★loginId/loginPw/hasAuto/advanceDays 는 폐지된 자동예약 잔재. 새로 쓰지 말 것
+GolfBookingSchedule ← ⚠️폐지된 기능의 잔여 테이블(2026-09-08, 실사용 0건).
+                       코드는 전부 제거했으나 **DROP 하지 않는다** — 운영DB 는 db push 금지라
+                       지우려면 사장 승인 후 raw SQL 로 따로 처리할 것
 ```
 
 ## GolfBookingSchedule

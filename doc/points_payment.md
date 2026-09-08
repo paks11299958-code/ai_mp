@@ -71,7 +71,7 @@
 |------|------|------|
 | **100pt** | 오늘뉴스(news) | 가벼운 조회 |
 | **300pt** | 관상(face)·손금(palm)·핫키워드(hot-keyword)·AI쌤 수학(mathtutor) | 단발성·일상·학생 |
-| **500pt** | 주식(stock)·명품(luxury)·중고(used-item)·보험(insurance)·운세/퀵메뉴(quick-menu)·골프(golf) | 무거운 전문 분석 |
+| **500pt** | 주식(stock)·명품(luxury)·중고(used-item)·보험(insurance)·운세/퀵메뉴(quick-menu) | 무거운 전문 분석 |
 | **1000pt** | 헤어스타일 진단(hair) | 합성 실비 높음(~57원) |
 | (사장 설정) | 닮은 연예인 찾기(lookalike) | 텍스트 1회 분석, 실비 ~2원, 바이럴 미끼 저가 의도. **MenuLimit 미등록 시 기본 50pt**(checkMenuAccess 폴백) |
 | 채팅 | **무료**(2026-07-08, 일 100회 한도. 구: 레벨별 100→50pt) | `recordFreeChatActivity` |
