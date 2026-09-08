@@ -250,7 +250,8 @@ const CSS = `
   border:1px solid #33475f;background:transparent;color:#9fb0c6;font-size:14px}
 
 /* 카드는 앱 배경에서 '떠 있어야' 한다. 명도차가 1.03~1.13밖에 안 돼 배경과 같은 면으로
-   읽히던 것을 올렸다(2026-09-08). 테두리도 #33475f→#3d5573으로 세워 경계를 만든다. */
+   읽혔다(2026-09-08). ★카드만 밝혀선 격차가 안 벌어져 배경까지 함께 눌렀다 →
+   앱배경↔카드 1.55, 배경↔테두리 3.13. */
 .cd-board{margin:0 14px;border:1px solid #4a678c;border-radius:14px;overflow:hidden;
   background:linear-gradient(180deg,#28394f,#223145);
   box-shadow:0 1px 0 rgba(255,255,255,.07) inset,0 8px 22px rgba(0,0,0,.45)}
