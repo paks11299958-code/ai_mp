@@ -233,3 +233,63 @@ describe('페이지 이동형 기능도 랜딩으로 돌아온다', () => {
         expect(rp).toMatch(/\/\^\\\/\(\?!\\\/\)\//);
     });
 });
+
+// 🔴2026-09-09 사장 지적 "설아 랜딩에서 **스윙분석을 클릭하면 창이 닫힘**".
+//
+// 원인: onFeature 는 `setDeepLinkGuide(null)`(랜딩 닫기) 후 `FEATURE_ACTIONS[key]()` 를 부른다.
+//   그런데 스윙 관련 UI 3종이 **chat return 안에만** 렌더돼 있어, main 에서 상태를 켜도
+//   아무것도 안 뜬다 → 사용자 눈에는 "창만 닫힌" 것으로 보인다.
+//   ★위 entryReturn 주석이 "보드는 main·chat 양쪽에 있다"고 전제했는데, **골프 3종은 예외**였다.
+//   (기능 21개 중 18개는 양쪽, golf-swing·swing·golf-record 만 chat 전용이었다.)
+//
+// ★이 종류는 tsc·빌드·번들 grep 이 전부 통과한다 — 코드는 있고 **위치**가 문제라서다.
+//   그래서 App.tsx 의 **렌더 위치 자체**를 검사한다. 새 기능을 붙일 때 또 빠뜨릴 자리다.
+describe('★★기능 보드는 main·chat 양쪽 return 에 렌더돼야 한다', () => {
+    const APP = readFileSync(resolve(__dirname, '../../App.tsx'), 'utf8');
+    const lines = APP.split('\n');
+    const mainAt = lines.findIndex(l => l.startsWith("    if (screen === 'main') {"));
+    const chatAt = lines.findIndex((l, i) => i > mainAt && l === '    return (');
+
+    /** `set<Xxx>(true)` 로 열리는 기능들의 상태 변수 이름을 featureBoardOpeners 에서 뽑는다. */
+    const openerVars = (): string[] => {
+        const block = APP.slice(APP.indexOf('const featureBoardOpeners'));
+        const body = block.slice(0, block.indexOf('\n    };'));
+        return [...body.matchAll(/=>\s*set(\w+)\(true\)/g)]
+            .map(m => m[1][0].toLowerCase() + m[1].slice(1));
+    };
+
+    const renderedIn = (variable: string) => {
+        const hits = lines
+            .map((l, i) => (new RegExp(`\\{\\s*${variable}\\s*&&`).test(l) ? i : -1))
+            .filter(i => i >= 0);
+        return new Set(hits.map(i => (i > mainAt && i < chatAt ? 'main' : 'chat')));
+    };
+
+    it('main·chat 블록 경계를 찾을 수 있다(구조가 바뀌면 이 테스트부터 고친다)', () => {
+        expect(mainAt).toBeGreaterThan(0);
+        expect(chatAt).toBeGreaterThan(mainAt);
+    });
+
+    it('featureBoardOpeners 로 열리는 보드가 **하나도 빠짐없이** main 에도 렌더된다', () => {
+        const missing = openerVars().filter(v => !renderedIn(v).has('main'));
+        expect(missing).toEqual([]);
+    });
+
+    it('★스윙 3종(그때 빠져 있던 것)이 main 에 있다', () => {
+        for (const v of ['showSwingInput', 'showSwingBoard']) {
+            expect(renderedIn(v).has('main')).toBe(true);
+            expect(renderedIn(v).has('chat')).toBe(true);
+        }
+    });
+
+    it('★진행 상태 카드도 양쪽에 있다 — 복붙 대신 변수 하나를 쓴다', () => {
+        const hits = lines
+            .map((l, i) => (l.includes('{swingProgressCard}') ? i : -1))
+            .filter(i => i >= 0);
+        const where = new Set(hits.map(i => (i > mainAt && i < chatAt ? 'main' : 'chat')));
+        expect(where.has('main')).toBe(true);
+        expect(where.has('chat')).toBe(true);
+        // 정의는 한 곳뿐이어야 한다(복붙하면 나중에 한쪽만 고친다)
+        expect(APP.match(/const swingProgressCard/g) || []).toHaveLength(1);
+    });
+});

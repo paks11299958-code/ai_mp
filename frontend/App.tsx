@@ -1427,6 +1427,64 @@ const AppContent: React.FC = () => {
         'tarot-daily': () => setTarotModalMode('daily'), // 오늘의 카드 — 같은 셔플·플립 의식으로 1장(성의)
     };
 
+    // ── 스윙 분석 진행 상태 카드 ──────────────────────────────────────────────
+    // ★main·chat **양쪽 return 에서 같은 걸 렌더한다**(2026-09-09 사장 지적 "스윙분석을
+    //   클릭하면 창이 닫힘"). 전엔 이 JSX 가 chat return 안에만 있어, 설아 랜딩(main)에서
+    //   누르면 랜딩만 닫히고 **아무 화면도 안 떴다**.
+    //   ★복붙하면 나중에 한쪽만 고치는 사고가 난다 → 변수 하나를 양쪽에서 쓴다.
+    const swingProgressCard = swingStep !== 'idle' ? (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[70] w-72 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-4 pointer-events-none">
+            <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm font-semibold text-white">스윙 분석</span>
+                <span className="ml-auto text-[10px] text-gray-500">
+                    {swingStep === 'uploading' ? '1/3' : swingStep === 'analyzing' ? '2/3' : '3/3'}
+                </span>
+            </div>
+            {/* 단계 목록 */}
+            {([
+                { key: 'uploading', label: '영상 업로드 중' },
+                { key: 'analyzing', label: 'AI 스윙 분석 중' },
+                { key: 'saving', label: '결과 저장 중' },
+            ] as const).map(({ key, label }, idx) => {
+                const stepOrder = { uploading: 0, analyzing: 1, saving: 2 };
+                const current = stepOrder[swingStep];
+                const done = idx < current;
+                const active = idx === current;
+                return (
+                    <div key={key} className="flex items-center gap-2.5 py-1.5">
+                        {done ? (
+                            <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                                <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>
+                            </span>
+                        ) : active ? (
+                            <span className="w-5 h-5 rounded-full border-2 border-green-400 border-t-transparent animate-spin shrink-0" />
+                        ) : (
+                            <span className="w-5 h-5 rounded-full border border-gray-600 shrink-0" />
+                        )}
+                        <span className={`text-xs ${done ? 'text-green-400' : active ? 'text-white' : 'text-gray-600'}`}>{label}</span>
+                    </div>
+                );
+            })}
+            {/* 진행 바 */}
+            <div className="mt-3 w-full bg-gray-700 rounded-full h-1 overflow-hidden">
+                <div
+                    className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-400"
+                    style={{
+                        width: swingStep === 'uploading' ? '20%'
+                            : swingStep === 'analyzing' ? '88%'
+                            : '100%',
+                        transition: swingStep === 'analyzing'
+                            ? 'width 32s ease-out'
+                            : 'width 0.4s ease',
+                    }}
+                />
+            </div>
+            {swingStep === 'analyzing' && (
+                <p className="mt-2 text-[10px] text-gray-500 text-center">Gemini AI가 영상을 분석하고 있어요 (20~40초)</p>
+            )}
+        </div>
+    ) : null;
+
     // ── 페르소나 진입 시트 ────────────────────────────────────────────────────
     // ★main·chat **양쪽 return에서 같은 걸 렌더한다**(2026-07-30 사장 지시 "채팅 페이지로
     //   전환되는 게 불만"). 전엔 이 JSX가 chat return 안에만 있어 소개를 띄우려면
@@ -1886,6 +1944,32 @@ const AppContent: React.FC = () => {
                         <GolfCourseBoard personaId={activePersona?.id} onClose={closeBoardAndReturn(() => setShowGolfCourseBoard(false))} />
                     </ErrorBoundary>
                 )}
+                {/* 🔴2026-09-09 사장 지적 "스윙분석 클릭하면 창이 닫힘".
+                    설아는 전용 랜딩이 없어 **기본 시트**를 쓰는데, onFeature 가
+                    setDeepLinkGuide(null) 로 랜딩을 닫은 뒤 setShowSwingInput(true) 를 켠다.
+                    그런데 이 두 블록이 **chat return 안에만** 있어서 main 에서는 켜도 아무것도
+                    안 뜬다 — 사용자 눈에는 "창만 닫힌" 것으로 보인다.
+                    ★같은 폴더의 다른 기능 18개는 이미 양쪽에 렌더돼 있었고 골프 3개만 빠져 있었다.
+                    (golf-course 는 09-08 에 추가하며 제대로 넣었다.) */}
+                {showSwingInput && (
+                    <ErrorBoundary label="스윙 업로드 화면 오류" onClose={() => setShowSwingInput(false)}>
+                        <SwingInputModal
+                            onClose={closeBoardAndReturn(() => setShowSwingInput(false))}
+                            onSubmit={handleSwingSubmit}
+                            isUploading={swingUploading}
+                        />
+                    </ErrorBoundary>
+                )}
+                {showSwingBoard && (
+                    <ErrorBoundary label="스윙 분석 화면 오류" onClose={() => setShowSwingBoard(false)}>
+                        <SwingAnalysisBoard
+                            onClose={closeBoardAndReturn(() => { setShowSwingBoard(false); setSwingResult(null); })}
+                            personaId={activePersonaId}
+                            initialResult={swingResult}
+                        />
+                    </ErrorBoundary>
+                )}
+                {swingProgressCard}
                 {showHairBoard && (
                     <ErrorBoundary label="헤어스타일 화면 오류" onClose={() => setShowHairBoard(false)}>
                         <HairStyleBoard personaId={activePersona?.id} onClose={closeBoardAndReturn(() => setShowHairBoard(false))} />
@@ -2464,60 +2548,8 @@ const AppContent: React.FC = () => {
                 />
             )}
 
-            {/* 스윙 분석 진행 상태 카드 */}
-            {swingStep !== 'idle' && (
-                <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[70] w-72 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-4 pointer-events-none">
-                    <div className="flex items-center gap-2 mb-3">
-                        <span className="text-sm font-semibold text-white">스윙 분석</span>
-                        <span className="ml-auto text-[10px] text-gray-500">
-                            {swingStep === 'uploading' ? '1/3' : swingStep === 'analyzing' ? '2/3' : '3/3'}
-                        </span>
-                    </div>
-                    {/* 단계 목록 */}
-                    {([
-                        { key: 'uploading', label: '영상 업로드 중' },
-                        { key: 'analyzing', label: 'AI 스윙 분석 중' },
-                        { key: 'saving', label: '결과 저장 중' },
-                    ] as const).map(({ key, label }, idx) => {
-                        const stepOrder = { uploading: 0, analyzing: 1, saving: 2 };
-                        const current = stepOrder[swingStep];
-                        const mine = idx;
-                        const done = mine < current;
-                        const active = mine === current;
-                        return (
-                            <div key={key} className="flex items-center gap-2.5 py-1.5">
-                                {done ? (
-                                    <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
-                                        <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>
-                                    </span>
-                                ) : active ? (
-                                    <span className="w-5 h-5 rounded-full border-2 border-green-400 border-t-transparent animate-spin shrink-0" />
-                                ) : (
-                                    <span className="w-5 h-5 rounded-full border border-gray-600 shrink-0" />
-                                )}
-                                <span className={`text-xs ${done ? 'text-green-400' : active ? 'text-white' : 'text-gray-600'}`}>{label}</span>
-                            </div>
-                        );
-                    })}
-                    {/* 진행 바 */}
-                    <div className="mt-3 w-full bg-gray-700 rounded-full h-1 overflow-hidden">
-                        <div
-                            className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-400"
-                            style={{
-                                width: swingStep === 'uploading' ? '20%'
-                                    : swingStep === 'analyzing' ? '88%'
-                                    : '100%',
-                                transition: swingStep === 'analyzing'
-                                    ? 'width 32s ease-out'
-                                    : 'width 0.4s ease',
-                            }}
-                        />
-                    </div>
-                    {swingStep === 'analyzing' && (
-                        <p className="mt-2 text-[10px] text-gray-500 text-center">Gemini AI가 영상을 분석하고 있어요 (20~40초)</p>
-                    )}
-                </div>
-            )}
+            {/* 스윙 분석 진행 상태 카드 — main·chat 양쪽에서 같은 것을 렌더한다(swingProgressCard) */}
+            {swingProgressCard}
 
             {/* 인트로 영상/이미지 모달 */}
             {introVideoModal && (
