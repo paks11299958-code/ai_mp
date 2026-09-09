@@ -62,13 +62,21 @@ const indexValue = (m: Market) => {
 /** summary(마크다운 표)에서 참고 행만 뽑는다.
  *  ★★'투자의견'·'봇 추세' 행은 "매수 (78점)" 같은 권유 표현이라 **제외**한다. */
 const DROP = /투자의견|봇 추세|매수|매도|추천/;
-const pickRows = (summary: string): [string, string][] => {
+/** GFM 표의 **구분선 셀**인가. `---` 뿐 아니라 정렬 표기 `:---` `---:` `:---:` 도 있다.
+ *  🔴2026-09-09 사장 지적 "셀트리온 글자가 깨졌다": 예전 `/^-+$/` 는 콜론을 몰라
+ *  `| :--------- | :------… |` 를 **데이터 행으로 착각**해 구분선을 화면에 그대로 찍었다.
+ *  같은 크론이 만든 요약인데도 종목마다 구분선 모양이 달라(알테오젠은 `|------|`) 한쪽만 깨졌다.
+ *  ★게다가 이 가짜 행이 slice(0,4) 한 자리를 먹어 **'핵심 리스크'가 잘려 나갔다.** */
+const isRule = (s: string) => /^:?-{2,}:?$/.test(s.replace(/\s/g, ''));
+// ★export 하는 이유: 테스트가 **출하되는 이 함수**를 부르게 하려고. 예전엔 테스트가 로직을
+//   복사해 두고 검사해서, 이 파일이 틀려도 테스트는 통과했다(셀트리온 깨짐을 못 잡았다).
+export const pickRows = (summary: string): [string, string][] => {
     const out: [string, string][] = [];
     (summary || '').split('\n').forEach(line => {
         const m = line.match(/^\s*\|\s*([^|]+?)\s*\|\s*(.+?)\s*\|\s*$/);
         if (!m) return;
         const k = m[1].trim(), v = m[2].trim();
-        if (!k || /^-+$/.test(k) || k === '구분' || DROP.test(k) || DROP.test(v)) return;
+        if (!k || isRule(k) || isRule(v) || k === '구분' || DROP.test(k) || DROP.test(v)) return;
         out.push([k, v.replace(/\*\*/g, '')]);
     });
     return out.slice(0, 4);

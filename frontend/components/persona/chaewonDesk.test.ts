@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { buildCandles, buildChart, clampX, type OHLC } from './ChaewonDeskEntry';
+import { buildCandles, buildChart, clampX, pickRows, type OHLC } from './ChaewonDeskEntry';
 
 // 윤채원 트레이딩 데스크 랜딩 (2026-09-07).
 //
@@ -136,18 +136,9 @@ describe('요약 표 파싱', () => {
         '| 핵심 리스크 | 지정학적 요인 |',
     ].join('\n');
 
-    const DROP = /투자의견|봇 추세|매수|매도|추천/;
-    const pickRows = (s: string): [string, string][] => {
-        const out: [string, string][] = [];
-        (s || '').split('\n').forEach(line => {
-            const m = line.match(/^\s*\|\s*([^|]+?)\s*\|\s*(.+?)\s*\|\s*$/);
-            if (!m) return;
-            const k = m[1].trim(), v = m[2].trim();
-            if (!k || /^-+$/.test(k) || k === '구분' || DROP.test(k) || DROP.test(v)) return;
-            out.push([k, v.replace(/\*\*/g, '')]);
-        });
-        return out.slice(0, 4);
-    };
+    // ★★로직을 복사해 두지 않는다 — 예전엔 복사본을 검사해서 **출하되는 코드가 틀려도
+    //   테스트는 통과**했다(2026-09-09 셀트리온 깨짐을 이 테스트가 못 잡았다).
+    //   이제 실제 컴포넌트가 쓰는 pickRows 를 그대로 부른다.
 
     it('★투자의견·봇 추세 행은 나오지 않는다', () => {
         const keys = pickRows(summary).map(r => r[0]);
@@ -165,6 +156,42 @@ describe('요약 표 파싱', () => {
         expect(keys).toContain('목표주가');
         expect(keys).toContain('현재주가');
         expect(keys).toContain('핵심 리스크');
+    });
+
+    // 🔴2026-09-09 사장 지적 "셀트리온 글자가 깨진 것 같다".
+    //   같은 크론이 만든 요약인데 종목마다 구분선 모양이 다르다 —
+    //   알테오젠 `|------|`(제외됨) / 셀트리온 `| :--------- | :----… |`(**통과해서 화면에 찍힘**).
+    //   옛 필터 `/^-+$/` 가 GFM 정렬 표기(`:---`)를 몰랐던 게 원인.
+    describe('★★표 구분선은 어떤 모양이든 데이터 행이 아니다', () => {
+        const withRule = (rule: string) => [
+            '투자 요약', '',
+            '| 구분 | 내용 |',
+            rule,
+            '| 목표주가 | 267,626원 ~ 268,232원 |',
+            '| 현재주가 | 183,300원 |',
+            '| 상승여력 | 약 46.0% |',
+            '| 핵심 리스크 | 바이오시밀러 경쟁 심화 |',
+        ].join('\n');
+
+        // GFM 이 허용하는 정렬 표기 전부
+        const RULES = [
+            '|------|------|',
+            '| :--------- | :------------------------ |',   // ★실제로 깨졌던 그 모양
+            '| ---: | ---: |',
+            '| :---: | :---: |',
+            '| :-- | --: |',
+        ];
+
+        it.each(RULES)('구분선 %s 이 행으로 새지 않는다', rule => {
+            const keys = pickRows(withRule(rule)).map(r => r[0]);
+            expect(keys.some(k => /^[:\-\s]+$/.test(k))).toBe(false);
+        });
+
+        it('★구분선이 한 자리를 먹어 핵심 리스크가 잘리지 않는다(slice(0,4))', () => {
+            // 실제 사고: 가짜 행이 첫 자리를 차지해 4개 제한에 밀려 '핵심 리스크'가 사라졌다.
+            const keys = pickRows(withRule('| :--------- | :------------------------ |')).map(r => r[0]);
+            expect(keys).toEqual(['목표주가', '현재주가', '상승여력', '핵심 리스크']);
+        });
     });
 
     it('표 머리글·구분선은 버린다', () => {
