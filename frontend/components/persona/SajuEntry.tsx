@@ -351,7 +351,10 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature,
                         )}
 
                         <div className="sj-ctas">
-                            <button className="sj-cta" onClick={onInvite}>
+                            <button className="sj-cta" onClick={() => onStart(guide.autoRunFeatureKey)}>
+                                도결 선생과 대화하기
+                            </button>
+                            <button className="sj-cta2" onClick={onInvite}>
                                 🎁 친구 초대 +1000P
                             </button>
                             {features.length > 0 && (

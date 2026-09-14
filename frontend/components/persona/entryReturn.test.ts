@@ -188,6 +188,16 @@ describe('전용 랜딩 분기 — PersonaEntrySheet 한 곳에서만 갈린다'
     });
 });
 
+describe('도결 랜딩의 기본 채팅 진입', () => {
+    const saju = readFileSync(resolve(process.cwd(), 'components/persona/SajuEntry.tsx'), 'utf8');
+
+    it('친구 초대와 별개로 도결 선생 채팅 버튼을 제공한다', () => {
+        expect(saju).toContain('도결 선생과 대화하기');
+        expect(saju).toMatch(/onClick=\{\(\) => onStart\(guide\.autoRunFeatureKey\)\}/);
+        expect(saju).toContain('🎁 친구 초대 +1000P');
+    });
+});
+
 describe('페이지 이동형 기능도 랜딩으로 돌아온다', () => {
     // 2026-09-07 사장 지적: 아린 랜딩에서 '이미지 → 프롬프트'로 가면 돌아올 수 없었다.
     // ★그 기능은 보드가 아니라 **최상위 얼리리턴 라우트**(/reverse-prompt)라 앱 전체를
