@@ -33,7 +33,7 @@ describe('ChaerinStudioEntry', () => {
         const cases: [string, string][] = [
             ['시간여행', 'agetransform'],
             ['헤어스타일', 'hair'],
-            ['전통의상', 'outfit'],
+            ['프로필 사진', 'outfit'],
             ['닮은꼴', 'lookalike'],
         ];
         for (const [label, key] of cases) {

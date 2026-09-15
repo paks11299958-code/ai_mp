@@ -48,7 +48,7 @@ const STYLES: { img: string; label: string; cap: string; feature?: string }[] = 
 const MENU: { key: string; name: string; desc: string; cost: string; thumb?: string }[] = [
     { key: 'agetransform', name: '시간여행',   desc: '열 살부터 여든까지, 그때의 나', cost: '100P', thumb: IMG.menuAge },
     { key: 'hair',         name: '헤어스타일', desc: '48종 중에서 오늘의 머리',       cost: '200P', thumb: IMG.hair },
-    { key: 'outfit',       name: '전통의상',   desc: '나라별 전통의상 전신 화보',     cost: '200P', thumb: IMG.menuOutfit },
+    { key: 'outfit',       name: '프로필 사진', desc: '실사부터 지브리까지 컨셉 프사', cost: '200P', thumb: IMG.menuOutfit },
     { key: 'lookalike',    name: '닮은꼴',     desc: '당신과 닮은 얼굴 찾기',         cost: '무료' },
 ];
 
