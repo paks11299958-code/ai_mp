@@ -28,7 +28,9 @@ const IMG = {
     webtoon: '/chaerin/style-webtoon.jpg',
     hair:    '/chaerin/style-hair.jpg',
     menuAge:    '/chaerin/menu-age.jpg',
-    menuOutfit: '/chaerin/menu-outfit.jpg',
+    // ★내용만 바꾸고 파일명을 두면 폰이 디스크 캐시의 옛 그림을 계속 쓴다(2026-09-15 실측:
+    //   서버 ETag 는 새 파일인데 화면엔 한복이 보였다). 이미지를 갈 때는 파일명도 함께 올린다.
+    menuOutfit: '/chaerin/menu-outfit-v2.jpg',
 } as const;
 
 /** 모션 감소 설정 — 어지럼증 접근성. 켜져 있으면 움직임을 전부 끈다. */
