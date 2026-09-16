@@ -422,8 +422,13 @@ async function checkAstaRouter() {
     const UNITS = ['plan', 'develop', 'notify', 'sync', 'research', 'image-design', 'shorts'];
     const MODEL_UNITS = new Set(['research', 'image-design', 'shorts']);
 
-    const timerR = await run('systemctl', ['--user', 'list-timers', '--all', '--no-pager',
-                                           '--output=json'], 15_000);
+    // ★크론에는 XDG_RUNTIME_DIR 이 없어 `systemctl --user` 가 통째로 실패한다.
+    //   2026-09-16 에 이 점검을 넣고 터미널에서만 시험해서, 크론에서는 3시간마다
+    //   "타이머 상태 확인불가" 가짜 경보가 떴다(타이머는 멀쩡했다).
+    //   → 런타임 디렉토리를 명시해 부른다. 실제 uid 로 만든다(하드코딩 금지).
+    const timerR = await run('env', [`XDG_RUNTIME_DIR=/run/user/${process.getuid()}`,
+                                     'systemctl', '--user', 'list-timers', '--all',
+                                     '--no-pager', '--output=json'], 15_000);
     const active = new Set();
     if (timerR.ok) {
         try {
