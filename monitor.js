@@ -414,6 +414,69 @@ async function checkAiStudio() {
     return { ok: true, detail: parts.join(' · ') };
 }
 
+/** 아스트라 라우터 — 타이머 가동과 큐 적체를 본다(서버2 로컬).
+ *  ★제작 어댑터(research/image-design/shorts)는 돌 때마다 유료 모델을 부른다.
+ *    그래서 "타이머가 켜져 있나"와 "밀린 작업이 몇 건인가"를 **둘 다** 보여준다 —
+ *    하나만 보면 '조용한 것'과 '멈춘 것'을 구분할 수 없다. */
+async function checkAstaRouter() {
+    const UNITS = ['plan', 'develop', 'notify', 'sync', 'research', 'image-design', 'shorts'];
+    const MODEL_UNITS = new Set(['research', 'image-design', 'shorts']);
+
+    const timerR = await run('systemctl', ['--user', 'list-timers', '--all', '--no-pager',
+                                           '--output=json'], 15_000);
+    const active = new Set();
+    if (timerR.ok) {
+        try {
+            for (const row of JSON.parse(timerR.out || '[]')) {
+                const m = /asta-router-([a-z-]+)\.timer/.exec(row.unit || '');
+                if (m) active.add(m[1]);
+            }
+        } catch { /* 형식이 바뀌면 아래 '확인불가'로 떨어진다 */ }
+    }
+
+    // 큐 적체와 최근 실행 — DB 를 직접 읽는다(쓰기 없음).
+    const dbR = await run('/home/paks11299958/rag-env/bin/python', ['-c',
+        'import sqlite3,json,time\n' +
+        'c=sqlite3.connect("file:/home/paks11299958/rag/state/asta-router/router.sqlite3?mode=ro",uri=True)\n' +
+        'c.row_factory=sqlite3.Row\n' +
+        'q={r["status"]:r["n"] for r in c.execute("SELECT status,count(*) n FROM steps GROUP BY status")}\n' +
+        'pend=c.execute("SELECT count(*) n FROM router_notifications WHERE status=\'pending\'").fetchone()["n"]\n' +
+        'print(json.dumps({"steps":q,"pendingNotices":pend}))'], 15_000);
+
+    const missing = UNITS.filter((u) => !active.has(u));
+    const modelOff = [...MODEL_UNITS].filter((u) => !active.has(u));
+    const parts = [];
+
+    if (!timerR.ok) return { ok: false, detail: '타이머 상태 확인불가(systemctl 실패)' };
+    parts.push(`타이머 ${active.size}/${UNITS.length}`);
+    if (modelOff.length) parts.push(`제작 꺼짐: ${modelOff.join(',')}`);
+
+    let queued = 0, running = 0, pendingNotices = 0;
+    if (dbR.ok) {
+        try {
+            const d = JSON.parse(dbR.out.trim().split('\n').pop());
+            queued = d.steps.queued || 0;
+            running = d.steps.running || 0;
+            pendingNotices = d.pendingNotices || 0;
+            parts.push(`대기 ${queued}건 · 진행 ${running}건`);
+            if (pendingNotices) parts.push(`미발송 알림 ${pendingNotices}건`);
+        } catch { parts.push('큐 확인불가(형식)'); }
+    } else {
+        parts.push('큐 확인불가(DB 조회 실패)');
+    }
+
+    // ★'대기 작업이 있는데 제작 타이머가 꺼져 있다' = 영원히 안 돌아간다. 이건 이상이다.
+    const stalled = queued > 0 && modelOff.length > 0;
+    // 진행 중인데 알림이 밀려 있으면 보고가 끊긴 것이다.
+    const silent = running > 0 && pendingNotices > 0;
+    const ok = !stalled && !silent && missing.length === 0;
+    if (stalled) parts.push('🔴 대기 작업이 있는데 제작 타이머가 꺼져 있다');
+    if (silent) parts.push('⚠️ 보고가 밀려 있다');
+    else if (missing.length) parts.push(`미설치: ${missing.join(',')}`);
+
+    return { ok, detail: parts.join(' · ') };
+}
+
 /** /proc/meminfo·df 파싱 결과를 한 줄 요약 + 이상여부로 변환. 서버1·2 공용. */
 function summarizeResources(label, { diskPct, memPct, swapPct, swapUsedMb }) {
     const flags = [];
@@ -623,15 +686,16 @@ async function checkResources() {
         // 브라우저 점검과 독립이라 병렬로 돈다(각 함수는 던지지 않고 결과를 반환).
         // Promise.all 이 아니라 allSettled 로 받는다 — 하나가 예상 못 한 예외로
         // 터져도 나머지 보고는 나가야 한다.
-        const [tossR, hermesR, dbR, dockerR, resR, studioR] = await Promise.allSettled([
+        const [tossR, hermesR, dbR, dockerR, resR, studioR, astaR] = await Promise.allSettled([
             checkTossTrader(), checkHermes(), checkDatabase(), checkDockerServices(), checkResources(),
-            checkAiStudio(),
+            checkAiStudio(), checkAstaRouter(),
         ]);
         const unwrap = (r, label) =>
             r.status === 'fulfilled' ? r.value : { ok: false, detail: `${label} 점검 예외: ${r.reason?.message ?? r.reason}` };
 
         results.toss     = unwrap(tossR,   '토스봇');
         results.aiStudio = unwrap(studioR, 'AI스튜디오');
+        results.astaRouter = unwrap(astaR, '아스트라');
         results.hermes = unwrap(hermesR, '헤르메스');
 
         if (dbR.status === 'fulfilled') {
@@ -745,6 +809,7 @@ async function checkResources() {
                 typebotBuilder: results.tbBuild,
                 typebotViewer:  results.tbView,
                 aiStudio:   results.aiStudio,
+                astaRouter: results.astaRouter,
                 server1:    results.server1,
                 server2:    results.server2,
                 durationMs: Date.now() - startedAt,
