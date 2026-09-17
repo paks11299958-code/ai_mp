@@ -6,6 +6,7 @@ import { ChaerinStudioEntry } from './persona/ChaerinStudioEntry';
 import { ArinPromoEntry } from './persona/ArinPromoEntry';
 import { ChaewonDeskEntry } from './persona/ChaewonDeskEntry';
 import { YunaTarotEntry } from './persona/YunaTarotEntry';
+import { JihoonBookEntry } from './persona/JihoonBookEntry';
 
 // 페르소나 진입 시트 — 메인/채팅 어느 화면에서든 **화면 전환 없이** 덮어 띄운다.
 //
@@ -110,6 +111,12 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     if (guide.title?.startsWith('유나')) {
         return <YunaTarotEntry guide={guide} onClose={onClose} onStart={onStart}
                                onFeature={onFeature} onInvite={onInvite} />;
+    }
+    // 강지훈은 승인된 별빛 책방 진입화면을 쓴다. 전자책 보드는 기존 ebook 기능으로,
+    // 대화는 기존 onStart 경로로 넘겨 과금·저장 계약을 새로 만들지 않는다.
+    if (guide.title?.startsWith('강지훈')) {
+        return <JihoonBookEntry guide={guide} onClose={onClose} onStart={onStart}
+                                onFeature={onFeature} onInvite={onInvite} />;
     }
 
     const who = guide.personaName || guide.title;
