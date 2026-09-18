@@ -4,7 +4,7 @@
 
 - 컴포넌트: `frontend/components/persona/SeolaGolfEntry.tsx`
 - 분기: `frontend/components/PersonaEntrySheet.tsx`의 `startsWith('설아')`
-- 자산: `public/seola/summer-putt-hero-v2.png`
+- 자산: `public/seola/putt-{desktop,mobile}-v3.png`, `public/seola/celebrate-{desktop,mobile}-v3.png`
 - 계약 테스트: `frontend/components/persona/SeolaGolfEntry.test.tsx`
 
 ## 동작 계약
@@ -17,8 +17,10 @@
 
 ## 화면과 접근성
 
-- 성인 여성 골퍼의 여름 퍼팅 장면 위에서 공이 홀컵으로 굴러 들어가는 7초 반복 모션을 제공한다.
-- `prefers-reduced-motion: reduce`에서는 조명·공·홀컵 애니메이션을 정지한다.
+- 한국인 성인 여성 골퍼의 퍼팅 인트로에서 공이 홀컵으로 한 번 굴러 들어간 뒤 인트로가 자동으로 닫힌다.
+- 뒤의 메인 화면은 같은 인물이 성공을 기뻐하는 장면으로 바뀐 채 반복 없이 정지한다.
+- 데스크톱과 모바일에 각각 별도 구도의 `<picture>` 자산을 제공해 단순 크롭으로 인물·홀컵이 잘리지 않게 한다.
+- `prefers-reduced-motion: reduce`에서는 퍼팅 인트로를 즉시 건너뛰고 성공 정지 화면을 표시한다.
 - 스윙 리포트 수치와 코칭 문구는 모두 `[예시]`이며 실제 분석 결과가 아니다.
 - 공개 데이터에 없는 평점 숫자·확정 가격은 표시하지 않고 예약 대행을 주장하지 않는다.
 - 데스크톱은 양단 구성, 모바일은 단일 열로 바뀌며 키보드 포커스와 `aria-pressed`를 제공한다.

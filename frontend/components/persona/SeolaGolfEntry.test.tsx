@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PersonaEntrySheet } from '../PersonaEntrySheet';
 import { SeolaGolfEntry } from './SeolaGolfEntry';
@@ -40,6 +40,25 @@ describe('SeolaGolfEntry', () => {
         fireEvent.click(screen.getByRole('button', { name: '닫기' }));
         fireEvent.keyDown(window, { key: 'Escape' });
         expect(props.onClose).toHaveBeenCalledTimes(2);
+    });
+
+    it('퍼팅 공이 홀에 들어가면 인트로 모달이 닫히고 성공 장면이 남는다', () => {
+        vi.useFakeTimers();
+        renderEntry();
+        expect(screen.getByRole('dialog', { name: '설아의 퍼팅 인트로' })).toBeTruthy();
+        expect(screen.getByRole('img', { name: '퍼팅에 성공해 기뻐하는 설아' })).toBeTruthy();
+        act(() => vi.advanceTimersByTime(5400));
+        expect(screen.queryByRole('dialog', { name: '설아의 퍼팅 인트로' })).toBeNull();
+        expect(screen.getByRole('img', { name: '퍼팅에 성공해 기뻐하는 설아' })).toBeTruthy();
+        vi.useRealTimers();
+    });
+
+    it('데스크톱과 모바일 전용 퍼팅·성공 이미지를 제공한다', () => {
+        renderEntry();
+        expect(document.querySelector('source[srcSet="/seola/putt-mobile-v3.png"]')).toBeTruthy();
+        expect(document.querySelector('img[src="/seola/putt-desktop-v3.png"]')).toBeTruthy();
+        expect(document.querySelector('source[srcSet="/seola/celebrate-mobile-v3.png"]')).toBeTruthy();
+        expect(document.querySelector('img[src="/seola/celebrate-desktop-v3.png"]')).toBeTruthy();
     });
 });
 
