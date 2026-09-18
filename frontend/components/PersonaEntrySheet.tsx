@@ -7,6 +7,7 @@ import { ArinPromoEntry } from './persona/ArinPromoEntry';
 import { ChaewonDeskEntry } from './persona/ChaewonDeskEntry';
 import { YunaTarotEntry } from './persona/YunaTarotEntry';
 import { JihoonBookEntry } from './persona/JihoonBookEntry';
+import { SeolaGolfEntry } from './persona/SeolaGolfEntry';
 
 // 페르소나 진입 시트 — 메인/채팅 어느 화면에서든 **화면 전환 없이** 덮어 띄운다.
 //
@@ -79,6 +80,12 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     //   ★임의 문자열 매칭이 아니라 위 도결 분기와 같은 규약을 그대로 쓴다.
     if (guide.title?.startsWith('서아')) {
         return <SeoaNewsDeskEntry guide={guide} onClose={onClose} onInvite={onInvite} onFeature={onFeature} />;
+    }
+    // 설아는 스윙 분석과 내 주변 골프장을 한 흐름으로 보여주는 전용 골프 코칭 랜딩을 쓴다.
+    // '서아'와 한 글자 차이이므로 위 뉴스데스크 분기와 별도로 정확한 접두사를 검사한다.
+    if (guide.title?.startsWith('설아')) {
+        return <SeolaGolfEntry guide={guide} onClose={onClose} onStart={onStart}
+                               onFeature={onFeature} onInvite={onInvite} />;
     }
     // ★윤채린도 같은 규약으로 AI 스튜디오 랜딩으로 갈아 끼운다(2026-09-06 사장 지시).
     //   얼굴을 바꿔주는 기능이 넷인데 기능 카드로 흩어져 "AI 스튜디오"라는 정체가 안 보였다.

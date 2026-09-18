@@ -82,6 +82,7 @@
 
 ### 프론트 (frontend/components/EbookBoard.tsx)
 - 탭 3개. 탭1 판형 버튼. 탭2 예약만(즉시생성 버튼 없음)+품절표시. 탭3 본문 읽기전용+표지 업로드+문서(다운로드 상태유지). 진행탭 sticky 고정.
+- 목록은 강지훈 진입화면의 별빛 편집실 톤을 잇는 모달형 `내 책장`으로 표시한다. 상단에 3단계 제작 순서를 안내하고, 각 책은 저장된 챕터·예약·문서 상태에 따라 현재 단계와 다음 행동을 보여준다. 카드를 누르면 해당 상태에 맞는 기존 작업 탭(제목·목차/자료 수집/초안 완성)으로 바로 이어진다(2026-09-18).
 - apiService: generateDocx, uploadCover/coverUploadUrl/saveCoverUrl, setPageSize, getSlots, setSchedule, setCollectFlags. 제거: generateCover/generatePdf/generateContent/rewriteChapter/generateDraft/collectAll.
 - EbookProject: coverUrl/docxUrl/pageSize/author/scheduledHour
 

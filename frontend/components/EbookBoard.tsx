@@ -12,6 +12,34 @@ const T = {
     accent: '#8E6FB7', accentSoft: 'rgba(142,111,183,0.10)', accentBorder: 'rgba(142,111,183,0.4)',
 };
 
+const STUDIO_CSS = `
+.eb-backdrop{background:rgba(4,13,20,.78);backdrop-filter:blur(10px);padding:18px}
+.eb-modal{width:min(1120px,100%);height:min(860px,calc(100svh - 36px));background:#f7f3e9;border:1px solid rgba(215,184,109,.35);border-radius:24px;overflow:hidden;box-shadow:0 30px 100px rgba(0,0,0,.5)}
+.eb-header{min-height:68px;background:#0c1d29;color:#fff;border-bottom:1px solid rgba(255,255,255,.1)}
+.eb-brand{font:500 17px Georgia,"Noto Serif KR",serif}.eb-brand small{color:#d7b86d;font:800 9px/1 Pretendard,sans-serif;letter-spacing:.18em}
+.eb-icon-button{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;color:#d7e0e3}.eb-icon-button:hover{background:rgba(255,255,255,.09)}
+.eb-library{background:#112938;color:#fff}.eb-library-inner{width:min(980px,100%);margin:auto;padding:44px 28px 54px}
+.eb-kicker{color:#d7b86d;font-size:10px;font-weight:800;letter-spacing:.16em}.eb-title{font:500 clamp(30px,4vw,48px)/1.18 Georgia,"Noto Serif KR",serif;margin:10px 0 8px}.eb-intro{color:#b9c9ce;font-size:13px;line-height:1.7;margin:0}
+.eb-flow{display:grid;grid-template-columns:repeat(3,1fr);margin:30px 0 38px;border-top:1px solid rgba(255,255,255,.19)}.eb-flow-step{position:relative;padding:18px 22px 4px 0;border-right:1px solid rgba(255,255,255,.13)}.eb-flow-step+.eb-flow-step{padding-left:22px}.eb-flow-step:last-child{border-right:0}.eb-flow-num{font:italic 18px Georgia,serif;color:#d7b86d}.eb-flow-step strong{display:block;margin:9px 0 5px;font:600 15px Georgia,"Noto Serif KR",serif}.eb-flow-step span{color:#9fb2b9;font-size:11px;line-height:1.5}
+.eb-shelf-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:16px}.eb-shelf-head h3{font:500 24px Georgia,"Noto Serif KR",serif;margin:0}.eb-count{color:#93a8b0;font-size:11px;margin-top:5px}.eb-new{min-height:46px;padding:0 18px;border-radius:4px;background:#f7f3e9;color:#13283a;font-weight:800;box-shadow:0 8px 26px rgba(0,0,0,.2)}
+.eb-books{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.eb-book-card{position:relative;min-height:208px;border-radius:5px;background:#f7f3e9;color:#18303c;border:1px solid rgba(215,184,109,.24);box-shadow:0 15px 38px rgba(0,0,0,.2);transition:transform .18s ease,box-shadow .18s ease;overflow:hidden}.eb-book-card:hover{transform:translateY(-3px);box-shadow:0 20px 48px rgba(0,0,0,.28)}.eb-book-card::before{content:'';position:absolute;z-index:2;left:0;top:12px;bottom:12px;width:4px;background:#a85c68;border-radius:0 4px 4px 0}.eb-book-open{width:100%;min-height:208px;padding:20px;text-align:left;color:inherit}.eb-book-top{display:flex;justify-content:space-between;align-items:center}.eb-book-no{font:italic 12px Georgia,serif;color:#a85c68}.eb-delete{position:absolute;z-index:3;right:12px;top:12px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;color:#a85c68;opacity:.65}.eb-delete:hover{background:#f0e5df;opacity:1}.eb-book-card h4{font:600 18px/1.45 Georgia,"Noto Serif KR",serif;margin:22px 0 7px;padding-right:20px}.eb-topic{color:#68777c;font-size:11px;line-height:1.5;min-height:32px}.eb-progress{margin-top:19px;padding-top:13px;border-top:1px solid #d6d1c7;display:flex;align-items:center;justify-content:space-between;gap:8px}.eb-stage{color:#315b58;font-size:11px;font-weight:800}.eb-continue{color:#a85c68;font-size:11px;font-weight:800}.eb-empty{grid-column:1/-1;padding:54px 20px;text-align:center;border:1px dashed rgba(255,255,255,.22);border-radius:6px;color:#b9c9ce}.eb-empty strong{display:block;color:#fff;font:500 21px Georgia,"Noto Serif KR",serif;margin-bottom:8px}
+.eb-workarea{background:#f7f3e9}
+.eb-modal :focus-visible{outline:3px solid #f3c96f;outline-offset:3px}
+@media(max-width:760px){.eb-backdrop{padding:0}.eb-modal{height:100svh;border:0;border-radius:0}.eb-header{min-height:60px}.eb-library-inner{padding:30px 18px 44px}.eb-flow{grid-template-columns:1fr;margin:24px 0 30px}.eb-flow-step,.eb-flow-step+.eb-flow-step{padding:13px 0;border-right:0;border-bottom:1px solid rgba(255,255,255,.13);display:grid;grid-template-columns:38px 1fr;column-gap:7px}.eb-flow-step:last-child{border-bottom:0}.eb-flow-step strong{margin:0}.eb-flow-step span{grid-column:2}.eb-books{grid-template-columns:1fr}.eb-shelf-head{align-items:center}.eb-shelf-head h3{font-size:21px}.eb-new{min-width:46px;padding:0 13px}.eb-new-label{display:none}}
+@media(prefers-reduced-motion:reduce){.eb-book-card{transition:none}.eb-book-card:hover{transform:none}}
+`;
+
+const bookStage = (project: EbookProject) => {
+    const chapters = project.chapters ?? [];
+    if (project.docxUrl || chapters.some(chapter => typeof chapter.contentMd === 'string' && chapter.contentMd.trim())) {
+        return { label: '3단계 · 초안 완성', next: '완성본 확인하기', tab: 5 as const };
+    }
+    if (project.scheduledHour || chapters.some(chapter => chapter.sourceStatus === 'done')) {
+        return { label: '2단계 · 자료 수집', next: '자료 이어가기', tab: 4 as const };
+    }
+    return { label: '1단계 · 제목·목차', next: '설계 이어가기', tab: 1 as const };
+};
+
 // 자료수집 단계 칩 (접수→수집→완료)
 // 단계 칩 (접수 → 수집 → 완료). state: 'done'(지난단계) | 'current'(진행중) | 'todo'(예정)
 const Stage: React.FC<{ label: string; state: 'done' | 'current' | 'todo' }> = ({ label, state }) => {
@@ -509,9 +537,20 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     };
 
     const loadList = useCallback(() => {
-        ebookApi.list().then(setList).catch(() => {});
+        ebookApi.list().then(async summaries => {
+            setList(summaries);
+            const details = await Promise.allSettled(summaries.map(project => ebookApi.get(project.id)));
+            setList(summaries.map((summary, index) => details[index].status === 'fulfilled'
+                ? (details[index] as PromiseFulfilledResult<EbookProject>).value
+                : summary));
+        }).catch(() => {});
     }, []);
     useEffect(() => { loadList(); }, [loadList]);
+    useEffect(() => {
+        const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape' && !pointConfirm && !zoomImage) onClose(); };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [onClose, pointConfirm, zoomImage]);
 
     // 자료 수집 탭(4) 열릴 때 시간대 예약 현황(품절) 로드
     useEffect(() => { if (selected && activeTab === 4) loadSlots(); }, [selected?.id, activeTab, loadSlots]);
@@ -558,7 +597,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         try {
             const project = await ebookApi.get(id);
             setSelected(project);
-            setShowForm(false); setActiveTab(1); setEditing(false);
+            setShowForm(false); setActiveTab(bookStage(project).tab); setEditing(false);
             // 그림 자리 상태 복원(재방문 시 유지) — 완료분은 미리보기, 진행 중(queued)이면 폴링 자동 재개.
             // ★버그 수정(2026-07-25 사장 발견): imgPrompts를 복원 안 해서 재방문 시 "AI 이미지
             // 일괄 생성" 버튼(N/M 표시가 들어있는 그 버튼) 자체가 사라지고 진행바만 남는 문제 —
@@ -598,18 +637,19 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[70] flex items-stretch md:items-center justify-center md:p-4" style={{ background: 'rgba(20,12,30,0.5)' }}>
-            <div className="w-full md:max-w-5xl h-full md:h-auto md:max-h-[92vh] flex flex-col md:rounded-2xl overflow-hidden shadow-2xl" style={{ background: T.bg }}>
+        <div className="eb-backdrop fixed inset-0 z-[70] flex items-center justify-center">
+            <style>{STUDIO_CSS}</style>
+            <div className="eb-modal flex flex-col" role="dialog" aria-modal="true" aria-label="강지훈의 전자책 작업실">
                 {/* 헤더 */}
-                <div className="flex items-center justify-between px-5 py-3.5 shrink-0" style={{ borderBottom: `1px solid ${T.border}`, background: T.card }}>
+                <div className="eb-header flex items-center justify-between px-5 md:px-7 py-3.5 shrink-0">
                     <div className="flex items-center gap-2">
-                        <BookOpen size={17} style={{ color: T.accent }} />
-                        <span className="font-bold text-base" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>전자책 만들기 <span className="text-[10px] tracking-[0.15em]" style={{ color: T.accent }}>EBOOK STUDIO</span></span>
+                        <BookOpen size={18} style={{ color: '#d7b86d' }} />
+                        <span className="eb-brand">강지훈의 편집실 <small>EBOOK STUDIO</small></span>
                     </div>
                     <div className="flex items-center gap-1">
                         <HelpButton
                             title="전자책 만들기, 이렇게 진행돼요"
-                            accent={T.accent}
+                            accent="#d7b86d"
                             steps={[
                                 { title: '제목·목차 정하기', desc: '주제를 입력하면 작가 AI가 목차를 만들어줘요. 제목·저자명·책 크기(판형)를 정합니다.' },
                                 { title: '만들 챕터 고르고 새벽 시간 예약', desc: '자료 수집 탭에서 만들 챕터를 체크하고 새벽 시간(1~5시)을 예약하면, 그 시각에 자료수집부터 본문까지 자동으로 만들어져요.' },
@@ -617,40 +657,56 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                             ]}
                             tip="본문은 밤사이 자동으로 만들어져요. 오늘 예약하고 내일 다시 들러 결과를 확인하세요 🌙"
                         />
-                        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-black/5"><X size={18} style={{ color: T.inkMute }} /></button>
+                        <button type="button" onClick={onClose} className="eb-icon-button" aria-label="전자책 작업실 닫기"><X size={19} /></button>
                     </div>
                 </div>
 
-                <div className="flex flex-1 overflow-hidden">
+                <div className="eb-workarea flex flex-1 overflow-hidden">
                     {/* 목록 화면: 전체폭 (선택·작성 전에만). 선택/작성 시 숨기고 풀폭 전환(주식분석 패턴) */}
-                    <div className={`${!selected && !showForm ? 'flex' : 'hidden'} w-full shrink-0 flex-col`}>
-                        <div className="flex-1 overflow-y-auto p-5">
-                            <div className="max-w-4xl mx-auto">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-base font-bold" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>내 전자책</h3>
-                                    <button onClick={() => { setShowForm(true); setSelected(null); setError(null); }}
-                                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold"
-                                        style={{ background: T.accent, color: '#fff' }}>
-                                        <Plus size={15} /> 새 전자책
-                                    </button>
+                    <div className={`${!selected && !showForm ? 'flex' : 'hidden'} eb-library w-full shrink-0 flex-col`}>
+                        <div className="flex-1 overflow-y-auto">
+                            <div className="eb-library-inner">
+                                <div className="eb-kicker">MY BOOKMAKING DESK</div>
+                                <h2 className="eb-title">한 권씩, 차근차근 완성해요</h2>
+                                <p className="eb-intro">만들던 책을 골라 다음 단계부터 이어가거나, 새로운 이야기를 시작해 보세요.</p>
+
+                                <div className="eb-flow" aria-label="전자책 제작 순서">
+                                    {[
+                                        ['01', '제목·목차', '책의 중심과 장별 흐름을 설계합니다.'],
+                                        ['02', '자료 수집', '챕터를 고르고 새벽 작업을 예약합니다.'],
+                                        ['03', '초안 완성', '표지와 원고를 확인하고 문서를 받습니다.'],
+                                    ].map(([number, title, description]) => (
+                                        <div className="eb-flow-step" key={number}>
+                                            <div className="eb-flow-num">{number}</div><strong>{title}</strong><span>{description}</span>
+                                        </div>
+                                    ))}
                                 </div>
 
+                                <div className="eb-shelf-head">
+                                    <div><h3>내 책장</h3><div className="eb-count">{list.length}권의 작업 기록</div></div>
+                                    <button type="button" onClick={() => { setShowForm(true); setSelected(null); setError(null); }} className="eb-new inline-flex items-center justify-center gap-2">
+                                        <Plus size={16} /><span className="eb-new-label">새 책 시작하기</span>
+                                    </button>
+                                </div>
                                 {list.length === 0
-                                    ? <div className="text-center text-sm py-16" style={{ color: T.inkMute }}>아직 만든 전자책이 없어요. <b style={{ color: T.accent }}>새 전자책</b>으로 시작해 보세요.</div>
+                                    ? <div className="eb-empty"><strong>아직 책장이 비어 있어요</strong>첫 번째 이야기를 꺼내 새 책을 시작해 보세요.</div>
                                     : (
-                                    <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
-                                        {list.map(p => (
-                                            <button key={p.id} onClick={() => openProject(p.id)}
-                                                className="text-left p-4 rounded-2xl flex flex-col gap-2 group transition hover:shadow-md"
-                                                style={{ background: T.card, border: `1px solid ${T.border}` }}>
-                                                <div className="flex items-start justify-between gap-2">
-                                                    <BookOpen size={18} style={{ color: T.accent, flexShrink: 0 }} />
-                                                    <Trash2 size={14} className="opacity-0 group-hover:opacity-100 transition" style={{ color: '#C62828' }} onClick={(e) => handleDelete(p.id, e)} />
+                                    <div className="eb-books">
+                                        {list.map((p, index) => {
+                                            const stage = bookStage(p);
+                                            return (
+                                            <article key={p.id} className="eb-book-card">
+                                                <button type="button" onClick={() => openProject(p.id)} className="eb-book-open" aria-label={`${p.title || p.topic}, ${stage.label}, ${stage.next}`}>
+                                                <div className="eb-book-top">
+                                                    <span className="eb-book-no">BOOK {String(index + 1).padStart(2, '0')}</span>
                                                 </div>
-                                                <p className="text-sm font-bold leading-snug" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>{p.title || p.topic}</p>
-                                                <p className="text-[11px] mt-auto" style={{ color: T.inkMute }}>{new Date(p.updatedAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</p>
-                                            </button>
-                                        ))}
+                                                <h4>{p.title || p.topic}</h4>
+                                                <div className="eb-topic">{p.title && p.topic !== p.title ? p.topic : `${new Date(p.updatedAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}에 마지막으로 펼쳤어요.`}</div>
+                                                <div className="eb-progress"><span className="eb-stage">{stage.label}</span><span className="eb-continue">{stage.next} →</span></div>
+                                                </button>
+                                                <button type="button" className="eb-delete" aria-label={`${p.title || p.topic} 삭제`} onClick={(e) => handleDelete(p.id, e)}><Trash2 size={14} /></button>
+                                            </article>
+                                        )})}
                                     </div>
                                 )}
                             </div>
