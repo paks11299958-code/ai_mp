@@ -55,6 +55,11 @@ describe('SeolaGolfEntry', () => {
             expect(document.querySelector(`img[src="/seola/putt-${phase}-desktop-v6.webp"]`)).toBeTruthy();
         }
         expect(document.querySelectorAll('.sg-game-stage .sg-stroke').length).toBe(3);
+        // ★공·홀컵 마커는 그리지 않는다 — 생성 이미지의 퍼터 페이스가 홀을 조준하지 않아
+        //   공을 홀까지 굴리면 조준과 궤적이 어긋난다(2026-09-18 사장 지시).
+        expect(document.querySelector('.sg-game-ball')).toBeNull();
+        expect(document.querySelector('.sg-game-cup')).toBeNull();
+        expect(document.querySelector('.sg-impact-pop')).toBeNull();
         act(() => vi.advanceTimersByTime(5200));
         expect(screen.queryByRole('dialog', { name: '설아의 퍼팅 게임' })).toBeNull();
         expect(screen.queryByRole('img', { name: '정석 어드레스로 퍼팅을 준비하는 설아' })).toBeNull();
