@@ -46,14 +46,16 @@ describe('SeolaGolfEntry', () => {
         vi.useFakeTimers();
         renderEntry();
         expect(screen.queryByRole('dialog', { name: '설아의 퍼팅 게임' })).toBeNull();
-        expect(screen.getByRole('img', { name: '퍼팅을 준비하는 설아' })).toBeTruthy();
+        expect(screen.getByRole('img', { name: '정석 어드레스로 퍼팅을 준비하는 설아' })).toBeTruthy();
         act(() => vi.advanceTimersByTime(900));
         expect(screen.getByRole('dialog', { name: '설아의 퍼팅 게임' })).toBeTruthy();
-        expect(document.querySelector('source[srcSet="/seola/impact-mobile-v4.png"]')).toBeTruthy();
-        expect(document.querySelector('img[src="/seola/impact-desktop-v4.png"]')).toBeTruthy();
+        expect(document.querySelector('source[srcSet="/seola/putt-backswing-mobile-v5.png"]')).toBeTruthy();
+        expect(document.querySelector('img[src="/seola/putt-backswing-desktop-v5.png"]')).toBeTruthy();
+        expect(document.querySelector('source[srcSet="/seola/putt-follow-mobile-v5.png"]')).toBeTruthy();
+        expect(document.querySelector('img[src="/seola/putt-follow-desktop-v5.png"]')).toBeTruthy();
         act(() => vi.advanceTimersByTime(5200));
         expect(screen.queryByRole('dialog', { name: '설아의 퍼팅 게임' })).toBeNull();
-        expect(screen.queryByRole('img', { name: '퍼팅을 준비하는 설아' })).toBeNull();
+        expect(screen.queryByRole('img', { name: '정석 어드레스로 퍼팅을 준비하는 설아' })).toBeNull();
         expect(screen.getByRole('img', { name: '퍼팅에 성공해 기뻐하는 설아' })).toBeTruthy();
         expect(document.querySelector('source[srcSet="/seola/celebrate-mobile-v3.png"]')).toBeTruthy();
         vi.useRealTimers();
@@ -61,8 +63,8 @@ describe('SeolaGolfEntry', () => {
 
     it('첫 화면에 데스크톱과 모바일 전용 퍼팅 이미지를 제공한다', () => {
         renderEntry();
-        expect(document.querySelector('source[srcSet="/seola/putt-mobile-v3.png"]')).toBeTruthy();
-        expect(document.querySelector('img[src="/seola/putt-desktop-v3.png"]')).toBeTruthy();
+        expect(document.querySelector('source[srcSet="/seola/putt-address-mobile-v5.png"]')).toBeTruthy();
+        expect(document.querySelector('img[src="/seola/putt-address-desktop-v5.png"]')).toBeTruthy();
     });
 });
 
