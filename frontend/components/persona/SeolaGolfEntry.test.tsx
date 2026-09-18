@@ -49,6 +49,8 @@ describe('SeolaGolfEntry', () => {
         expect(screen.getByRole('img', { name: '퍼팅을 준비하는 설아' })).toBeTruthy();
         act(() => vi.advanceTimersByTime(900));
         expect(screen.getByRole('dialog', { name: '설아의 퍼팅 게임' })).toBeTruthy();
+        expect(document.querySelector('source[srcSet="/seola/impact-mobile-v4.png"]')).toBeTruthy();
+        expect(document.querySelector('img[src="/seola/impact-desktop-v4.png"]')).toBeTruthy();
         act(() => vi.advanceTimersByTime(5200));
         expect(screen.queryByRole('dialog', { name: '설아의 퍼팅 게임' })).toBeNull();
         expect(screen.queryByRole('img', { name: '퍼팅을 준비하는 설아' })).toBeNull();
