@@ -51,15 +51,13 @@ describe('SeolaGolfEntry', () => {
         expect(screen.getByRole('dialog', { name: '설아의 퍼팅 게임' })).toBeTruthy();
         // 스트로크 4프레임은 전부 같은 어드레스 판에서 나온 합성본이다.
         for (const phase of ['back', 'thru', 'follow']) {
-            expect(document.querySelector(`source[srcSet="/seola/putt-${phase}-mobile-v6.webp"]`)).toBeTruthy();
-            expect(document.querySelector(`img[src="/seola/putt-${phase}-desktop-v6.webp"]`)).toBeTruthy();
+            expect(document.querySelector(`source[srcSet="/seola/putt-${phase}-mobile-v7.webp"]`)).toBeTruthy();
+            expect(document.querySelector(`img[src="/seola/putt-${phase}-desktop-v7.webp"]`)).toBeTruthy();
         }
         expect(document.querySelectorAll('.sg-game-stage .sg-stroke').length).toBe(3);
-        // ★공·홀컵 마커는 그리지 않는다 — 생성 이미지의 퍼터 페이스가 홀을 조준하지 않아
-        //   공을 홀까지 굴리면 조준과 궤적이 어긋난다(2026-09-18 사장 지시).
-        expect(document.querySelector('.sg-game-ball')).toBeNull();
-        expect(document.querySelector('.sg-game-cup')).toBeNull();
-        expect(document.querySelector('.sg-impact-pop')).toBeNull();
+        // v7은 카메라가 퍼팅 라인 위(홀 뒤)라 조준이 맞는다 → 공·홀컵 연출을 쓴다.
+        expect(document.querySelector('.sg-game-ball')).toBeTruthy();
+        expect(document.querySelector('.sg-game-cup')).toBeTruthy();
         act(() => vi.advanceTimersByTime(5200));
         expect(screen.queryByRole('dialog', { name: '설아의 퍼팅 게임' })).toBeNull();
         expect(screen.queryByRole('img', { name: '정석 어드레스로 퍼팅을 준비하는 설아' })).toBeNull();
@@ -70,8 +68,8 @@ describe('SeolaGolfEntry', () => {
 
     it('첫 화면에 데스크톱과 모바일 전용 퍼팅 이미지를 제공한다', () => {
         renderEntry();
-        expect(document.querySelector('source[srcSet="/seola/putt-address-mobile-v6.webp"]')).toBeTruthy();
-        expect(document.querySelector('img[src="/seola/putt-address-desktop-v6.webp"]')).toBeTruthy();
+        expect(document.querySelector('source[srcSet="/seola/putt-address-mobile-v7.webp"]')).toBeTruthy();
+        expect(document.querySelector('img[src="/seola/putt-address-desktop-v7.webp"]')).toBeTruthy();
     });
 });
 
