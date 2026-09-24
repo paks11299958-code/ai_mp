@@ -36,6 +36,22 @@ describe('Codex 쇼츠 공장 초안', () => {
         expect(rows[0].narration).toBe('첫 장면의 이야기입니다.');
     });
 
+    it('대괄호 없는 장면 표지 다음의 연출 줄을 보존한다', () => {
+        const rows = parseCodexShortsScript(`장면 1
+연출: 청록 흐름선이 화면을 가로지른다
+자막: 작업 흐름
+내레이션: 접수부터 결과 확인까지 순서대로 진행합니다.
+이미지 프롬프트: vertical workflow diagram`);
+
+        expect(rows).toHaveLength(1);
+        expect(rows[0]).toMatchObject({
+            direction: '청록 흐름선이 화면을 가로지른다',
+            caption: '작업 흐름',
+            narration: '접수부터 결과 확인까지 순서대로 진행합니다.',
+            imagePrompt: 'vertical workflow diagram',
+        });
+    });
+
     it('긴 제목과 내레이션은 안전영역 실패로 판정한다', () => {
         const estimate = estimateSegmentLayout({
             caption: '아주 긴 제목을 여러 줄로 표시해야 하는 장면입니다 정말 길어요',

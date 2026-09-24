@@ -39,7 +39,7 @@ export interface LayoutEstimate {
 }
 
 const FIELD_RE = /^\s*(화면\s*연출|연출|화면\s*자막|자막|내레이션|나레이션|image\s*prompt|이미지\s*프롬프트)(?:\s*\(([^)]+)\))?\s*[:：]\s*(.*)$/i;
-const SCENE_RE = /^\s*\[?\s*(?:장면|씬|scene)\s*[_#-]?\s*(\d+)\s*\]?[^\n]*$/gim;
+const SCENE_RE = /^[ \t]*\[?[ \t]*(?:장면|씬|scene)[ \t]*[_#-]?[ \t]*(\d+)[ \t]*\]?[^\n]*$/gim;
 
 const cleanValue = (value: string): string => value
     .trim()
