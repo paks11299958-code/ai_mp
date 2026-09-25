@@ -89,7 +89,8 @@ const DOCKER_SERVICES = [
     { label: '타입봇뷰어',  container: 'n8n-docker-typebot-viewer-1',  url: 'https://bot.dbzone.kr'  },
 ];
 // 자원 임계 — alert_monitor.py THRESHOLDS와 같은 기준을 쓴다(두 감시가 다른 말을 하면 안 됨)
-const DISK_WARN = 80, DISK_CRIT = 90, MEM_WARN = 85, SWAP_WARN = 85, SWAP_CRIT = 95;
+// 디스크: 2026-09-25 사장 지시로 경고 80→90·위험 90→95(80%대 경고가 너무 잦았다)
+const DISK_WARN = 90, DISK_CRIT = 95, MEM_WARN = 85, SWAP_WARN = 85, SWAP_CRIT = 95;
 // ──────────────────────────────────────────────────────
 
 /**
