@@ -1,0 +1,12 @@
+.git/
+.claude/
+.agents/
+.asta-design/
+node_modules/
+**/node_modules/
+frontend/dist/
+product-extractor/
+prototypes/
+artifacts/
+backups/
+*.log
