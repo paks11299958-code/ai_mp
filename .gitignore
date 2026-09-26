@@ -29,3 +29,4 @@ __pycache__/
 
 # Codex 쇼츠 품질 검수용 일회성 대용량 샘플(텔레그램 전달본)
 prototypes/shorts-gcp3less-podcast/
+.vercel
