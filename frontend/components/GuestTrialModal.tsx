@@ -29,14 +29,19 @@ interface GuestTrialModalProps {
     feature?: { name: string; catch?: string; desc?: string; accent?: string };
     /** 체험 계정 발급 성공 — 호출부에서 로그인 처리 + 원래 목적지로 보낸다. */
     onSuccess: (user: User, token: string) => void;
+    /** 서버가 이미 사용한 체험으로 판단했거나 이 브라우저에 체험 이력이 있을 때. */
+    expired?: boolean;
+    onExpired: () => void;
+    onRegister: () => void;
     /** 체험 대신 정식 로그인/가입을 원할 때. */
     onLogin: () => void;
     onClose: () => void;
 }
 
-export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuccess, onLogin, onClose }) => {
+export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuccess, expired = false, onExpired, onRegister, onLogin, onClose }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [trialExpired, setTrialExpired] = useState(expired);
 
     const start = async () => {
         if (loading) return;          // 연타로 계정이 여러 개 만들어지지 않게
@@ -46,6 +51,12 @@ export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuc
             const { user, token } = await authApi.guestRegister();
             onSuccess(user, token);
         } catch (e: any) {
+            if (e?.body?.code === 'GUEST_TRIAL_USED') {
+                setTrialExpired(true);
+                onExpired();
+                setLoading(false);
+                return;
+            }
             setError(e?.message || '체험 시작에 실패했어요. 잠시 후 다시 시도해 주세요.');
             setLoading(false);
         }
@@ -64,7 +75,14 @@ export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuc
                         <Icon name="Sparkles" className="w-7 h-7" />
                     </div>
 
-                    {feature ? (
+                    {trialExpired ? (
+                        <>
+                            <h2 className="text-lg font-bold text-gray-900">체험이 만료되었습니다</h2>
+                            <p className="mt-3 text-[13px] leading-relaxed text-gray-600">
+                                무료 체험은 한 번만 제공됩니다. 회원가입하면 AI 기능과 대화를 계속 이용할 수 있어요.
+                            </p>
+                        </>
+                    ) : feature ? (
                         <>
                             <h2 className="text-lg font-bold text-gray-900">{feature.name}</h2>
                             {feature.catch && (
@@ -83,24 +101,26 @@ export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuc
                         </>
                     )}
 
-                    <div className="mt-5 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3">
-                        <p className="text-sm font-bold text-amber-900">🎁 체험 포인트 1,000P 무료 지급</p>
-                        <p className="mt-1 text-[12px] text-amber-800">
-                            가입 없이 바로 시작 · 주요 기능 2~3회 체험할 수 있어요
-                        </p>
-                    </div>
+                    {!trialExpired && (
+                        <div className="mt-5 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3">
+                            <p className="text-sm font-bold text-amber-900">🎁 체험 포인트 1,000P 무료 지급</p>
+                            <p className="mt-1 text-[12px] text-amber-800">
+                                가입 없이 바로 시작 · 주요 기능 2~3회 체험할 수 있어요
+                            </p>
+                        </div>
+                    )}
 
                     {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
                 </div>
 
                 <div className="px-6 pb-6 space-y-2">
                     <button
-                        onClick={start}
+                        onClick={trialExpired ? onRegister : start}
                         disabled={loading}
                         className="w-full py-3.5 rounded-2xl text-white font-bold text-[15px] transition active:scale-[0.98] disabled:opacity-60"
                         style={{ background: accent }}
                     >
-                        {loading ? '체험 준비 중…' : '1,000P 받고 바로 체험하기'}
+                        {trialExpired ? '무료 회원가입' : loading ? '체험 준비 중…' : '1,000P 받고 바로 체험하기'}
                     </button>
                     <button
                         onClick={onLogin}

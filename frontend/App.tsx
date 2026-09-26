@@ -130,6 +130,14 @@ const AppContent: React.FC = () => {
     } = useAuth();
     // 온보딩 알럿: 가입 환영 / 미션 달성 축하 / 레퍼럴 체험계정 환영 (한 모달로 공용)
     const [rewardAlert, setRewardAlert] = useState<{ kind: 'welcome' | 'mission' | 'guestWelcome'; amount: number } | null>(null);
+    const [hasUsedGuestTrial, setHasUsedGuestTrial] = useState(() => localStorage.getItem('aimp_guest_trial_used') === '1');
+    const markGuestTrialUsed = useCallback(() => {
+        localStorage.setItem('aimp_guest_trial_used', '1');
+        setHasUsedGuestTrial(true);
+    }, []);
+    useEffect(() => {
+        if (user?.provider === 'guest') markGuestTrialUsed();
+    }, [user, markGuestTrialUsed]);
     // 포인트 부족으로 충전 모달이 떴을 때의 사유(2026-08-08) — 필요액·잔액·기능명.
     // 서버가 안 줄 수도 있으므로 전부 optional이고, 모달은 없는 값을 알아서 생략한다.
     const [insufficientInfo, setInsufficientInfo] = useState<
@@ -150,11 +158,12 @@ const AppContent: React.FC = () => {
 
     // 레퍼럴 링크(?ref) 방문자 자동 체험계정 로그인 성공 — 환영 알럿만 문구가 다름(가입 보너스 아님).
     const handleGuestAuthSuccess = useCallback((u: User, token: string) => {
+        markGuestTrialUsed();
         handleAuthSuccess(u, token);
         setShowAuthModal(false);
         // 지급액은 서버(GUEST_SIGNUP_BONUS)가 정한다 — 하드코딩하면 서버 정책 변경 시 화면만 거짓말한다.
         setRewardAlert({ kind: 'guestWelcome', amount: u.bonusPoints ?? 0 });
-    }, [handleAuthSuccess, setShowAuthModal]);
+    }, [handleAuthSuccess, markGuestTrialUsed, setShowAuthModal]);
 
     // 게스트(레퍼럴) 자동등록 진행 상태 — 선언은 여기, useEffect는 arrivedViaReferral 선언 뒤(아래)에 둔다
     // (arrivedViaReferral useState보다 먼저 참조하면 TDZ 에러).
@@ -165,7 +174,8 @@ const AppContent: React.FC = () => {
     // null=닫힘. featureKey가 있으면 그 기능 설명을 보여주고, 체험 시작 후 그 기능으로 보낸다.
     // ★기존엔 곧바로 가입 창(setShowAuthModal)이라 "무엇을 주는지" 한 줄도 없었다 —
     //   그냥 방문한 사람은 체험 포인트의 존재조차 모른 채 나갔고, 8월 정회원 가입은 0명이었다.
-    const [guestTrialModal, setGuestTrialModal] = useState<{ featureKey?: string } | null>(null);
+    const [guestTrialModal, setGuestTrialModal] = useState<{ featureKey?: string; expired?: boolean } | null>(null);
+    const [guestAuthMode, setGuestAuthMode] = useState<'login' | 'register'>('login');
 
     // 학습자료(/learn) 게이트에서 온 로그인 복귀 — 이메일/카카오/모달 등 모든 로그인 경로 공통.
     // 게이트가 sessionStorage에 복귀 경로를 심고 ?login=1로 보냄 → 로그인 확정 시 원래 페이지로.
@@ -1584,8 +1594,8 @@ const AppContent: React.FC = () => {
             // ★비회원 클릭 → 가입 창이 아니라 '체험 안내'를 먼저 보여준다(2026-08-07).
             //   같은 행동(계정 생성)인데 "가입하세요"(부담)와 "포인트 받고 써보세요"(혜택)는
             //   인상이 정반대다. 로그인 창은 모달 안 '이미 회원이신가요?'로 남겨둔다.
-            const requireLogin = () => setGuestTrialModal({});
-            const openTrialFor = (featureKey?: string) => setGuestTrialModal({ featureKey });
+            const requireLogin = () => setGuestTrialModal({ expired: hasUsedGuestTrial });
+            const openTrialFor = (featureKey?: string) => setGuestTrialModal({ featureKey, expired: hasUsedGuestTrial });
             return (
                 <>
                     <AuthProvider value={authCtxValue}>
@@ -1640,6 +1650,8 @@ const AppContent: React.FC = () => {
                         return (
                             <GuestTrialModal
                                 feature={g ? { name: g.name, catch: g.catch, desc: g.desc, accent: g.palette?.accent } : undefined}
+                                expired={guestTrialModal.expired}
+                                onExpired={markGuestTrialUsed}
                                 onSuccess={(u, token) => {
                                     setGuestTrialModal(null);
                                     // 체험 계정으로 로그인시키고, 누르려던 기능으로 이어서 보낸다.
@@ -1649,7 +1661,8 @@ const AppContent: React.FC = () => {
                                     }
                                     handleGuestAuthSuccess(u, token);
                                 }}
-                                onLogin={() => { setGuestTrialModal(null); setShowAuthModal(true); }}
+                                onRegister={() => { setGuestTrialModal(null); setGuestAuthMode('register'); setShowAuthModal(true); }}
+                                onLogin={() => { setGuestTrialModal(null); setGuestAuthMode('login'); setShowAuthModal(true); }}
                                 onClose={() => setGuestTrialModal(null)}
                             />
                         );
@@ -1658,8 +1671,8 @@ const AppContent: React.FC = () => {
                         <ErrorBoundary label="로그인 화면 오류" onClose={() => setShowAuthModal(false)}>
                             <AuthModal
                                 onSuccess={handleAuthSuccessWithWelcome}
-                                onClose={() => setShowAuthModal(false)}
-                                defaultMode="login"
+                                onClose={() => { setShowAuthModal(false); setGuestAuthMode('login'); }}
+                                defaultMode={guestAuthMode}
                                 personas={personas}
                             />
                         </ErrorBoundary>
