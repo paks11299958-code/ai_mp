@@ -49,15 +49,13 @@ describe('SeolaGolfEntry', () => {
         expect(screen.getByRole('img', { name: '정석 어드레스로 퍼팅을 준비하는 설아' })).toBeTruthy();
         act(() => vi.advanceTimersByTime(900));
         expect(screen.getByRole('dialog', { name: '설아의 퍼팅 게임' })).toBeTruthy();
-        // 스트로크 4프레임은 전부 같은 어드레스 판에서 나온 합성본이다.
-        for (const phase of ['back', 'thru', 'follow']) {
-            expect(document.querySelector(`source[srcSet="/seola/putt-${phase}-mobile-v7.webp"]`)).toBeTruthy();
-            expect(document.querySelector(`img[src="/seola/putt-${phase}-desktop-v7.webp"]`)).toBeTruthy();
-        }
-        expect(document.querySelectorAll('.sg-game-stage .sg-stroke').length).toBe(3);
-        // v7은 카메라가 퍼팅 라인 위(홀 뒤)라 조준이 맞는다 → 공·홀컵 연출을 쓴다.
-        expect(document.querySelector('.sg-game-ball')).toBeTruthy();
-        expect(document.querySelector('.sg-game-cup')).toBeTruthy();
+        const video = document.querySelector<HTMLVideoElement>('.sg-game-video');
+        expect(video).toBeTruthy();
+        expect(video?.autoplay).toBe(true);
+        expect(video?.muted).toBe(true);
+        expect(document.querySelector('source[src="/seola/seola-putt-mobile-v8.mp4"]')).toBeTruthy();
+        expect(document.querySelector('source[src="/seola/seola-putt-desktop-v8.mp4"]')).toBeTruthy();
+        expect(document.querySelector('.sg-game-ball')).toBeNull();
         act(() => vi.advanceTimersByTime(5200));
         expect(screen.queryByRole('dialog', { name: '설아의 퍼팅 게임' })).toBeNull();
         expect(screen.queryByRole('img', { name: '정석 어드레스로 퍼팅을 준비하는 설아' })).toBeNull();
