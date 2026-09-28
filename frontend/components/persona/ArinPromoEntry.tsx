@@ -80,6 +80,8 @@ const MENU: { key: string; icon: string; name: string; desc: string; free?: bool
     { key: 'shorts-maker',  icon: '🎬', name: '쇼츠 만들기',      desc: '사진 1장 → 시나리오 5개 → 영상' },
     { key: 'hotkeyword',    icon: '🔥', name: '핫 키워드',        desc: '지금 뭐가 잘 팔리는지 먼저 확인' },
     { key: 'used',          icon: '🛍️', name: '중고 판매글',      desc: '사진 한 장이면 팔리는 판매글 완성' },
+    // 2026-09-28 은비 → 아린 이관(사장 승인): 되팔기 전 정품 확인 → 판매글로 이어지는 짝이라 중고 판매 바로 아래.
+    { key: 'luxury',        icon: '💎', name: '명품 감정',        desc: '되팔기 전에 사진으로 정품 먼저 확인' },
 ];
 
 const CSS = `

@@ -95,8 +95,8 @@ const NAME_FALLBACK: Record<string, FeatureKey[]> = {
     //   인기 검색어라(naverShoppingCategory) 주식 애널리스트와 무관하다. 메인 카드의
     //   담당도 이미 이아린이었다(MainPageNew FEATURES_GRID). 아린 쪽에만 남긴다.
     '윤채원': ['stock', 'stock-picks'],
-    '이아린': ['used', 'hotkeyword', 'marketing', 'shorts-maker', 'reverse-prompt'],
-    '신은비': ['luxury'],
+    // 2026-09-28 명품 감정 은비 → 아린(중고 판매와 짝). 은비는 담당 기능 없음(진입화면 전용 기능만).
+    '이아린': ['used', 'luxury', 'hotkeyword', 'marketing', 'shorts-maker', 'reverse-prompt'],
     '지우':   ['mathtutor', 'club'],
     '박하진': ['homepage', 'learn'],
     '강지훈': ['ebook'],
