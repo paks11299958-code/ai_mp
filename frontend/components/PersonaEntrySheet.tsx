@@ -8,6 +8,7 @@ import { ChaewonDeskEntry } from './persona/ChaewonDeskEntry';
 import { YunaTarotEntry } from './persona/YunaTarotEntry';
 import { JihoonBookEntry } from './persona/JihoonBookEntry';
 import { SeolaGolfEntry } from './persona/SeolaGolfEntry';
+import { EunbiEntry } from './persona/EunbiEntry';
 
 // 페르소나 진입 시트 — 메인/채팅 어느 화면에서든 **화면 전환 없이** 덮어 띄운다.
 //
@@ -124,6 +125,13 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     if (guide.title?.startsWith('강지훈')) {
         return <JihoonBookEntry guide={guide} onClose={onClose} onStart={onStart}
                                 onFeature={onFeature} onInvite={onInvite} />;
+    }
+    // 신은비는 승인된 웹툰 은비 진입화면을 쓴다(App.tsx 수정 없음).
+    //   ★기능 링크(?f=luxury 등)로 왔으면 기본 시트를 유지한다 — 은비는 명품 감정의 유일한
+    //     담당인데 새 화면엔 그 버튼이 없어, 가로채면 ?f=luxury 경로가 깨진다.
+    if (guide.title?.startsWith('신은비') && !guide.autoRunFeatureKey) {
+        return <EunbiEntry guide={guide} onClose={onClose} onStart={onStart}
+                           onFeature={onFeature} onInvite={onInvite} />;
     }
 
     const who = guide.personaName || guide.title;
