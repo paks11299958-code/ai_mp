@@ -124,6 +124,8 @@
     { "source": "/api/star-thanks/:path*",   "destination": "http://34.50.27.95:3020/api/aimp/star-thanks/:path*" },
     { "source": "/api/eunbi-card",           "destination": "http://34.50.27.95:3020/api/aimp/eunbi-card" },
     { "source": "/api/eunbi-card/:path*",    "destination": "http://34.50.27.95:3020/api/aimp/eunbi-card/:path*" },
+    { "source": "/api/beauty-estimate",           "destination": "http://34.50.27.95:3020/api/aimp/beauty-estimate" },
+    { "source": "/api/beauty-estimate/:path*",    "destination": "http://34.50.27.95:3020/api/aimp/beauty-estimate/:path*" },
     { "source": "/api/payments",             "destination": "http://34.50.27.95:3020/api/aimp/payments" },
     { "source": "/api/payments/:path*",      "destination": "http://34.50.27.95:3020/api/aimp/payments/:path*" },
     { "source": "/api/research",             "destination": "http://34.50.27.95:3020/api/aimp/research" },

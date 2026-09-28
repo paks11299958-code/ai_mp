@@ -2,7 +2,7 @@ import React from 'react';
 import { MpnFeatureIcon } from './MainPageNew';
 import { SajuEntry } from './persona/SajuEntry';
 import { SeoaNewsDeskEntry } from './persona/SeoaNewsDeskEntry';
-import { ChaerinStudioEntry } from './persona/ChaerinStudioEntry';
+import { ChaerinClinicEntry } from './persona/ChaerinClinicEntry';
 import { ArinPromoEntry } from './persona/ArinPromoEntry';
 import { ChaewonDeskEntry } from './persona/ChaewonDeskEntry';
 import { YunaTarotEntry } from './persona/YunaTarotEntry';
@@ -122,12 +122,13 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
         return <SeolaGolfEntry guide={guide} onClose={onClose} onStart={onStart}
                                onFeature={onFeature} onInvite={onInvite} />;
     }
-    // ★윤채린도 같은 규약으로 AI 스튜디오 랜딩으로 갈아 끼운다(2026-09-06 사장 지시).
-    //   얼굴을 바꿔주는 기능이 넷인데 기능 카드로 흩어져 "AI 스튜디오"라는 정체가 안 보였다.
+    // ★윤채린도 같은 규약으로 전용 랜딩으로 갈아 끼운다(2026-09-06 사장 지시).
     //   판별 키는 도결·서아와 **똑같이** guide.title 접두사다.
+    //   v2(2026-09-28): "뷰티 클리닉 & 스튜디오" — 성형 견적(유료, 화면 안에서 직접 요청)이 생겨
+    //   은비와 같은 방식으로 gift(회원 잔액·충전)·guestGate(비로그인)를 넘긴다.
     if (guide.title?.startsWith('윤채린')) {
-        return <ChaerinStudioEntry guide={guide} onClose={onClose} onStart={onStart}
-                                   onFeature={onFeature} onInvite={onInvite} />;
+        return <ChaerinClinicEntry guide={guide} onClose={onClose} onStart={onStart}
+                                   onFeature={onFeature} gift={gift} onGuestGate={guestGate} />;
     }
     // ★이아린도 같은 규약으로 "우리 동네 가게 홍보" 랜딩으로 갈아 끼운다(2026-09-07 사장 지시).
     //   담당 기능이 5개인데 전부 기능 카드로 흩어져 "가게 홍보를 맡아주는 곳"이 안 보였다.

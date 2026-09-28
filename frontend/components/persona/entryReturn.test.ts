@@ -170,7 +170,7 @@ describe('전용 랜딩 분기 — PersonaEntrySheet 한 곳에서만 갈린다'
     const CASES: [string, string][] = [
         ['도결',   'SajuEntry'],
         ['서아',   'SeoaNewsDeskEntry'],
-        ['윤채린', 'ChaerinStudioEntry'],
+        ['윤채린', 'ChaerinClinicEntry'],
         ['이아린', 'ArinPromoEntry'],       // 2026-09-07 추가
         ['강지훈', 'JihoonBookEntry'],      // 2026-09-17 승인 시안 통합
     ];
