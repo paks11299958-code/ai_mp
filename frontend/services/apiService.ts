@@ -322,9 +322,10 @@ export const sessionApi = {
         });
         const data = await res.json().catch(() => ({}));
         if (res.status === 402) {
-            const err: any = new Error('INSUFFICIENT_POINTS');
-            err.code = 'INSUFFICIENT_POINTS';
-            throw err;
+            // 공통 402 처리로 통일(2026-09-28): 필요액·잔액을 전역 충전 모달에 넘긴다.
+            // code/message('INSUFFICIENT_POINTS')는 기존과 같다 — 호출부(handleSendMessage) 분기 유지.
+            // ※대화 무료화(2026-07-08) 이후 서버는 이 경로에서 402를 주지 않는다. 유료 복귀 대비.
+            throwInsufficientPoints(data);
         }
         if (res.status === 429 && data.error === 'DAILY_CHAT_LIMIT') {
             const err: any = new Error(data.message || '오늘의 무료 대화를 모두 사용했어요.');

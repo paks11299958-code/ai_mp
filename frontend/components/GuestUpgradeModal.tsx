@@ -10,6 +10,11 @@ import { Icon } from './Icons';
 interface GuestUpgradeModalProps {
     onSuccess: (user: User, token: string) => void;
     onClose: () => void;
+    /**
+     * 머리 문구 교체(선택). 기본 문구는 "체험 포인트를 모두 사용했어요"라, 포인트 넛지(소진 임박·
+     * 대화 횟수 도달)에서 가입을 누른 경우엔 사실과 달라진다 — 그때만 넛지 쪽 문구를 넘긴다.
+     */
+    headline?: { title: string; body: string } | null;
 }
 
 type Tab = 'email' | 'phone';
@@ -24,7 +29,7 @@ const formatPhoneNumber = (val: string) => {
     return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
 };
 
-export const GuestUpgradeModal: React.FC<GuestUpgradeModalProps> = ({ onSuccess, onClose }) => {
+export const GuestUpgradeModal: React.FC<GuestUpgradeModalProps> = ({ onSuccess, onClose, headline }) => {
     const [tab, setTab] = useState<Tab>('email');
     const [step, setStep] = useState<Step>('form');
     const [email, setEmail] = useState('');
@@ -111,9 +116,11 @@ export const GuestUpgradeModal: React.FC<GuestUpgradeModalProps> = ({ onSuccess,
 
                 <div className="pt-8 pb-2 px-6 text-center">
                     <div className="text-2xl mb-1">✨</div>
-                    <h3 className="text-lg font-bold" style={{ color: '#2D2017' }}>계속 이용하려면 가입해주세요</h3>
+                    <h3 className="text-lg font-bold" style={{ color: '#2D2017' }}>{headline?.title ?? '계속 이용하려면 가입해주세요'}</h3>
                     <p className="text-sm mt-1" style={{ color: '#7A6555' }}>
-                        체험 포인트를 모두 사용했어요.<br />지금까지 대화는 그대로 유지돼요.
+                        {headline
+                            ? headline.body.split('\n').map((t, i) => <span key={i}>{i > 0 && <br />}{t}</span>)
+                            : <>체험 포인트를 모두 사용했어요.<br />지금까지 대화는 그대로 유지돼요.</>}
                     </p>
                 </div>
 

@@ -57,6 +57,9 @@ import { ProductExtractDialog } from './components/ProductExtractDialog';
 import { Icon } from './components/Icons';
 import { PointDisplay } from './components/PointDisplay';
 import { PointModal } from './components/PointModal';
+import { PointNudgeModal } from './components/PointNudgeModal';
+import { usePointNudges } from './hooks/usePointNudges';
+import { GUEST_UPGRADE_HEADLINE, saveUnsentDraft, takeUnsentDraft } from './lib/pointNudges';
 import { PointDashboard } from './components/PointDashboard';
 import { StarButton, StarRain } from './components/StarBalloonButton';
 import { BirthInfoModal } from './components/BirthInfoModal';
@@ -142,6 +145,17 @@ const AppContent: React.FC = () => {
     // 서버가 안 줄 수도 있으므로 전부 optional이고, 모달은 없는 값을 알아서 생략한다.
     const [insufficientInfo, setInsufficientInfo] = useState<
         { required?: number; balance?: number; shortfall?: number; feature?: string } | null>(null);
+    // 포인트 넛지 A(소진 임박)·C(대화 횟수 도달) — 규칙·문구·기준값은 lib/pointNudges.ts 한 곳.
+    const { nudge, dismissNudge } = usePointNudges(user, userPaidPoints + userBonusPoints);
+    // 넛지에서 체험계정이 '회원가입하기'를 눌렀을 때 GuestUpgradeModal 머리 문구(기본은 "모두 사용했어요").
+    const [guestUpgradeHeadline, setGuestUpgradeHeadline] = useState<{ title: string; body: string } | null>(null);
+    const handleNudgePrimary = useCallback(() => {
+        if (!nudge) return;
+        setGuestUpgradeHeadline(nudge.audience === 'guest' ? GUEST_UPGRADE_HEADLINE[nudge.kind] : null);
+        setInsufficientInfo(null);
+        dismissNudge();
+        setShowPointModal(true);  // 기존 충전 경로 — 체험계정이면 아래 렌더에서 GuestUpgradeModal로 갈린다
+    }, [nudge, dismissNudge, setShowPointModal]);
     const handleMissionAwarded = useCallback((amount: number) => {
         setRewardAlert({ kind: 'mission', amount });
         // 잔액 즉시 갱신
@@ -308,6 +322,14 @@ const AppContent: React.FC = () => {
         return '';
     });
     const [inputText, setInputText] = useState('');
+    // 포인트 부족으로 못 보낸 채팅 글 복원(B). 충전(결제창)은 페이지를 다시 열기 때문에 state 로는
+    // 남지 않는다 → saveUnsentDraft 로 저장해 둔 글을 같은 페르소나 채팅에 들어오면 입력창에 되돌린다.
+    // 자동 전송은 하지 않는다(사용자가 확인하고 다시 보낸다).
+    useEffect(() => {
+        if (!activePersonaId) return;
+        const draft = takeUnsentDraft(activePersonaId);
+        if (draft) setInputText(prev => prev || draft);
+    }, [activePersonaId]);
     const [isAdminMode, setIsAdminMode] = useState(false);
     const {
         showBoard, setShowBoard,
@@ -1258,6 +1280,18 @@ const AppContent: React.FC = () => {
                 }
             } catch (e: any) {
                 if (e.code === 'INSUFFICIENT_POINTS') {
+                    // 쓰던 글을 잃지 않게(B): 저장 안 된 말풍선은 걷어내고 입력창에 되돌린 뒤,
+                    // 충전(페이지 재진입) 후에도 복원되도록 보존해 둔다. 모달은 apiService 의
+                    // insufficient-points 이벤트가 필요액·잔액과 함께 띄운다(아래는 안전망).
+                    setSessions(prev => ({
+                        ...prev,
+                        [activePersonaId]: {
+                            ...prev[activePersonaId],
+                            messages: (prev[activePersonaId]?.messages || []).filter(m => m.id !== userMsgId),
+                        },
+                    }));
+                    setInputText(text);
+                    saveUnsentDraft(activePersonaId, text);
                     setShowPointModal(true);
                     setSessionTyping(activePersonaId, false);
                     return;
@@ -1805,6 +1839,10 @@ const AppContent: React.FC = () => {
                 {rewardAlert && (
                     <RewardAlertModal kind={rewardAlert.kind} amount={rewardAlert.amount} username={user?.username} onClose={() => setRewardAlert(null)} />
                 )}
+                {/* 포인트 넛지(A 소진 임박·C 대화 횟수) — 충전/가입 모달이나 온보딩 알럿이 떠 있으면 그 뒤에 띄운다 */}
+                {nudge && !showPointModal && !rewardAlert && (
+                    <PointNudgeModal nudge={nudge} onPrimary={handleNudgePrimary} onClose={dismissNudge} />
+                )}
                 <AuthProvider value={authCtxValue}>
                 <MainPageNew
                     personas={visiblePersonas}
@@ -1897,8 +1935,9 @@ const AppContent: React.FC = () => {
                 {showPointModal && (
                     user?.provider === 'guest' ? (
                         <GuestUpgradeModal
-                            onSuccess={(u, token) => { handleAuthSuccess(u, token); setShowPointModal(false); }}
-                            onClose={() => setShowPointModal(false)}
+                            onSuccess={(u, token) => { handleAuthSuccess(u, token); setShowPointModal(false); setGuestUpgradeHeadline(null); }}
+                            onClose={() => { setShowPointModal(false); setGuestUpgradeHeadline(null); }}
+                            headline={guestUpgradeHeadline}
                         />
                     ) : (
                         <PointModal currentPoints={userPaidPoints + userBonusPoints} userId={user?.id ?? 0}
@@ -2063,6 +2102,9 @@ const AppContent: React.FC = () => {
         <>
         {rewardAlert && (
             <RewardAlertModal kind={rewardAlert.kind} amount={rewardAlert.amount} onClose={() => setRewardAlert(null)} />
+        )}
+        {nudge && !showPointModal && !rewardAlert && (
+            <PointNudgeModal nudge={nudge} onPrimary={handleNudgePrimary} onClose={dismissNudge} />
         )}
         <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Cinzel:wght@400;500;600&display=swap');
@@ -2470,8 +2512,9 @@ const AppContent: React.FC = () => {
             {showPointModal && (
                 user?.provider === 'guest' ? (
                     <GuestUpgradeModal
-                        onSuccess={(u, token) => { handleAuthSuccess(u, token); setShowPointModal(false); }}
-                        onClose={() => setShowPointModal(false)}
+                        onSuccess={(u, token) => { handleAuthSuccess(u, token); setShowPointModal(false); setGuestUpgradeHeadline(null); }}
+                        onClose={() => { setShowPointModal(false); setGuestUpgradeHeadline(null); }}
+                        headline={guestUpgradeHeadline}
                     />
                 ) : (
                     <PointModal currentPoints={userPaidPoints + userBonusPoints} userId={user?.id ?? 0}

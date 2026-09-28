@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Coins, X, Loader2 } from 'lucide-react';
 import { shortFeatureLabel } from '../lib/featureLabels';
+import { INSUFFICIENT_REASSURE } from '../lib/pointNudges';
 
 // 1pt=1원(2026-06-17). 기본 1:1, 큰 패키지는 보너스 %.
 const PACKAGES = [
@@ -92,6 +93,11 @@ export const PointModal: React.FC<PointModalProps> = ({ currentPoints, userId, o
                             ) : (
                                 <>충전하시면 바로 이어서 사용할 수 있어요</>
                             )}
+                        </p>
+                        {/* 소진 시점 문구 원칙(2026-08-07 카피 서치): 막혔다는 사실보다 "하던 게 안 날아간다"를
+                            먼저 안심시킨다. 채팅은 못 보낸 글을 입력창에 되돌려 둔다(App handleSendMessage). */}
+                        <p className="text-xs text-red-100/80 leading-relaxed mt-1.5" data-testid="insufficient-reassure">
+                            {INSUFFICIENT_REASSURE}
                         </p>
                     </div>
                 )}
