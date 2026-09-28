@@ -731,7 +731,10 @@ export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature, gift,
             const r = await eunbiCardApi.create({ occasion: cardOcc, toName: cardToT, fromName: cardFromT, ...(story ? { story } : {}) });
             setCardResult(r);
             setCardQuota(q => q ? { ...q, freeLeft: r.freeLeft, todayCount: q.todayCount + 1 } : q);
-            if (r.pointsCharged > 0) setPoints(p => Math.max(0, p - r.pointsCharged));
+            if (r.pointsCharged > 0) {
+                setPoints(p => Math.max(0, p - r.pointsCharged));
+                gift?.onPointsChanged?.();   // 앱 머리 잔액도 갱신(09-28: 새로고침 전까지 옛 값이던 문제)
+            }
             later(() => cardResultRef.current?.scrollIntoView?.({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' }), 50);
         } catch (e) {
             const status = e instanceof EunbiCardError ? e.status : 0;

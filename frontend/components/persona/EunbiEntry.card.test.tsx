@@ -220,4 +220,18 @@ describe('EunbiEntry 축하 카드', () => {
         expect(gate).toHaveBeenCalledWith('free', 'eunbi-card');
         expect(fetchMock).not.toHaveBeenCalled();
     });
+
+    it('유료 카드면 앱 잔액 갱신(onPointsChanged)을 부르고, 무료 카드면 부르지 않는다', async () => {
+        for (const [charged, calls] of [[100, 1], [0, 0]] as const) {
+            routes(() => json(201, { ...CREATED, isFree: charged === 0, pointsCharged: charged }));
+            const onPointsChanged = vi.fn();
+            const view = renderCard(makeGift({ onPointsChanged }));
+            await act(async () => {});
+            typeIn(/^받는 사람 이름/, '민지');
+            await act(async () => { fireEvent.click(makeBtn()); });
+            await act(async () => {});
+            expect(onPointsChanged).toHaveBeenCalledTimes(calls);
+            view.unmount();
+        }
+    });
 });

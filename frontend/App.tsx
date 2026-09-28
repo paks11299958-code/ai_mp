@@ -1611,6 +1611,9 @@ const AppContent: React.FC = () => {
                         return { ...prev, personaXp: { ...prev.personaXp, [result.personaId]: result.xp } };
                     });
                 },
+                onPointsChanged: () => {
+                    pointApi.getBalance().then(d => { setUserPaidPoints(d.paidPoints); setUserBonusPoints(d.bonusPoints); }).catch(() => {});
+                },
                 onNeedCharge: () => {
                     setDeepLinkGuide(null);
                     setInsufficientInfo(null);

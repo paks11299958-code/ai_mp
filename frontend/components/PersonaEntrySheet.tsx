@@ -73,6 +73,8 @@ export interface EntryGiftContext {
     nickname?: string;
     /** 선물 성공 후 앱 잔액·호감도 갱신(채팅 헤더 StarButton.onSent 와 같은 갱신). */
     onGifted: (r: { xp: number; personaId: string; leveledUp: boolean; newStage: number; levelupBonus: number }) => void;
+    /** 포인트가 선물 외 경로(유료 축하 카드 등)로 바뀐 뒤 앱 잔액만 다시 읽는다. 없으면 무시. */
+    onPointsChanged?: () => void;
     /** 포인트 부족 — 진입화면을 닫고 충전 모달을 연다(충전 모달 z-70 이 진입화면 z-85 뒤에 가리므로). */
     onNeedCharge: () => void;
 }
