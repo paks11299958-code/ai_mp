@@ -96,22 +96,96 @@ describe('ChaerinClinicEntry', () => {
     });
     afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); vi.useRealTimers(); });
 
-    it('문을 누르면 하위 메뉴로, 뒤로·Escape 는 한 단계 위, 입구에서만 닫는다', () => {
+    const door = (name: RegExp) => screen.getByRole('button', { name }) as HTMLButtonElement;
+    const flipOf = (el: HTMLElement) => el.closest('.cc-flip') as HTMLElement;
+
+    it('문을 누르면 그 자리에서 뒤집혀 열린다 — 뒷면 메뉴 접근 가능, 옆 문은 숨김, 앞면은 포커스 제외', () => {
+        renderEntry();
+        const clinic = door(/성형 — 병원으로 들어가기/);
+        expect(clinic.getAttribute('aria-expanded')).toBe('false');
+        expect(screen.queryByRole('region', { name: '성형 메뉴' })).toBeNull();   // 닫힌 뒷면은 그리지 않는다
+
+        fireEvent.click(clinic);
+        expect(clinic.getAttribute('aria-expanded')).toBe('true');
+        expect(flipOf(clinic).className).toContain('cc-open');
+        // 여전히 입구 화면(별도 화면으로 넘어가지 않는다)
+        expect(screen.getByRole('region', { name: '채린 뷰티 클리닉 입구' })).toBeTruthy();
+        const menu = screen.getByRole('region', { name: '성형 메뉴' });
+        expect(menu.hasAttribute('inert')).toBe(false);
+        for (const n of [/내 성형 견적 뽑아보기/, /부위별 평균 가격표/, /채린에게 물어보기/]) expect(btn(n)).toBeTruthy();
+        // 앞면은 뒤집힌 동안 포커스 제외
+        expect(clinic.hasAttribute('inert')).toBe(true);
+        expect(clinic.tabIndex).toBe(-1);
+        // 옆 문은 숨김·비활성
+        expect(screen.queryByRole('button', { name: /스튜디오 — 사진 변신 기능 보기/ })).toBeNull();
+        const studioFlip = document.querySelector('[data-door="studio"]') as HTMLElement;
+        expect(studioFlip.className).toContain('cc-gone');
+        expect(studioFlip.hasAttribute('inert')).toBe(true);
+        // 열리면 돌아가기로 포커스
+        expect(document.activeElement).toBe(btn('← 돌아가기'));
+    });
+
+    it('돌아가기·Escape 로 닫히고, 닫힌 입구에서 Escape 만 onClose', () => {
         const p = renderEntry();
-        fireEvent.click(btn(/성형 — 병원으로 들어가기/));
-        expect(screen.getByRole('region', { name: '성형 메뉴' })).toBeTruthy();
+        fireEvent.click(door(/성형 — 병원으로 들어가기/));
         fireEvent.keyDown(window, { key: 'Escape' });
         expect(p.onClose).not.toHaveBeenCalled();
-        expect(screen.getByRole('region', { name: '채린 뷰티 클리닉 입구' })).toBeTruthy();
+        expect(door(/성형 — 병원으로 들어가기/).getAttribute('aria-expanded')).toBe('false');
+        expect(screen.queryByRole('region', { name: '성형 메뉴' })).toBeNull();
+        expect(document.activeElement).toBe(door(/성형 — 병원으로 들어가기/));
 
-        fireEvent.click(btn(/스튜디오 — 사진 변신 기능 보기/));
+        fireEvent.click(door(/스튜디오 — 사진 변신 기능 보기/));
         expect(screen.getByRole('region', { name: '스튜디오 메뉴' })).toBeTruthy();
-        fireEvent.click(btn('← 입구로'));
+        expect(screen.queryByRole('button', { name: /성형 — 병원으로 들어가기/ })).toBeNull();
+        fireEvent.click(btn('← 돌아가기'));
+        expect(door(/스튜디오 — 사진 변신 기능 보기/).getAttribute('aria-expanded')).toBe('false');
+        expect(door(/성형 — 병원으로 들어가기/)).toBeTruthy();
         fireEvent.keyDown(window, { key: 'Escape' });
         expect(p.onClose).toHaveBeenCalledTimes(1);
 
         fireEvent.click(btn('닫기'));
         expect(p.onClose).toHaveBeenCalledTimes(2);
+    });
+
+    it('가격표·동의 화면에서 뒤로 → 입구 + 성형 문 열린 상태', async () => {
+        renderEntry();
+        fireEvent.click(door(/성형 — 병원으로 들어가기/));
+        fireEvent.click(btn(/부위별 평균 가격표/));
+        expect(screen.getByRole('region', { name: '부위별 평균 가격표' })).toBeTruthy();
+        await screen.findByText('쌍꺼풀 매몰법 *');
+        fireEvent.click(btn('← 성형 메뉴로'));
+        expect(screen.getByRole('region', { name: '채린 뷰티 클리닉 입구' })).toBeTruthy();
+        expect(door(/성형 — 병원으로 들어가기/).getAttribute('aria-expanded')).toBe('true');
+        expect(screen.getByRole('region', { name: '성형 메뉴' })).toBeTruthy();
+
+        // 동의 화면 → Escape 도 같은 규칙
+        fireEvent.click(btn(/내 성형 견적 뽑아보기/));
+        expect(screen.getByText('시작 전에 확인해 주세요')).toBeTruthy();
+        fireEvent.keyDown(window, { key: 'Escape' });
+        expect(door(/성형 — 병원으로 들어가기/).getAttribute('aria-expanded')).toBe('true');
+        expect(btn(/내 성형 견적 뽑아보기/)).toBeTruthy();
+    });
+
+    it('모션 켜짐: 뒤집는 동안 중복 클릭·Escape 무시, 끝나면 인라인 크기 정리', async () => {
+        setReduced(false);
+        vi.useFakeTimers();
+        const p = renderEntry();
+        const clinic = door(/성형 — 병원으로 들어가기/);
+        fireEvent.click(clinic);
+        const flip = flipOf(clinic);
+        expect(flip.className).toContain('cc-open');
+        fireEvent.keyDown(window, { key: 'Escape' });   // 뒤집는 중 — 무시
+        expect(clinic.getAttribute('aria-expanded')).toBe('true');
+        expect(p.onClose).not.toHaveBeenCalled();
+        await act(async () => { await vi.advanceTimersByTimeAsync(800); });
+        expect(flip.style.width).toBe('');
+        expect(flip.style.transform).toBe('');
+        // 닫는 동안엔 뒷면을 계속 그리되 조작 불가, 끝나면 뒷면 제거
+        fireEvent.click(btn('← 돌아가기'));
+        const closing = document.getElementById('cc-back-clinic')!;
+        expect(closing.hasAttribute('inert')).toBe(true);
+        await act(async () => { await vi.advanceTimersByTimeAsync(800); });
+        expect(document.getElementById('cc-back-clinic')).toBeNull();
     });
 
     it('스튜디오 4종이 App.tsx 와 같은 기능키를 넘긴다', () => {
@@ -358,12 +432,14 @@ describe('PersonaEntrySheet 분기', () => {
 });
 
 describe('ChaerinClinicEntry — 메인 성형 견적 카드 진입', () => {
-    it("sessionStorage 'cc-open'=clinic 이면 성형 메뉴부터 열고 표식을 지운다", async () => {
+    it("sessionStorage 'cc-open'=clinic 이면 성형 문이 열린 채로 시작하고 표식을 지운다", async () => {
         sessionStorage.setItem('cc-open', 'clinic');
         const { render: r, screen: s } = await import('@testing-library/react');
         const { ChaerinClinicEntry } = await import('./ChaerinClinicEntry');
         r(<ChaerinClinicEntry guide={{ title: '윤채린', desc: '' }} onClose={() => {}} onStart={() => {}} onFeature={() => {}} onInvite={() => {}} />);
         expect(s.getByRole('button', { name: /내 성형 견적 뽑아보기/ })).toBeTruthy();
+        expect(s.getByRole('button', { name: /성형 — 병원으로 들어가기/ }).getAttribute('aria-expanded')).toBe('true');
+        expect(s.getByRole('region', { name: '채린 뷰티 클리닉 입구' })).toBeTruthy();
         expect(sessionStorage.getItem('cc-open')).toBeNull();
     });
 });

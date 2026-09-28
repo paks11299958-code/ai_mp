@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { EntryGiftContext, GuestGate, PersonaEntryGuide } from '../PersonaEntrySheet';
 
 // 윤채린 진입화면 v2 — "뷰티 클리닉 & 스튜디오"(2026-09-28, 승인 시안 chaerin-entry/draft/chaerin-clinic.html).
@@ -15,7 +15,7 @@ import type { EntryGiftContext, GuestGate, PersonaEntryGuide } from '../PersonaE
 const IMG = {
     hero: '/chaerin/clinic/hero_chaerin.jpg',
     clinic: '/chaerin/clinic/door_clinic.jpg',
-    studio: '/chaerin/clinic/door_studio.jpg',
+    studio: '/chaerin/clinic/door_studio_v2.jpg',   // 09-29 가운데 의자에 채린(원본 보존 편집). 옛 door_studio.jpg 는 캐시용으로 남김
     sample: '/chaerin/clinic/sample_face.jpg',
     hair: '/chaerin/style-hair.jpg',
     outfit: '/chaerin/menu-outfit-v2.jpg',
@@ -76,11 +76,25 @@ interface CatalogResp {
     sources: string[];
 }
 
-type Screen = 'entry' | 'clinic' | 'table' | 'consent' | 'pick' | 'scan' | 'report' | 'studio';
-/** 뒤로·Escape = 한 단계 위. 입구에서만 닫는다. 스캔 중엔 막는다(요청이 이미 나가 결과를 버리게 된다). */
+/** 병원 사진(4:5)의 층별 창문 위치 [left, top, width, height] % — 1층(아래)부터. 문(1층 가운데)도 1층에 포함. */
+const FLOORS: [number, number, number, number][][] = [
+    [[20.7, 66.8, 16.2, 17.6], [43.4, 66.8, 13.7, 17.6], [63.6, 66.8, 11.8, 17.6]],
+    [[20.7, 48.4, 16.2, 13.5], [43.4, 48.4, 13.7, 13.5], [63.6, 48.4, 10.8, 13.5]],
+    [[20.7, 30.8, 16.2, 13.3], [43.4, 30.8, 13.7, 13.3], [63.6, 30.8, 10.8, 13.3]],
+    [[20.7, 14.3, 16.2, 12.2], [43.4, 14.3, 13.7, 12.2], [63.6, 14.3, 10.8, 12.2]],
+];
+
+type Screen = 'entry' | 'table' | 'consent' | 'pick' | 'scan' | 'report';
+type Door = 'clinic' | 'studio';
+/**
+ * 뒤로·Escape = 한 단계 위. 입구에서만 닫는다(입구에서 문이 열려 있으면 먼저 문을 닫는다).
+ * 성형 하위 화면의 위는 '입구 + 성형 문 열림'이다. 스캔 중엔 막는다(요청이 이미 나가 결과를 버리게 된다).
+ */
 const PARENT: Record<Screen, Screen | null> = {
-    entry: null, clinic: 'entry', studio: 'entry', table: 'clinic', consent: 'clinic', pick: 'consent', scan: 'scan', report: 'clinic',
+    entry: null, table: 'entry', consent: 'entry', pick: 'consent', scan: 'scan', report: 'entry',
 };
+/** 문 뒤집기(회전·크기) 시간 — CSS .cc-card3d transition 과 같다. */
+const FLIP_MS = 700;
 
 const prefersReducedMotion = () =>
     typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -162,27 +176,53 @@ const CSS = `
 .cc-sparkle{position:absolute;z-index:1;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 10px 3px rgba(255,236,210,.9);animation:cc-twinkle 3s ease-in-out infinite}
 @keyframes cc-twinkle{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1)}}
 
-.cc-doors{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.cc-door{position:relative;appearance:none;border:0;padding:0;border-radius:22px;overflow:hidden;aspect-ratio:4/5.6;cursor:pointer;background:#000;text-align:left;box-shadow:0 12px 30px rgba(74,52,46,.18)}
-.cc-door img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .9s cubic-bezier(.6,0,.2,1),filter .6s}
+/* ── 두 문 = 뒤집히는 카드. 앞면(문 사진) ↔ 뒷면(하위 메뉴). 열리면 두 칸 전체 너비, 높이는 뒷면 내용만큼 ──
+   ★preserve-3d 요소(.cc-flip·.cc-card3d)엔 overflow:hidden 을 걸지 않는다(3D 가 납작해진다). 잘라내기는 각 면에서. */
+.cc-doors{display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative}
+.cc-flip{position:relative;perspective:1400px;aspect-ratio:4/5.6;min-width:0;transition:opacity .45s ease,transform .45s ease,visibility 0s}
+.cc-flip.cc-open{grid-column:1/-1;aspect-ratio:auto}
+.cc-flip.cc-gone{position:absolute;top:0;width:calc(50% - 6px);opacity:0;transform:scale(.84);filter:blur(1px);visibility:hidden;pointer-events:none;
+  transition:opacity .45s ease,transform .45s ease,filter .45s,visibility 0s .45s}
+.cc-flip.cc-gone.cc-l{left:0}
+.cc-flip.cc-gone.cc-r{right:0}
+.cc-card3d{position:absolute;inset:0;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .7s cubic-bezier(.65,0,.35,1)}
+.cc-open .cc-card3d{position:relative;inset:auto;transform:rotateY(180deg)}
+.cc-face{-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:22px}
+.cc-backface{position:absolute;inset:0;transform:rotateY(180deg);overflow:hidden;background:var(--cc-card);border:1.5px solid var(--cc-line);
+  box-shadow:0 12px 30px rgba(74,52,46,.14);padding:14px;display:flex;flex-direction:column;gap:14px}
+.cc-open .cc-backface{position:relative;inset:auto}
+.cc-door{position:absolute;inset:0;width:100%;height:100%;appearance:none;border:0;padding:0;overflow:hidden;cursor:pointer;background:#000;text-align:left;box-shadow:0 12px 30px rgba(74,52,46,.18)}
+.cc-door img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .cc-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(20,14,12,.72))}
 .cc-dlabel{position:absolute;left:12px;right:12px;bottom:12px;color:#fff;display:flex;flex-direction:column;gap:2px;z-index:3}
 .cc-dlabel b{font-family:"Gowun Batang","Noto Serif KR",serif;font-size:22px}
 .cc-dlabel span{font-size:12px;opacity:.88;line-height:1.4}
 .cc-new{position:absolute;top:10px;right:10px;z-index:3;background:var(--cc-gold);color:var(--cc-cocoa);font-size:11px;font-weight:700;border-radius:99px;padding:3px 8px}
-.cc-win{position:absolute;z-index:2;background:rgba(255,214,150,.55);mix-blend-mode:screen;border-radius:2px;opacity:0;animation:cc-lightOn 5s ease-in-out infinite}
+/* 사진(4:5)과 같은 비율의 틀 — 카드가 사진을 좌우로 자르는 만큼(object-fit:cover) 똑같이 잘려 창문·조명 위치가 맞는다 */
+.cc-stage{position:absolute;top:0;left:50%;height:100%;aspect-ratio:4/5;transform:translateX(-50%);z-index:2;pointer-events:none}
+/* 병원: 층별로 1층부터 불이 켜지고(어둠 덮개가 걷힘) 잠시 뒤 같은 순서로 꺼진다 */
+.cc-pane{position:absolute;border-radius:2px;background:rgba(18,24,44,.84);animation:cc-floor 9s ease-in-out infinite}
+/* 불이 켜지는 순간 번지는 빛 — 덮개(cc-pane)의 자식이면 덮개가 투명해질 때 같이 사라지므로 형제 요소로 둔다 */
+.cc-bloom{position:absolute;border-radius:6px;transform:scale(1.4);background:radial-gradient(ellipse,rgba(255,214,150,.8),rgba(255,214,150,0) 70%);mix-blend-mode:screen;opacity:0;animation:cc-bloom 9s ease-out infinite}
+@keyframes cc-floor{0%,4%{opacity:1}10%,56%{opacity:0}62%,100%{opacity:1}}
+@keyframes cc-bloom{0%,5%{opacity:0}9%{opacity:1}20%,100%{opacity:0}}
+/* 스튜디오: 양옆 조명이 번갈아 번쩍, 그때마다 화면 전체가 살짝 하얘진다 */
+.cc-strobe{position:absolute;width:62%;aspect-ratio:1;top:-1%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,1) 0,rgba(255,255,255,.95) 14%,rgba(255,246,228,.6) 30%,rgba(255,240,220,0) 62%);mix-blend-mode:screen;opacity:0;animation:cc-strobe 2.6s linear infinite}
+/* 십자 광채 */
+.cc-strobe::before,.cc-strobe::after{content:"";position:absolute;left:50%;top:50%;background:linear-gradient(90deg,rgba(255,255,255,0),#fff,rgba(255,255,255,0))}
+.cc-strobe::before{width:120%;height:2px;transform:translate(-50%,-50%)}
+.cc-strobe::after{width:2px;height:120%;transform:translate(-50%,-50%);background:linear-gradient(180deg,rgba(255,255,255,0),#fff,rgba(255,255,255,0))}
+@keyframes cc-strobe{0%,16%,100%{opacity:0;transform:scale(.7)}3%{opacity:1;transform:scale(1)}8%{opacity:.45;transform:scale(.95)}}
+.cc-flash2{position:absolute;inset:0;z-index:3;background:#fff;opacity:0;pointer-events:none;animation:cc-flash2 2.6s linear infinite}
+@keyframes cc-flash2{0%,8%,50%,58%,100%{opacity:0}3%,53%{opacity:.5}}
+.cc-win{display:none}
 @keyframes cc-lightOn{0%,12%{opacity:0}22%,80%{opacity:.9}100%{opacity:0}}
 .cc-spill{position:absolute;z-index:2;left:43%;width:14%;top:67%;height:18%;background:radial-gradient(ellipse at 50% 100%,rgba(255,220,160,.95),rgba(255,220,160,0) 70%);filter:blur(2px);animation:cc-spill 2.6s ease-in-out infinite alternate}
 @keyframes cc-spill{from{opacity:.45;transform:scaleY(.9)}to{opacity:1;transform:scaleY(1.15)}}
-.cc-door.cc-enter img{transform:scale(3.2) translateY(9%);filter:brightness(1.6)}
-.cc-whiteout{position:absolute;inset:0;z-index:4;background:#FFF6EA;opacity:0;pointer-events:none;transition:opacity .5s .45s}
-.cc-door.cc-enter .cc-whiteout{opacity:1}
 .cc-glow{position:absolute;z-index:2;width:34%;aspect-ratio:1;top:15%;border-radius:50%;background:radial-gradient(circle,rgba(255,248,235,.9),rgba(255,248,235,0) 65%);animation:cc-breatheGlow 3.4s ease-in-out infinite alternate}
 @keyframes cc-breatheGlow{from{opacity:.35}to{opacity:.9}}
 .cc-flash{position:absolute;inset:0;z-index:3;background:#fff;opacity:0;pointer-events:none;animation:cc-flash 4.2s linear infinite}
 @keyframes cc-flash{0%,86%,100%{opacity:0}88%{opacity:.9}92%{opacity:0}}
-.cc-door.cc-shoot .cc-flash{animation:cc-shoot .5s ease-out forwards}
-@keyframes cc-shoot{0%{opacity:1}100%{opacity:0}}
 .cc-note{font-size:12px;color:var(--cc-soft);line-height:1.55;background:var(--cc-sand);border-radius:14px;padding:10px 12px}
 
 .cc-subhead{display:flex;align-items:center;gap:12px}
@@ -275,7 +315,8 @@ const CSS = `
 
 @media (prefers-reduced-motion:reduce){
   .cc-root *,.cc-root *::before,.cc-root *::after{animation-duration:.001s!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.001s!important}
-  .cc-hero img,.cc-win,.cc-spill,.cc-glow,.cc-flash,.cc-sparkle,.cc-beam{animation:none!important}
+  .cc-hero img,.cc-win,.cc-spill,.cc-glow,.cc-flash,.cc-sparkle,.cc-beam,.cc-pane,.cc-bloom,.cc-strobe,.cc-flash2{animation:none!important}
+  .cc-pane{opacity:0}
 }
 `;
 
@@ -292,12 +333,17 @@ interface Props {
 
 export const ChaerinClinicEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature, gift, onGuestGate }) => {
     const [reduce] = useState(prefersReducedMotion);
-    // 메인 '성형 견적' 카드로 들어오면 성형 메뉴부터(App 이 sessionStorage 'cc-open' 을 남긴다, 1회용).
-    const [screen, setScreen] = useState<Screen>(() => {
+    const [screen, setScreen] = useState<Screen>('entry');
+    // 입구에서 뒤집혀 열린 문. 하위 화면(견적·가격표)에 갔다 와도 유지 → 돌아오면 열린 채로 보인다.
+    // 메인 '성형 견적' 카드로 들어오면 성형 문이 열린 채로 시작(App 이 sessionStorage 'cc-open' 을 남긴다, 1회용).
+    const [openDoor, setOpenDoor] = useState<Door | null>(() => {
         try { if (sessionStorage.getItem('cc-open') === 'clinic') { sessionStorage.removeItem('cc-open'); return 'clinic'; } } catch { /* 무시 */ }
-        return 'entry';
+        return null;
     });
-    const [doorFx, setDoorFx] = useState<'' | 'clinic' | 'studio'>('');
+    // 닫히는 중인 문 — 뒤집히는 동안 뒷면을 계속 그린다
+    const [closingDoor, setClosingDoor] = useState<Door | null>(null);
+    // 방금 뒤집어 연 경우만 메뉴 항목이 뒤집힘 뒤에 등장(돌아와 이미 열린 상태면 바로)
+    const [flipIn, setFlipIn] = useState(false);
     const [toast, setToast] = useState('');
 
     // 단가: undefined=모름(조회 전·실패), null=행 없음(준비 중), number=단가
@@ -333,6 +379,12 @@ export const ChaerinClinicEntry: React.FC<Props> = ({ guide, onClose, onStart, o
     const rafRef = useRef(0);
     const sumRef = useRef<[number, number]>([0, 0]);
     const fileSeqRef = useRef(0);
+    const flipRefs = useRef<Record<Door, HTMLDivElement | null>>({ clinic: null, studio: null });
+    const frontRefs = useRef<Record<Door, HTMLButtonElement | null>>({ clinic: null, studio: null });
+    const backBtnRef = useRef<HTMLButtonElement | null>(null);
+    /** 다음 커밋에서 FLIP 할 문과 그 직전 위치(처음 rect). */
+    const flipPlanRef = useRef<{ door: Door; first: DOMRect; opening: boolean } | null>(null);
+    const flippingRef = useRef(false);
 
     const isGuest = !gift;
     const who = guide.personaName || guide.title || '윤채린';
@@ -385,8 +437,93 @@ export const ChaerinClinicEntry: React.FC<Props> = ({ guide, onClose, onStart, o
 
     const go = useCallback((s: Screen) => {
         setScreen(s);
+        setFlipIn(false);
         rootRef.current?.scrollTo?.({ top: 0 });
     }, []);
+    /** 성형 하위 화면 → 입구(성형 문이 열린 채로). */
+    const toClinic = useCallback(() => { setOpenDoor('clinic'); go('entry'); }, [go]);
+
+    // ── 문 뒤집기 ──
+    // 클릭 때 처음 위치를 재 두고(flipPlanRef), 커밋 직후 마지막 위치를 재서 FLIP 으로 이어 붙인다.
+    // 회전은 CSS(.cc-open .cc-card3d), 크기·위치는 인라인 width/height/translate 트랜지션.
+    const focusRef = useRef<'back' | Door | null>(null);
+    const flipDoor = useCallback((which: Door, open: boolean) => {
+        if (flippingRef.current) return;
+        if (open ? openDoor !== null : openDoor !== which) return;
+        focusRef.current = open ? 'back' : which;
+        if (!reduce) {
+            const el = flipRefs.current[which];
+            if (el) {
+                flipPlanRef.current = { door: which, first: el.getBoundingClientRect(), opening: open };
+                flippingRef.current = true;
+            }
+        }
+        setFlipIn(open && !reduce);
+        if (open) setOpenDoor(which);
+        else { if (!reduce) setClosingDoor(which); setOpenDoor(null); }
+    }, [openDoor, reduce]);
+
+    useLayoutEffect(() => {
+        const plan = flipPlanRef.current;
+        flipPlanRef.current = null;
+        if (plan) {
+            const el = flipRefs.current[plan.door];
+            const card = el?.querySelector<HTMLElement>('.cc-card3d');
+            const face = el?.querySelector<HTMLElement>('.cc-backface');
+            if (el && card) {
+                const last = el.getBoundingClientRect();
+                const f = plan.first;
+                // 움직이는 동안엔 카드·뒷면이 바깥 상자 크기를 따라가게(열린 뒤엔 뒷면 내용이 높이를 정한다)
+                const pinned = [card, face].filter(Boolean) as HTMLElement[];
+                pinned.forEach(n => { n.style.position = 'absolute'; n.style.inset = '0'; });
+                el.style.transition = 'none';
+                el.style.width = `${f.width}px`;
+                el.style.height = `${f.height}px`;
+                el.style.transform = `translate(${f.left - last.left}px, ${f.top - last.top}px)`;
+                void el.offsetWidth;   // 처음 상태를 한 번 확정해야 트랜지션이 걸린다
+                const ease = `${FLIP_MS}ms cubic-bezier(.65,0,.35,1)`;
+                el.style.transition = `width ${ease}, height ${ease}, transform ${ease}`;
+                el.style.width = `${last.width}px`;
+                el.style.height = `${last.height}px`;
+                el.style.transform = '';
+                // 열린 카드가 화면 아래로 잘리면 루트(스크롤 컨테이너) 기준으로 끌어올린다 — 위가 넘치지 않는 만큼만.
+                // ★문 영역을 먼저 최종 높이로 잡아 둔다. 안 그러면 아직 작은 높이 기준으로 스크롤 최대치가 잘린다(390px 실측).
+                const root = rootRef.current;
+                const doors = el.parentElement;
+                if (plan.opening && doors) doors.style.minHeight = `${last.height}px`;
+                if (plan.opening && root) {
+                    const rr = root.getBoundingClientRect();
+                    const over = last.bottom - rr.bottom + 16;
+                    if (over > 0) root.scrollTo?.({ top: root.scrollTop + Math.max(0, Math.min(over, last.top - rr.top - 16)), behavior: 'smooth' });
+                }
+                later(() => {
+                    pinned.forEach(n => { n.style.position = ''; n.style.inset = ''; });
+                    el.style.transition = el.style.width = el.style.height = el.style.transform = '';
+                    if (doors) doors.style.minHeight = '';
+                    flippingRef.current = false;
+                    setClosingDoor(null);
+                }, FLIP_MS + 40);
+            } else {
+                flippingRef.current = false;
+                setClosingDoor(null);
+            }
+        }
+        const want = focusRef.current;
+        focusRef.current = null;
+        if (want === 'back') backBtnRef.current?.focus({ preventScroll: true });
+        else if (want) frontRefs.current[want]?.focus({ preventScroll: true });
+    }, [openDoor, later]);
+
+    // 하위 화면에서 입구로 돌아왔을 때(또는 열린 채로 시작) — 열린 카드가 보이게 루트 스크롤을 맞춘다
+    useLayoutEffect(() => {
+        if (screen !== 'entry' || !openDoor) return;
+        const el = flipRefs.current[openDoor], root = rootRef.current;
+        if (!el || !root) return;
+        const rr = root.getBoundingClientRect(), r = el.getBoundingClientRect();
+        root.scrollTo?.({ top: Math.max(0, root.scrollTop + r.top - rr.top - 16) });
+        // 화면 전환 때만 — 입구에서 문을 여닫을 땐 위 FLIP 이 스크롤을 맡는다
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [screen]);
 
     // 가격표 — 처음 열 때 한 번(비로그인도 공개)
     const loadCatalog = useCallback(() => {
@@ -400,26 +537,19 @@ export const ChaerinClinicEntry: React.FC<Props> = ({ guide, onClose, onStart, o
         if (screen === 'table' && !catalog && !catalogErr) loadCatalog();
     }, [screen, catalog, catalogErr, loadCatalog]);
 
-    // Escape — 한 단계 위(입구에서만 닫기)
+    // Escape — 한 단계 위(입구에서 문이 열려 있으면 문을 닫고, 닫힌 입구에서만 닫기)
     const back = useCallback(() => {
-        if (doorFx) return;
+        if (flippingRef.current) return;
+        if (screen === 'entry' && openDoor) { flipDoor(openDoor, false); return; }
         const up = PARENT[screen];
         if (up === null) onClose();
         else if (up !== screen) go(up);
-    }, [screen, doorFx, go, onClose]);
+    }, [screen, openDoor, flipDoor, go, onClose]);
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') back(); };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [back]);
-
-    // ── 문 ──
-    const openDoor = (which: 'clinic' | 'studio') => {
-        if (doorFx) return;
-        if (reduce) { go(which); return; }
-        setDoorFx(which);
-        later(() => { setDoorFx(''); go(which); }, which === 'clinic' ? 1150 : 520);
-    };
 
     // ── 견적 진입 ──
     const openEstimate = () => {
@@ -600,6 +730,51 @@ export const ChaerinClinicEntry: React.FC<Props> = ({ guide, onClose, onStart, o
     const priceLabel = isGuest ? '회원' : price === null ? '준비 중' : typeof price === 'number' ? (price > 0 ? `${fmt(price)}P` : '무료') : '';
     const chosenParts = PARTS.filter(p => parts.includes(p.id));
 
+    // ── 문 뒷면(하위 메뉴) — 방금 뒤집었으면 뒤집힘이 끝난 뒤 항목이 차례로 올라온다 ──
+    const delay = (i: number) => ({ animationDelay: `${(flipIn ? FLIP_MS / 1000 - .08 : 0) + .05 + i * .08}s` });
+    const backHead = (d: Door, title: string, sub: string) => (
+        <>
+            <button type="button" className="cc-back" ref={backBtnRef} onClick={() => flipDoor(d, false)}>← 돌아가기</button>
+            <div className="cc-subhead"><img src={d === 'clinic' ? IMG.clinic : IMG.studio} alt="" /><div><h2>{title}</h2><p>{sub}</p></div></div>
+        </>
+    );
+    const clinicBack = (
+        <>
+            {backHead('clinic', '성형 클리닉', '궁금한 건 먼저 알아보고, 결정은 의사와 상담해요.')}
+            <div className="cc-menu">
+                <button type="button" className="cc-item cc-hi" onClick={openEstimate} style={delay(0)}>
+                    <span className="cc-ic" aria-hidden="true">🪞</span>
+                    <span><b>내 성형 견적 뽑아보기</b><small>사진 한 장 → 관심 부위별 견적 → 전체 리포트</small></span>
+                    {priceLabel ? <span className={`cc-price${price === null || isGuest ? ' cc-wait' : ''}`}>{priceLabel}</span> : <span />}
+                </button>
+                <button type="button" className="cc-item" onClick={() => go('table')} style={delay(1)}>
+                    <span className="cc-ic" aria-hidden="true">📋</span>
+                    <span><b>부위별 평균 가격표</b><small>눈·코·윤곽·입술·피부 2026 공개 가격</small></span>
+                    <span className="cc-price">무료</span>
+                </button>
+                <button type="button" className="cc-item" onClick={() => onStart()} style={delay(2)}>
+                    <span className="cc-ic" aria-hidden="true">💬</span>
+                    <span><b>채린에게 물어보기</b><small>회복 기간·주의사항·상담 때 물어볼 것</small></span>
+                    <span className="cc-price">무료</span>
+                </button>
+            </div>
+        </>
+    );
+    const studioBack = (
+        <>
+            {backHead('studio', '스튜디오', '사진 한 장으로 다른 모습이 돼 봐요.')}
+            <div className="cc-menu">
+                {STUDIO.map((m, i) => (
+                    <button type="button" key={m.key} className="cc-item" onClick={() => onFeature(m.key)} style={delay(i)}>
+                        <span className="cc-ic"><img src={m.thumb} alt="" loading="lazy" /></span>
+                        <span><b>{m.name}</b><small>{m.desc}</small></span>
+                        <span className="cc-price">{m.cost}</span>
+                    </button>
+                ))}
+            </div>
+        </>
+    );
+
     return (
         <div className="cc-root" ref={rootRef} role="dialog" aria-modal="true" aria-label={`${who} 뷰티 클리닉 & 스튜디오`}>
             <style>{CSS}</style>
@@ -623,56 +798,64 @@ export const ChaerinClinicEntry: React.FC<Props> = ({ guide, onClose, onStart, o
                             </div>
                         </div>
                         <div className="cc-doors">
-                            <button type="button" className={`cc-door${doorFx === 'clinic' ? ' cc-enter' : ''}`} onClick={() => openDoor('clinic')} aria-label="성형 — 병원으로 들어가기">
-                                <img src={IMG.clinic} alt="" />
-                                {[[21, 15, 15, 10, 0], [44, 15, 13, 10, .4], [64, 15, 11, 10, .8], [21, 32, 15, 12, 1.2], [44, 32, 13, 12, 1.6], [64, 32, 11, 12, 2]].map(([l, t, w, h, d]) => (
-                                    <i key={`${l}-${t}`} className="cc-win" style={{ left: `${l}%`, top: `${t}%`, width: `${w}%`, height: `${h}%`, animationDelay: `${d}s` }} />
-                                ))}
-                                <i className="cc-spill" />
-                                <span className="cc-shade" />
-                                <span className="cc-new">NEW 견적</span>
-                                <span className="cc-dlabel"><b>성형</b><span>병원 문을 열면<br />부위별 견적이 나와요</span></span>
-                                <span className="cc-whiteout" />
-                            </button>
-                            <button type="button" className={`cc-door${doorFx === 'studio' ? ' cc-shoot' : ''}`} onClick={() => openDoor('studio')} aria-label="스튜디오 — 사진 변신 기능 보기">
-                                <img src={IMG.studio} alt="" />
-                                <i className="cc-glow" style={{ left: '4%' }} /><i className="cc-glow" style={{ right: '4%' }} />
-                                <span className="cc-flash" />
-                                <span className="cc-shade" />
-                                <span className="cc-dlabel"><b>스튜디오</b><span>헤어·프로필 화보<br />시간여행·닮은꼴</span></span>
-                            </button>
+                            {(['clinic', 'studio'] as Door[]).map(d => {
+                                const isOpen = openDoor === d;
+                                const gone = !!openDoor && !isOpen;
+                                const showBack = isOpen || closingDoor === d;
+                                return (
+                                    <div key={d} ref={n => { flipRefs.current[d] = n; }} data-door={d}
+                                        className={`cc-flip ${d === 'clinic' ? 'cc-l' : 'cc-r'}${isOpen ? ' cc-open' : ''}${gone ? ' cc-gone' : ''}`}
+                                        inert={gone} aria-hidden={gone || undefined}>
+                                        <div className="cc-card3d">
+                                            {/* 앞면 — 뒤집힌 동안엔 포커스·보조기기에서 뺀다 */}
+                                            <button type="button" ref={n => { frontRefs.current[d] = n; }} className="cc-face cc-door"
+                                                onClick={() => flipDoor(d, true)} aria-expanded={isOpen} aria-controls={`cc-back-${d}`}
+                                                inert={isOpen} tabIndex={isOpen ? -1 : undefined}
+                                                aria-label={d === 'clinic' ? '성형 — 병원으로 들어가기' : '스튜디오 — 사진 변신 기능 보기'}>
+                                                {d === 'clinic' ? <>
+                                                    <img src={IMG.clinic} alt="" />
+                                                    <span className="cc-stage" aria-hidden="true">
+                                                        {FLOORS.map((floor, fi) => floor.map(([l, t, w, h], wi) => (
+                                                            <React.Fragment key={`${fi}-${wi}`}>
+                                                                <i className="cc-bloom" style={{ left: `${l}%`, top: `${t}%`, width: `${w}%`, height: `${h}%`, animationDelay: `${fi * 0.6}s` }} />
+                                                                <i className="cc-pane" style={{ left: `${l}%`, top: `${t}%`, width: `${w}%`, height: `${h}%`, animationDelay: `${fi * 0.6}s` }} />
+                                                            </React.Fragment>
+                                                        )))}
+                                                    </span>
+                                                    <i className="cc-spill" />
+                                                    <span className="cc-shade" />
+                                                    <span className="cc-new">NEW 견적</span>
+                                                    <span className="cc-dlabel"><b>성형</b><span>병원 문을 열면<br />부위별 견적이 나와요</span></span>
+                                                </> : <>
+                                                    <img src={IMG.studio} alt="" />
+                                                    <span className="cc-stage" aria-hidden="true">
+                                                        <i className="cc-strobe" style={{ left: '-11%' }} />
+                                                        <i className="cc-strobe" style={{ left: '49%', animationDelay: '1.3s' }} />
+                                                    </span>
+                                                    <span className="cc-flash2" />
+                                                    <span className="cc-shade" />
+                                                    <span className="cc-dlabel"><b>스튜디오</b><span>헤어·프로필 화보<br />시간여행·닮은꼴</span></span>
+                                                </>}
+                                            </button>
+                                            {/* 뒷면 — 열렸을 때(와 닫히는 동안)만 그린다. 닫히는 중엔 조작 불가 */}
+                                            {showBack && (
+                                                <section id={`cc-back-${d}`} className="cc-face cc-backface" inert={!isOpen}
+                                                    aria-label={d === 'clinic' ? '성형 메뉴' : '스튜디오 메뉴'}>
+                                                    {d === 'clinic' ? clinicBack : studioBack}
+                                                </section>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                         <p className="cc-note">채린은 AI 캐릭터예요. 견적은 공개된 병원 가격을 모은 <b>참고 범위</b>이고, 진단이 아니에요.</p>
                     </section>
                 )}
 
-                {screen === 'clinic' && (
-                    <section className="cc-screen" key="clinic" aria-label="성형 메뉴">
-                        <button type="button" className="cc-back" onClick={() => go('entry')}>← 입구로</button>
-                        <div className="cc-subhead"><img src={IMG.clinic} alt="" /><div><h2>성형 클리닉</h2><p>궁금한 건 먼저 알아보고, 결정은 의사와 상담해요.</p></div></div>
-                        <div className="cc-menu">
-                            <button type="button" className="cc-item cc-hi" onClick={openEstimate} style={{ animationDelay: '.05s' }}>
-                                <span className="cc-ic" aria-hidden="true">🪞</span>
-                                <span><b>내 성형 견적 뽑아보기</b><small>사진 한 장 → 관심 부위별 견적 → 전체 리포트</small></span>
-                                {priceLabel ? <span className={`cc-price${price === null || isGuest ? ' cc-wait' : ''}`}>{priceLabel}</span> : <span />}
-                            </button>
-                            <button type="button" className="cc-item" onClick={() => go('table')} style={{ animationDelay: '.15s' }}>
-                                <span className="cc-ic" aria-hidden="true">📋</span>
-                                <span><b>부위별 평균 가격표</b><small>눈·코·윤곽·입술·피부 2026 공개 가격</small></span>
-                                <span className="cc-price">무료</span>
-                            </button>
-                            <button type="button" className="cc-item" onClick={() => onStart()} style={{ animationDelay: '.25s' }}>
-                                <span className="cc-ic" aria-hidden="true">💬</span>
-                                <span><b>채린에게 물어보기</b><small>회복 기간·주의사항·상담 때 물어볼 것</small></span>
-                                <span className="cc-price">무료</span>
-                            </button>
-                        </div>
-                    </section>
-                )}
-
                 {screen === 'table' && (
                     <section className="cc-screen" key="table" aria-label="부위별 평균 가격표">
-                        <button type="button" className="cc-back" onClick={() => go('clinic')}>← 성형 메뉴로</button>
+                        <button type="button" className="cc-back" onClick={toClinic}>← 성형 메뉴로</button>
                         <h2>부위별 평균 가격표</h2>
                         <p className="cc-src">{catalog?.asOf ? `${catalog.asOf.replace('-', '.')} 기준 · ` : ''}병원 공개 수가표·가격 비교 서비스 모음 · 만원 · 병원·지역·방법에 따라 달라요</p>
                         {!catalog && !catalogErr && <p className="cc-status" role="status">가격표를 불러오는 중…</p>}
@@ -706,7 +889,7 @@ export const ChaerinClinicEntry: React.FC<Props> = ({ guide, onClose, onStart, o
 
                 {screen === 'consent' && (
                     <section className="cc-screen" key="consent" aria-label="시작 전 확인">
-                        <button type="button" className="cc-back" onClick={() => go('clinic')}>← 성형 메뉴로</button>
+                        <button type="button" className="cc-back" onClick={toClinic}>← 성형 메뉴로</button>
                         {steps(1)}
                         <div className="cc-panel">
                             <h3>시작 전에 확인해 주세요</h3>
@@ -828,23 +1011,7 @@ export const ChaerinClinicEntry: React.FC<Props> = ({ guide, onClose, onStart, o
                         <p className="cc-legal">이 리포트는 사진에서 보이는 특징과 <b>공개된 평균 가격</b>으로 만든 참고 자료예요. 진단이 아니며 특정 병원·시술을 권하지 않아요. 마취·검사·재수술·부가세는 별도일 수 있고, 실제 수술 여부와 비용은 반드시 전문의 상담으로 정하세요.</p>
                         <button type="button" className="cc-btn" onClick={() => { setPickErr(''); go('pick'); }}>다시 해보기</button>
                         <button type="button" className="cc-btn cc-ghost" onClick={() => onStart()}>채린에게 물어보기</button>
-                        <button type="button" className="cc-btn cc-ghost" onClick={() => go('clinic')}>성형 메뉴로</button>
-                    </section>
-                )}
-
-                {screen === 'studio' && (
-                    <section className="cc-screen" key="studio" aria-label="스튜디오 메뉴">
-                        <button type="button" className="cc-back" onClick={() => go('entry')}>← 입구로</button>
-                        <div className="cc-subhead"><img src={IMG.studio} alt="" /><div><h2>스튜디오</h2><p>사진 한 장으로 다른 모습이 돼 봐요.</p></div></div>
-                        <div className="cc-menu">
-                            {STUDIO.map((m, i) => (
-                                <button type="button" key={m.key} className="cc-item" onClick={() => onFeature(m.key)} style={{ animationDelay: `${.05 + i * .07}s` }}>
-                                    <span className="cc-ic"><img src={m.thumb} alt="" loading="lazy" /></span>
-                                    <span><b>{m.name}</b><small>{m.desc}</small></span>
-                                    <span className="cc-price">{m.cost}</span>
-                                </button>
-                            ))}
-                        </div>
+                        <button type="button" className="cc-btn cc-ghost" onClick={toClinic}>성형 메뉴로</button>
                     </section>
                 )}
             </div>
