@@ -67,9 +67,26 @@
 vitest(은비·게스트 게이트·무료 키) · `tsc --noEmit` · `npm run check` · build 통과 후
 **운영 Playwright 실클릭**: 비로그인(카드→진입화면→유료 버튼→안내·회원가입 보임→닫기→복귀), 로그인(은비 버튼 전부), 390·1440 가로 스크롤 0, 콘솔 오류 0.
 
-## 7. 남은 것
+## 7. 선물하기 (2026-09-28, `a17162a`·`a364162`)
+
+- 기존 스타 선물 재사용(서버 무수정). 커피·케이크·꽃다발·곰인형·특별한 선물(10~1,000P).
+- 선물 → 히어로 자리에서 반응 영상(Veo 3.1 Fast 6초, **첫·끝 장면 = 히어로 정지화면**): 윙크·볼 감싸기·손하트(머리 위 큰 하트)·빙그르르 춤.
+  손가락 하트·팔 흔드는 춤은 손이 뭉개져 탈락. 영상 `public/eunbi/eunbi_gift_*.mp4`, 원본·스크립트 `~/eunbi-entry/gift/`.
+- 호감도 게이지 + 보상: Lv2 이름 인사, Lv3 손하트 배경화면, Lv4 비밀 대사+볼하트 배경화면, Lv5 반응 영상 다시 보기, Lv6 웹툰 비밀 에피소드(잠김).
+- App.tsx `gift` 컨텍스트(`EntryGiftContext`): 잔액·personaXp 갱신, 부족 시 진입화면 닫고 PointModal(z-70이라 진입화면 뒤에 숨음).
+- 🔴히어로 영상이 Blender AgX 색 변환으로 바래 있었다 → `view_transform='Standard'` 재인코딩 `hero_eunbi_loop_v2.mp4`(옛 파일 유지).
+- 운영 실측: 연타해도 결제 1회, -10P, 호감도 +2, 영상 재생→복귀.
+
+## 8. 축하 카드 (2026-09-28, shared-api `a7860e0`·`9c9c6a3` / ai_mp `640e72c`·`31758e6`)
+
+- 상황 5종 미리 만든 은비 그림(`public/eunbi/card_*.jpg`, Gemini 편집 생성, 원본 `~/eunbi-entry/card/`) + Gemini 문구.
+- 보내는 화면(은비 진입화면 💌 섹션): 이름 10자·사연 60자 글자 수 표시, 금지어 즉시 경고, 오늘 무료/100P, 카톡 공유(navigator.share)·링크 복사·미리 보기.
+- 받는 화면 `/c/:id` = Vercel `api/card-share.ts` 가 **서버 HTML**(OG 미리보기 + 봉투→카드→빛→상황별 캔버스 효과→손글씨 타이핑). SPA·App.tsx 무관. XSS: esc + scriptJson + textContent.
+- 서버 `routes/aimp/eunbi-card.ts`(POST·/quota·/public/:id), 금지어 `lib/eunbiCardFilter.ts`, DB `EunbiCard`(db_schema.md), 가격 points_payment.md.
+- 비로그인: 카드 버튼 → 무료 안내+회원가입 게이트.
+
+## 9. 남은 것
 
 - 은비 웹툰 연재 시작 시 웹툰 카드 연결(App.tsx `FEATURE_ACTIONS.webtoon`은 activePersona 기준).
-- 선물하기 등 "곧 만나요" 기능 — 가격은 사장 결정.
 - ✅명품 감정은 2026-09-28 이아린으로 이관(`2f1d141`, DB features도 변경). 은비 담당 기능 없음.
 - 닮은꼴·시간여행 설명의 "윤채린" 문구(범위 밖).

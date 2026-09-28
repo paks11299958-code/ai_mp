@@ -706,3 +706,28 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 
 ★마이그레이션 실행은 `.env.local` 외부 IP(34.50.27.95)가 아니라 **`@127.0.0.1:`** 로
 치환해 돌린다(보안 하드닝으로 외부 접근 차단 — 파일 자체는 고치지 말 것).
+
+**void 를 돌려주는 함수를 `$queryRaw`로 부르면 500** (2026-09-28 은비 카드 운영 첫 호출):
+`SELECT pg_advisory_xact_lock(...)` — DB 는 성공했는데 Prisma 7.8 이 void 열을 역직렬화하다
+`ReferenceError: Must call super constructor…` 로 죽는다(DB 로그엔 오류 0). 결과가 필요 없는 호출은
+**`$executeRaw` / `$executeRawUnsafe`**. 가짜 prisma 테스트는 이 차이를 못 잡으니 새 raw 쿼리는 운영 첫 호출을 실측할 것.
+
+## EunbiCard (2026-09-28 신설, 💌 은비 축하 카드 — **raw SQL만**, 운영 DB 실행 완료)
+
+`shared-api/sql/2026-09-28_eunbi_card.sql`. 접근은 `$queryRaw`/`$executeRaw` 태그드 템플릿만(schema.prisma 미등록).
+
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| id | TEXT PK | 공개 링크 ID(영숫자 12자, crypto 난수) — `/c/<id>` |
+| userId | INTEGER | 보낸 사람 |
+| occasion | TEXT | birthday·cheer·pass·thanks·comfort |
+| toName / fromName | TEXT | 1~10자 |
+| story | TEXT? | 사연 0~60자(**공개 조회에 노출 안 함**) |
+| message | TEXT | Gemini 문구(실패·금지어 시 고정 문구) |
+| refCode | TEXT? | 보낸 사람 추천코드(카드 링크 CTA 에 부착) |
+| isFree / pointsCharged | BOOLEAN / INT | 하루 1장 무료, 이후 MenuLimit `eunbi-card`(100P) |
+| viewCount | INT | 공개 조회 수 |
+| createdAt | **TIMESTAMPTZ** | ★다른 테이블(UTC naive)과 다름. KST 자정은 JS 에서 계산 |
+
+인덱스 `(userId, createdAt)`. 무료/유료 판단·차감·INSERT 는 한 트랜잭션 + `pg_advisory_xact_lock(hashtext('eunbi-card:<userId>'))`.
+
