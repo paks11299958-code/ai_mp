@@ -1,13 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
-import type { PersonaEntryGuide } from '../PersonaEntrySheet';
+import type { EntryGiftContext, GuestGate, PersonaEntryGuide } from '../PersonaEntrySheet';
+import { pointApi } from '../../services/pointService';
+import { getStage, STAGES } from '../../utils/level';
 
 // 신은비 전용 진입화면 — 승인된 웹툰 은비 시안(eunbi-entry.html)을 제품 계약에 맞춰 옮긴다.
-// App.tsx는 건드리지 않는다. onStart()=기존 채팅, onFeature('hair'|'outfit')=기존 보드,
+// onStart()=기존 채팅, onFeature('hair'|'outfit')=기존 보드,
 // onClose()=원래 화면으로 복귀. 준비 중 기능과 웹툰은 콜백 없이 화면 안 토스트만 띄운다.
 //   ★웹툰을 onFeature('webtoon')로 보내지 않는 이유: 앱은 activePersona(=은비)의 웹툰을 여는데
 //     은비 웹툰은 0편이라 빈 화면이 된다.
 // ★스크롤 연동은 window가 아니라 루트(.eb-root) 스크롤 컨테이너 기준이다 —
 //   루트가 position:fixed + overflow-y:auto 이므로 window.scrollY는 항상 0이다.
+//
+// 선물하기(2026-09-28, 승인 시안 eunbi-entry/gift/draft/eunbi-gift.html):
+//   결제·호감도는 **기존 스타 선물 그대로**(pointApi.sendStar → POST /api/star, 서버 수정 없음).
+//   서버 규칙: amount × 10P 차감, 호감도 amount × 2, 단계 상승 시 레벨업 보너스. 부족하면 402.
+//   ★gift 가 없으면(비로그인) 선물 섹션·게이지·보상 없이, 선물 버튼이 게스트 게이트('paid','gift')를 부른다.
 
 interface Props {
     guide: PersonaEntryGuide;
@@ -15,13 +22,76 @@ interface Props {
     onStart: (featureKey?: string) => void;
     onFeature: (featureKey: string) => void;
     onInvite: () => void;
+    /** 로그인 회원만. 없으면 선물 기능을 숨기고 게스트 게이트로 안내한다. */
+    gift?: EntryGiftContext;
+    /** 비로그인 시트에서만 온다(PersonaEntrySheet 의 guestGate 규약). */
+    onGuestGate?: GuestGate;
 }
 
 const FONT_LINK_ID = 'eb-fonts';
 const FONT_HREF = 'https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap';
 const BUBBLE_LINES = ['안녕~ 난 은비야!', '오늘 하루 어땠어?', '같이 웹툰 볼래?', '나랑 얘기하자 ♥', '기다리고 있었어!'];
+/** 호감도 Lv.4(베프) 보상 — 말풍선 순환에 더해지는 비밀 대사. */
+const SECRET_LINES = [
+    '사실… 너 올 때마다 몰래 웃고 있었어 ☺',
+    '비밀인데, 너랑 얘기하는 시간이 제일 좋아',
+    '힘든 날엔 나한테 먼저 말해 줘. 약속!',
+    '너한테만 말하는 건데, 내 꿈은 웹툰 작가야 ✏️',
+    '우리 오래오래 친구 하자 ♥',
+];
 const SOON_MSG = '곧 만나요! 준비 중이에요';
 const WEBTOON_MSG = '은비 웹툰 곧 연재! 조금만 기다려 주세요';
+const GIFT_FAIL_MSG = '선물을 보내지 못했어요. 잠시 후 다시 시도해 주세요.';
+const GUEST_GIFT_MSG = '로그인하면 은비에게 선물할 수 있어요';
+const AFTER_GIFT_LINE = '또 놀러 와 줘 ♥';
+/** 선물 성공 뒤 최소 잠금(ms) — 반응 영상이 즉시 실패해도 연타 이중 결제를 막는다. */
+const MIN_LOCK_MS = 1500;
+
+// 스타 1개의 값 — shared-api routes/aimp/star.ts(pointsSpent = amount*10, xpGain = amount*2)와 같다.
+const STAR_POINTS = 10;
+const STAR_XP = 2;
+// 레벨업 보너스(표시용) — shared-api lib/points.ts LEVELUP_BONUS 와 같게 둔다(인덱스 = 단계-1).
+const LEVELUP_BONUS = [0, 200, 500, 1000, 2000, 5000];
+
+const CLIP = {
+    nod: '/eunbi/eunbi_gift_nod.mp4',
+    cheek: '/eunbi/eunbi_gift_cheek.mp4',
+    heart: '/eunbi/eunbi_gift_heart.mp4',
+    dance: '/eunbi/eunbi_gift_dance.mp4',
+} as const;
+
+interface Gift { key: string; icon: string; name: string; amount: number; clip: string; motion: string; line: string; hearts: number }
+// ★가격·호감도는 amount 에서 계산한다(상수 두 벌 금지).
+const GIFTS: Gift[] = [
+    { key: 'coffee',  icon: '☕', name: '커피',        amount: 1,   clip: CLIP.nod,   motion: '윙크',       line: '와, 커피! 덕분에 오늘 하루 힘난다 ☕', hearts: 6 },
+    { key: 'cake',    icon: '🍰', name: '조각 케이크', amount: 5,   clip: CLIP.cheek, motion: '볼 감싸기',  line: '헉 케이크…? 나 너무 감동이야 🥹', hearts: 12 },
+    { key: 'flower',  icon: '💐', name: '꽃다발',      amount: 10,  clip: CLIP.heart, motion: '손하트',     line: '꽃다발이라니! 내 마음도 받아줘 ♥', hearts: 20 },
+    { key: 'bear',    icon: '🎀', name: '곰인형',      amount: 30,  clip: CLIP.heart, motion: '손하트',     line: '곰인형 꼭 안고 잘게… 고마워 ♥', hearts: 28 },
+    { key: 'special', icon: '💝', name: '특별한 선물', amount: 100, clip: CLIP.dance, motion: '빙그르르 춤', line: '이건 반칙이야…! 좋아서 빙그르르 💃', hearts: 44 },
+];
+const giftPrice = (g: Gift) => g.amount * STAR_POINTS;
+const giftXp = (g: Gift) => g.amount * STAR_XP;
+
+/** Lv.5 보상 — 반응 영상 4종 다시 보기(포인트 차감 없음). */
+const REPLAYS = [
+    { label: '윙크', clip: CLIP.nod, line: GIFTS[0].line },
+    { label: '볼 감싸기', clip: CLIP.cheek, line: GIFTS[1].line },
+    { label: '손하트', clip: CLIP.heart, line: GIFTS[2].line },
+    { label: '빙그르르 춤', clip: CLIP.dance, line: GIFTS[4].line },
+];
+
+// 은비식 단계 이름·보상 — 최소 호감도는 utils/level STAGES(minXp 0·30·150·500·1200·2500)를 그대로 쓴다.
+const EB_LEVELS = [
+    { name: '처음 만난 사이', reward: '선물 반응 영상',     desc: '선물하면 은비가 영상으로 반응해요' },
+    { name: '말 편한 친구',   reward: '은비 특별 인사',     desc: '들어올 때마다 은비가 이름을 불러 줘요' },
+    { name: '단짝',           reward: '손하트 배경화면',    desc: '폰 배경화면용 은비 손하트 일러스트' },
+    { name: '베프',           reward: '은비 비밀 이야기',   desc: '친한 친구에게만 하는 이야기 + 볼하트 배경화면' },
+    { name: '소울메이트',     reward: '반응 영상 다시 보기', desc: '은비 반응 영상 4종을 무료로 다시 보기' },
+    { name: '은비의 최애',    reward: '웹툰 비밀 에피소드', desc: '은비 웹툰 연재가 시작되면 먼저 열려요' },
+];
+/** 0부터 시작하는 단계 인덱스(STAGES 기준). */
+const levelIndex = (xp: number) => Math.max(0, STAGES.findIndex(s => s.stage === getStage(xp).stage));
+const fmt = (n: number) => n.toLocaleString('ko-KR');
 
 const prefersReducedMotion = () => {
     try { return !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches; } catch { return false; }
@@ -156,6 +226,67 @@ const CSS = `
   max-width:min(92vw,420px);text-align:center;pointer-events:none}
 .eb-toast.show{opacity:1;transform:translate(-50%,0)}
 
+/* 선물하기 — 반응 영상은 히어로와 같은 타원 마스크(.eb-girlmask) 안에 겹친다 */
+.eb-girlmask{position:relative}
+.eb-girlmask video.eb-react{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .25s}
+.eb-girlmask video.eb-react.on{opacity:1}
+.eb-bubble.pop{animation:eb-pop .45s ease-out}
+@keyframes eb-pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
+.eb-hearts{position:absolute;inset:0;z-index:7;pointer-events:none;overflow:hidden}
+.eb-hearts i{position:absolute;bottom:-30px;font-style:normal;color:var(--eb-rose);animation:eb-rise 2.4s ease-out forwards}
+@keyframes eb-rise{to{transform:translateY(-110svh) rotate(var(--r,0deg));opacity:0}}
+.eb-has-gauge .eb-copy{bottom:calc(16svh + 64px)}
+.eb-has-gauge .eb-scrollhint{display:none}
+.eb-gauge{position:absolute;z-index:8;left:16px;right:16px;bottom:calc(14px + env(safe-area-inset-bottom,0px));max-width:440px;
+  background:rgba(255,255,255,.82);backdrop-filter:blur(6px);border:1.5px solid var(--eb-line);border-radius:18px;padding:10px 14px;
+  display:grid;gap:6px}
+.eb-gauge-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;min-width:0}
+.eb-gauge-top b{font-family:var(--eb-display);font-weight:400;font-size:17px;color:var(--eb-rose-deep);min-width:0}
+.eb-gauge-top span{flex:none;font-size:12.5px;color:var(--eb-ink-soft);font-variant-numeric:tabular-nums}
+.eb-bar{height:10px;border-radius:99px;background:var(--eb-blush);overflow:hidden}
+.eb-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--eb-peach),var(--eb-rose));
+  transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.eb-xpfloat{position:absolute;z-index:9;right:24px;bottom:calc(84px + env(safe-area-inset-bottom,0px));font-family:var(--eb-display);font-size:20px;
+  color:var(--eb-rose);opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none}
+.eb-xpfloat.show{opacity:1;transform:none}
+
+.eb-sechead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.eb-sechead .eb-h2{margin:0}
+.eb-wallet{font-size:13px;color:var(--eb-ink-soft);font-variant-numeric:tabular-nums}
+.eb-wallet b{color:var(--eb-ink)}
+.eb-gifts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.eb-gift{appearance:none;border:2px solid var(--eb-line);background:#fff;border-radius:20px;padding:14px 12px 12px;min-width:0;
+  display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;cursor:pointer;color:var(--eb-ink);
+  transition:border-color .15s,transform .15s}
+.eb-gift:hover{transform:translateY(-2px)}
+.eb-gift[aria-pressed="true"]{border-color:var(--eb-rose);box-shadow:0 0 0 3px rgba(232,70,127,.15)}
+.eb-gift .ic{font-size:30px;line-height:1}
+.eb-gift b{font-family:var(--eb-display);font-weight:400;font-size:18px;margin-top:4px}
+.eb-gift .price{font-size:14px;color:var(--eb-rose-deep);font-variant-numeric:tabular-nums}
+.eb-gift .meta{font-size:12px;color:var(--eb-ink-soft)}
+.eb-gift.special{grid-column:span 2;flex-direction:row;align-items:center;gap:12px;background:linear-gradient(120deg,#fff,#FFE6F0 60%,#F1E9FF)}
+.eb-gift.special .txt{display:flex;flex-direction:column;gap:2px}
+.eb-send{appearance:none;width:100%;margin-top:14px;border:0;border-radius:99px;background:var(--eb-rose);color:#fff;
+  font-family:var(--eb-display);font-size:19px;padding:15px 18px;cursor:pointer;box-shadow:0 6px 0 var(--eb-rose-deep)}
+.eb-send:active{transform:translateY(4px);box-shadow:0 2px 0 var(--eb-rose-deep)}
+.eb-send:disabled{background:#D9B7C5;box-shadow:0 6px 0 #BF97A8;cursor:default}
+.eb-fine{margin:10px 0 0;font-size:12px;color:var(--eb-ink-soft);text-align:center}
+
+.eb-rewards{display:flex;flex-direction:column;border:1.5px solid var(--eb-line);border-radius:20px;background:#fff;overflow:hidden}
+.eb-rw{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 14px;border-top:1px solid var(--eb-line)}
+.eb-rw:first-child{border-top:0}
+.eb-rw .lv{font-family:var(--eb-display);font-size:15px;color:var(--eb-rose-deep)}
+.eb-rw .lv small{display:block;font-family:var(--eb-body);font-size:11px;color:var(--eb-ink-soft);font-variant-numeric:tabular-nums}
+.eb-rw .what b{font-weight:700;font-size:14px}
+.eb-rw .what p{margin:0;font-size:12.5px;color:var(--eb-ink-soft);line-height:1.45}
+.eb-rw .tools{grid-column:2/-1;display:flex;flex-wrap:wrap;gap:6px}
+.eb-chip{font-size:11.5px;border-radius:99px;padding:4px 9px;white-space:nowrap}
+.eb-chip.on{background:var(--eb-rose);color:#fff}
+.eb-chip.off{background:var(--eb-blush);color:var(--eb-ink-soft)}
+.eb-mini{appearance:none;display:inline-flex;align-items:center;gap:4px;font-size:12.5px;border-radius:99px;padding:6px 11px;cursor:pointer;
+  border:1.5px solid var(--eb-rose);background:#fff;color:var(--eb-rose-deep);text-decoration:none}
+.eb-mini:disabled{opacity:.5;cursor:default}
+
 @media (max-width:860px){
   .eb-twin{grid-template-columns:1fr}
   .eb-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -167,6 +298,11 @@ const CSS = `
   .eb-bubblewrap{left:4%;top:9%;max-width:160px}
   .eb-bubble{font-size:21px}
   .eb-copy{bottom:13svh}
+  /* 모바일은 하단 고정 CTA(.eb-dock)가 있으므로 게이지·호감도 숫자·토스트를 그 위로 올린다 */
+  .eb-has-gauge .eb-copy{bottom:calc(168px + env(safe-area-inset-bottom,0px))}
+  .eb-gauge{bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+  .eb-xpfloat{bottom:calc(158px + env(safe-area-inset-bottom,0px))}
+  .eb-root.eb-gift-on .eb-toast{bottom:calc(196px + env(safe-area-inset-bottom,0px))}
   .eb-ctas.inline{display:none}
   .eb-dock{display:block}
 }
@@ -189,13 +325,25 @@ const makeFx = (): FxDot[] => {
     });
 };
 
-export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature }) => {
+export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature, gift, onGuestGate }) => {
     const [reduce] = useState(prefersReducedMotion);
     const [fx] = useState(makeFx);
     const [line, setLine] = useState(0);
     const [bubbleOut, setBubbleOut] = useState(false);
     const [toast, setToast] = useState('');
     const [toastOn, setToastOn] = useState(false);
+
+    // ── 선물하기 상태. xp·points 는 **응답값 기준**으로 즉시 갱신하고, prop 이 바뀌면 따라간다.
+    const [xp, setXp] = useState(gift?.xp ?? 0);
+    const [points, setPoints] = useState(gift?.points ?? 0);
+    const [selKey, setSelKey] = useState(GIFTS[0].key);
+    const [busy, setBusy] = useState(false);
+    const [reaction, setReaction] = useState<{ src: string; n: number } | null>(null);
+    const [playing, setPlaying] = useState(false);
+    const [override, setOverride] = useState<string | null>(null);
+    const [popKey, setPopKey] = useState(0);
+    const [hearts, setHearts] = useState<{ id: number; left: number; size: number; delay: number; r: number; mark: string }[]>([]);
+    const [xpFloat, setXpFloat] = useState<number | null>(null);
 
     const rootRef = useRef<HTMLDivElement>(null);
     const heroRef = useRef<HTMLElement>(null);
@@ -206,7 +354,32 @@ export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature }) => 
     const copyRef = useRef<HTMLDivElement>(null);
     const bubbleWrapRef = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
+    const reactRef = useRef<HTMLVideoElement>(null);
+    const giftSecRef = useRef<HTMLElement>(null);
     const toastTimer = useRef<ReturnType<typeof setTimeout>>();
+    // ★돈이 나가는 버튼 — state 는 다음 렌더에야 반영되므로 연타는 ref 로 동기 차단한다.
+    const busyRef = useRef(false);
+    const holdRef = useRef(false);
+    const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+    const releaseTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const safetyTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const heartSeq = useRef(0);
+    const lockUntil = useRef(0);
+
+    const later = (fn: () => void, ms: number) => {
+        const id = setTimeout(() => { timers.current.delete(id); fn(); }, ms);
+        timers.current.add(id);
+        return id;
+    };
+    const cancel = (id?: ReturnType<typeof setTimeout>) => {
+        if (!id) return;
+        clearTimeout(id);
+        timers.current.delete(id);
+    };
+
+    useEffect(() => { if (gift) setXp(gift.xp); }, [gift?.xp]);
+    useEffect(() => { if (gift) setPoints(gift.points); }, [gift?.points]);
+    useEffect(() => { holdRef.current = override !== null; }, [override]);
 
     // 폰트는 한 번만 삽입한다(열고 닫기를 반복해도 중복 없음). 실패해도 대체 글꼴로 동작.
     useEffect(() => {
@@ -235,8 +408,9 @@ export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature }) => 
         if (reduce) return;
         let swap: ReturnType<typeof setTimeout> | undefined;
         const id = setInterval(() => {
+            if (holdRef.current) return;   // 선물 반응 대사가 떠 있는 동안 순환 일시정지
             setBubbleOut(true);
-            swap = setTimeout(() => { setLine(n => (n + 1) % BUBBLE_LINES.length); setBubbleOut(false); }, 260);
+            swap = setTimeout(() => { setLine(n => n + 1); setBubbleOut(false); }, 260);
         }, 2800);
         return () => { clearInterval(id); if (swap) clearTimeout(swap); };
     }, [reduce]);
@@ -297,20 +471,145 @@ export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature }) => 
         return () => { io.disconnect(); clearTimeout(fallback); };
     }, [reduce]);
 
-    useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
+    useEffect(() => () => {
+        if (toastTimer.current) clearTimeout(toastTimer.current);
+        timers.current.forEach(clearTimeout);
+        timers.current.clear();
+    }, []);
 
-    const say = (msg: string) => {
+    // 반응 영상 — src 는 재생할 때만 붙인다(preload=none). 같은 영상 연속 재생은 n 으로 구분.
+    useEffect(() => {
+        const v = reactRef.current;
+        if (!v || !reaction) return;
+        v.muted = true; v.defaultMuted = true;
+        try { v.currentTime = 0; } catch { /* 로드 전이면 무시 */ }
+        try {
+            const p = v.play();
+            if (p && typeof p.catch === 'function') p.catch(() => finishReaction());
+        } catch { finishReaction(); }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reaction]);
+
+    const say = (msg: string, ms = 2600) => {
         setToast(msg);
         setToastOn(true);
         if (toastTimer.current) clearTimeout(toastTimer.current);
-        toastTimer.current = setTimeout(() => setToastOn(false), 2600);
+        toastTimer.current = setTimeout(() => setToastOn(false), ms);
     };
     const start = () => onStart();
     const soon = () => say(SOON_MSG);
     const webtoon = () => say(WEBTOON_MSG);
 
+    const lv = levelIndex(xp);
+    const lines = [
+        ...(gift && lv >= 1 ? [gift.nickname ? `${gift.nickname}! 또 와 줬네 ♥` : '또 와 줬네! 반가워 ♥'] : []),
+        ...BUBBLE_LINES,
+        ...(gift && lv >= 3 ? SECRET_LINES : []),
+    ];
+    const bubbleText = override ?? lines[line % lines.length];
+    const sel = GIFTS.find(g => g.key === selKey) ?? GIFTS[0];
+    const short = points < giftPrice(sel);
+
+    const burst = (n: number) => {
+        if (reduce) return;
+        const marks = ['♥', '💗', '💖', '✨'];
+        const batch = Array.from({ length: n }, (_, i) => ({
+            id: ++heartSeq.current, left: 6 + Math.random() * 88, size: 16 + Math.random() * 18,
+            delay: Math.random() * .9, r: Math.random() * 80 - 40, mark: marks[i % marks.length],
+        }));
+        const ids = new Set(batch.map(h => h.id));
+        setHearts(prev => [...prev, ...batch]);
+        later(() => setHearts(prev => prev.filter(h => !ids.has(h.id))), 3600);
+    };
+
+    const showLine = (text: string | null) => { setOverride(text); setPopKey(k => k + 1); };
+
+    const finishReaction = () => {
+        if (!busyRef.current) return;
+        // 영상이 곧바로 실패해도(코덱·네트워크) 성공 직후의 두 번째 탭이 또 결제되지 않게 최소 잠금을 둔다.
+        const wait = lockUntil.current - Date.now();
+        if (wait > 0) { cancel(safetyTimer.current); safetyTimer.current = later(finishReaction, wait); return; }
+        cancel(safetyTimer.current);
+        setPlaying(false);
+        setReaction(null);
+        const loop = videoRef.current;
+        if (loop && !reduce) {
+            try { loop.currentTime = 0; const p = loop.play(); if (p && typeof p.catch === 'function') p.catch(() => {}); } catch { /* 무시 */ }
+        }
+        busyRef.current = false;
+        setBusy(false);
+        showLine(AFTER_GIFT_LINE);
+        cancel(releaseTimer.current);
+        releaseTimer.current = later(() => setOverride(null), 2600);   // 대사 순환 재개
+    };
+
+    /** 반응(대사·하트·영상). 호출 전에 busyRef 를 잡아 둔다. */
+    const playReaction = (clip: string, text: string, heartCount: number) => {
+        rootRef.current?.scrollTo?.({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+        lockUntil.current = Date.now() + MIN_LOCK_MS;
+        cancel(releaseTimer.current);
+        showLine(text);
+        burst(heartCount);
+        if (reduce) { later(finishReaction, MIN_LOCK_MS); return; }
+        setReaction(prev => ({ src: clip, n: (prev?.n ?? 0) + 1 }));
+        cancel(safetyTimer.current);
+        safetyTimer.current = later(finishReaction, 15000);   // 로드가 멈춰도 버튼이 영영 잠기지 않게
+    };
+
+    const openGift = () => {
+        if (!gift) {
+            if (onGuestGate) onGuestGate('paid', 'gift');
+            else say(GUEST_GIFT_MSG);
+            return;
+        }
+        giftSecRef.current?.scrollIntoView?.({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    };
+
+    const sendGift = async () => {
+        if (!gift || busyRef.current) return;
+        const g = sel;
+        if (points < giftPrice(g)) { gift.onNeedCharge(); return; }
+        busyRef.current = true;
+        setBusy(true);
+        let r: Awaited<ReturnType<typeof pointApi.sendStar>>;
+        try {
+            r = await pointApi.sendStar(gift.personaId, g.amount);
+        } catch (e) {
+            busyRef.current = false;
+            setBusy(false);
+            // 실패하면 포인트 표시·게이지는 그대로 둔다.
+            if (e instanceof Error && e.message === 'INSUFFICIENT_POINTS') gift.onNeedCharge();
+            else say(GIFT_FAIL_MSG);
+            return;
+        }
+        if (typeof r.newBalance === 'number') setPoints(r.newBalance);
+        if (typeof r.xp === 'number') setXp(r.xp);
+        setXpFloat(giftXp(g));
+        later(() => setXpFloat(null), 2200);
+        if (r.leveledUp) {
+            const li = levelIndex(r.xp);
+            const L = EB_LEVELS[li];
+            const opened = li >= EB_LEVELS.length - 1 ? '웹툰 비밀 에피소드는 연재 후 열려요' : `${L.reward} 열림`;
+            later(() => say(`Lv.${li + 1} ${L.name}! 보너스 +${fmt(r.levelupBonus ?? 0)}P · ${opened}`, 4200), 1200);
+        }
+        gift.onGifted({ xp: r.xp, personaId: gift.personaId, leveledUp: !!r.leveledUp, newStage: r.newStage, levelupBonus: r.levelupBonus ?? 0 });
+        playReaction(g.clip, g.line, g.hearts);
+    };
+
+    /** Lv.5 보상 — 포인트 차감 없이 반응 영상 다시 보기. */
+    const replay = (clip: string, text: string) => {
+        if (busyRef.current) return;
+        busyRef.current = true;
+        setBusy(true);
+        playReaction(clip, text, 10);
+    };
+
+    const nextMin = STAGES[lv + 1]?.minXp;
+    const curMin = STAGES[lv]?.minXp ?? 0;
+    const barPct = nextMin === undefined ? 100 : Math.min(100, Math.max(0, (xp - curMin) / (nextMin - curMin) * 100));
+
     return (
-        <div className="eb-root" ref={rootRef} role="dialog" aria-modal="true" aria-label="웹툰 은비 진입화면">
+        <div className={`eb-root${gift ? ' eb-gift-on' : ''}`} ref={rootRef} role="dialog" aria-modal="true" aria-label="웹툰 은비 진입화면">
             <style>{CSS}</style>
             <header className="eb-top">
                 <span className="eb-mark">은비<small aria-hidden="true">♥</small></span>
@@ -318,18 +617,24 @@ export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature }) => 
             </header>
 
             <section className="eb-hero" ref={heroRef} aria-label="은비 소개">
-                <div className="eb-stage">
+                <div className={`eb-stage${gift ? ' eb-has-gauge' : ''}`}>
                     <div className="eb-layer eb-l-bg" ref={bgRef} />
                     <div className="eb-layer eb-l-glow" ref={glowRef}><i /></div>
                     <div className="eb-layer eb-l-girl" ref={girlRef}>
                         <div className="eb-girlwrap">
                             <div className="eb-bubblewrap" ref={bubbleWrapRef}>
-                                <div className={`eb-bubble${bubbleOut ? ' out' : ''}`} aria-hidden="true">{BUBBLE_LINES[line]}</div>
+                                <div key={popKey} className={`eb-bubble${bubbleOut && override === null ? ' out' : ''}${popKey && !reduce ? ' pop' : ''}`}
+                                     aria-hidden="true">{bubbleText}</div>
                             </div>
                             <div className="eb-girlmask">
-                                <video ref={videoRef} src="/eunbi/hero_eunbi_loop.mp4" poster="/eunbi/hero_eunbi_916.jpg"
+                                <video ref={videoRef} src="/eunbi/hero_eunbi_loop_v2.mp4" poster="/eunbi/hero_eunbi_916.jpg"
                                        muted loop playsInline autoPlay={!reduce} preload={reduce ? 'none' : 'auto'} width={720} height={1280}
                                        aria-label="손을 흔들며 인사하는 웹툰 그림체의 은비" />
+                                {gift && (
+                                    <video ref={reactRef} className={`eb-react${playing ? ' on' : ''}`} data-testid="eb-react"
+                                           src={reaction?.src} muted playsInline preload="none" width={720} height={1280} aria-hidden="true"
+                                           onPlaying={() => setPlaying(true)} onEnded={finishReaction} onError={finishReaction} />
+                                )}
                             </div>
                         </div>
                     </div>
@@ -350,6 +655,26 @@ export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature }) => 
                         <p className="eb-quote">“오늘도, 내 이야기 들어줄 거지?”</p>
                     </div>
                     <div className="eb-scrollhint" aria-hidden="true">아래로 스크롤<i /></div>
+                    {hearts.length > 0 && (
+                        <div className="eb-hearts" aria-hidden="true">
+                            {hearts.map(h => (
+                                <i key={h.id} style={{ left: `${h.left}%`, fontSize: `${h.size}px`, animationDelay: `${h.delay}s`,
+                                                      ['--r' as string]: `${h.r}deg` } as React.CSSProperties}>{h.mark}</i>
+                            ))}
+                        </div>
+                    )}
+                    {gift && (
+                        <>
+                            <div className={`eb-xpfloat${xpFloat !== null ? ' show' : ''}`} aria-hidden="true">호감도 +{xpFloat ?? 0}</div>
+                            <div className="eb-gauge" role="group" aria-label="은비 호감도">
+                                <div className="eb-gauge-top">
+                                    <b>호감도 Lv.{lv + 1} · {EB_LEVELS[lv].name}</b>
+                                    <span data-testid="eb-xp">{nextMin === undefined ? `${fmt(xp)} · 최고 레벨` : `${fmt(xp)} / ${fmt(nextMin)}`}</span>
+                                </div>
+                                <div className="eb-bar"><i style={{ width: `${barPct}%` }} /></div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </section>
 
@@ -364,14 +689,92 @@ export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature }) => 
                             <button className="eb-act is-soon" type="button" aria-label="스토리 모드 · 곧 만나요" onClick={soon}>
                                 <em className="eb-soon">곧 만나요</em><span className="ic" aria-hidden="true">📖</span><b>스토리 모드</b><span className="d">은비와 함께하는 특별한 이야기</span>
                             </button>
-                            <button className="eb-act is-soon" type="button" aria-label="선물하기 · 곧 만나요" onClick={soon}>
-                                <em className="eb-soon">곧 만나요</em><span className="ic" aria-hidden="true">🎁</span><b>선물하기</b><span className="d">마음을 전하고 호감도를 올려요</span>
+                            <button className="eb-act" type="button" aria-label="선물하기" onClick={openGift}>
+                                <span className="ic" aria-hidden="true">🎁</span><b>선물하기</b><span className="d">마음을 전하고 호감도를 올려요</span>
                             </button>
                             <button className="eb-act is-soon" type="button" aria-label="웹툰 보기 · 은비 웹툰 곧 연재" onClick={webtoon}>
                                 <em className="eb-soon">곧 연재</em><span className="ic" aria-hidden="true">🖼️</span><b>웹툰 보기</b><span className="d">은비 웹툰 · 곧 연재</span>
                             </button>
                         </div>
                     </section>
+
+                    {gift && (
+                        <section className="eb-panel eb-reveal" ref={giftSecRef} aria-labelledby="eb-h-gift">
+                            <div className="eb-sechead">
+                                <h2 className="eb-h2" id="eb-h-gift">은비에게 선물하기</h2>
+                                <span className="eb-wallet">내 포인트 <b data-testid="eb-wallet">{fmt(points)}P</b></span>
+                            </div>
+                            <div className="eb-gifts">
+                                {GIFTS.map(g => {
+                                    const special = g.key === 'special';
+                                    const body = <><b>{g.name}</b><span className="price">{fmt(giftPrice(g))}P</span>
+                                        <span className="meta">호감도 +{giftXp(g)} · {g.motion}</span></>;
+                                    return (
+                                        <button key={g.key} type="button" className={`eb-gift${special ? ' special' : ''}`}
+                                                aria-pressed={selKey === g.key} aria-label={`${g.name} ${fmt(giftPrice(g))}P`}
+                                                onClick={() => setSelKey(g.key)}>
+                                            <span className="ic" aria-hidden="true">{g.icon}</span>
+                                            {special ? <span className="txt">{body}</span> : body}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <button className="eb-send" type="button" disabled={busy} onClick={sendGift}>
+                                {busy ? '은비가 선물을 받는 중…' : short ? '포인트가 부족해요 · 충전하기' : `${fmt(giftPrice(sel))}P로 ${sel.name} 선물하기`}
+                            </button>
+                            <p className="eb-fine">선물은 은비 호감도에 쌓여요. 레벨이 오르면 보너스 포인트와 은비 선물이 열려요.</p>
+                        </section>
+                    )}
+
+                    {gift && (
+                        <section className="eb-panel eb-reveal" aria-labelledby="eb-h-rw">
+                            <div className="eb-sechead">
+                                <h2 className="eb-h2" id="eb-h-rw">호감도 보상</h2>
+                                <span className="eb-wallet">대화해도 호감도가 올라요</span>
+                            </div>
+                            <div className="eb-rewards">
+                                {EB_LEVELS.map((L, i) => {
+                                    const min = STAGES[i].minXp;
+                                    const last = i === EB_LEVELS.length - 1;
+                                    const on = xp >= min && !last;
+                                    return (
+                                        <div className="eb-rw" key={L.name} data-testid={`eb-rw-${i + 1}`}>
+                                            <div className="lv">Lv.{i + 1}<small>{fmt(min)}</small></div>
+                                            <div className="what">
+                                                <b>{L.reward}{LEVELUP_BONUS[i] ? ` · +${fmt(LEVELUP_BONUS[i])}P` : ''}</b>
+                                                <p>{L.name} · {L.desc}</p>
+                                            </div>
+                                            <span className={`eb-chip ${on ? 'on' : 'off'}`}>
+                                                {last ? '연재 후 열려요' : on ? '열림' : `잠김 · 호감도 ${fmt(min)}`}
+                                            </span>
+                                            {on && i === 2 && (
+                                                <div className="tools">
+                                                    <a className="eb-mini" href="/eunbi/eunbi_wallpaper_heart.jpg" download="eunbi_wallpaper_heart.jpg"
+                                                       target="_blank" rel="noopener">손하트 배경화면 저장</a>
+                                                </div>
+                                            )}
+                                            {on && i === 3 && (
+                                                <div className="tools">
+                                                    <a className="eb-mini" href="/eunbi/eunbi_wallpaper_cheek.jpg" download="eunbi_wallpaper_cheek.jpg"
+                                                       target="_blank" rel="noopener">볼하트 배경화면 저장</a>
+                                                </div>
+                                            )}
+                                            {on && i === 4 && (
+                                                <div className="tools">
+                                                    {REPLAYS.map(rp => (
+                                                        <button key={rp.label} type="button" className="eb-mini" disabled={busy}
+                                                                aria-label={`${rp.label} 영상 다시 보기`} onClick={() => replay(rp.clip, rp.line)}>
+                                                            ▶ {rp.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </section>
+                    )}
 
                     <div className="eb-ctas inline eb-reveal">
                         <button className="eb-cta" type="button" onClick={start}>은비와 이야기 시작하기 ♥</button>

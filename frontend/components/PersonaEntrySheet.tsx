@@ -57,6 +57,24 @@ export interface PersonaEntryGuide {
     personaName?: string;
     /** 기능 링크(?f=)로 왔을 때만 채워진다 — CTA가 채팅이 아니라 그 기능을 연다. */
     autoRunFeatureKey?: string;
+    /** 페르소나 카드·링크로 왔을 때의 페르소나 id(showPersonaGuide). 은비 선물하기가 쓴다(2026-09-28). */
+    personaId?: string;
+}
+
+/** 은비 진입화면의 선물하기(2026-09-28). 결제·호감도는 기존 스타 선물(POST /api/star) 그대로다.
+ *  ★로그인 회원 시트에만 App 이 채운다 — 없으면(비로그인) 선물 버튼은 게스트 게이트로 간다. */
+export interface EntryGiftContext {
+    personaId: string;
+    /** user.personaXp[personaId] ?? 0 */
+    xp: number;
+    /** userPaidPoints + userBonusPoints */
+    points: number;
+    /** 호감도 Lv.2 특별 인사에 넣을 표시 이름 */
+    nickname?: string;
+    /** 선물 성공 후 앱 잔액·호감도 갱신(채팅 헤더 StarButton.onSent 와 같은 갱신). */
+    onGifted: (r: { xp: number; personaId: string; leveledUp: boolean; newStage: number; levelupBonus: number }) => void;
+    /** 포인트 부족 — 진입화면을 닫고 충전 모달을 연다(충전 모달 z-70 이 진입화면 z-85 뒤에 가리므로). */
+    onNeedCharge: () => void;
 }
 
 interface Props {
@@ -70,12 +88,14 @@ interface Props {
     /** 도결 랜딩의 친구 초대 CTA — 기존 초대 모달을 연다. */
     onInvite: () => void;
     /** 비로그인 방문자용(2026-09-28). ★없거나 false 면 로그인 회원 동작과 **완전히 같다**.
-     *  직접 요청이 있는 전용 화면(도결·서아)에만 전달한다. */
+     *  직접 요청이 있는 전용 화면(도결·서아·은비 선물)에만 전달한다. */
     isGuest?: boolean;
     onGuestGate?: GuestGate;
+    /** 은비 선물하기 — 로그인 회원 시트에만 채운다. 은비 분기에만 그대로 전달한다. */
+    gift?: EntryGiftContext;
 }
 
-export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, onFeature, onInvite, isGuest, onGuestGate }) => {
+export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, onFeature, onInvite, isGuest, onGuestGate, gift }) => {
     // 비로그인일 때만 gate 를 넘긴다 — 회원이면 undefined 라 각 화면은 종전 경로를 탄다.
     const guestGate = isGuest ? onGuestGate : undefined;
     // ★도결(道潔) 선생만 사주 랜딩으로 갈아 끼운다(2026-08-26 사장 지시).
@@ -138,12 +158,13 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
         return <JihoonBookEntry guide={guide} onClose={onClose} onStart={onStart}
                                 onFeature={onFeature} onInvite={onInvite} />;
     }
-    // 신은비는 승인된 웹툰 은비 진입화면을 쓴다(App.tsx 수정 없음).
+    // 신은비는 승인된 웹툰 은비 진입화면을 쓴다.
+    //   선물하기(2026-09-28): 회원이면 gift 로 스타 선물을 보내고, 비로그인이면 gift 가 없어 guestGate('paid','gift').
     //   ★기능 링크(?f=luxury 등)로 왔으면 기본 시트를 유지한다 — 은비는 명품 감정의 유일한
     //     담당인데 새 화면엔 그 버튼이 없어, 가로채면 ?f=luxury 경로가 깨진다.
     if (guide.title?.startsWith('신은비') && !guide.autoRunFeatureKey) {
         return <EunbiEntry guide={guide} onClose={onClose} onStart={onStart}
-                           onFeature={onFeature} onInvite={onInvite} />;
+                           onFeature={onFeature} onInvite={onInvite} gift={gift} onGuestGate={guestGate} />;
     }
 
     const who = guide.personaName || guide.title;

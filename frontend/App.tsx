@@ -653,6 +653,7 @@ const AppContent: React.FC = () => {
             usesBirthInfo: usesBirth,
             imageUrl: persona.imageUrl || undefined,
             autoRunFeatureKey: runFeatureKey,
+            personaId: persona.id,   // 은비 선물하기(2026-09-28)가 스타를 보낼 대상
         });
     }, []);
 
@@ -1594,6 +1595,28 @@ const AppContent: React.FC = () => {
                 setDeepLinkGuide(null);
                 setShowInviteModal(true);
             }}
+            // 은비 선물하기(2026-09-28) — 기존 스타 선물(POST /api/star) 그대로. 로그인 회원 시트에만 넘긴다.
+            //   ★갱신은 채팅 헤더 StarButton.onSent 와 같다(잔액 재조회 + personaXp). 레벨업 토스트는
+            //     앱 것(z-50)이 진입화면(z-85) 뒤에 가려지므로 진입화면이 자체로 띄운다.
+            //   ★충전 모달(z-70)도 진입화면 뒤에 숨으므로 진입화면을 닫고 연다.
+            gift={deepLinkGuide.personaId && user ? {
+                personaId: deepLinkGuide.personaId,
+                xp: user.personaXp?.[deepLinkGuide.personaId] ?? 0,
+                points: userPaidPoints + userBonusPoints,
+                nickname: user.username || undefined,
+                onGifted: (result) => {
+                    pointApi.getBalance().then(d => { setUserPaidPoints(d.paidPoints); setUserBonusPoints(d.bonusPoints); }).catch(() => {});
+                    setUser(prev => {
+                        if (!prev) return prev;
+                        return { ...prev, personaXp: { ...prev.personaXp, [result.personaId]: result.xp } };
+                    });
+                },
+                onNeedCharge: () => {
+                    setDeepLinkGuide(null);
+                    setInsufficientInfo(null);
+                    setShowPointModal(true);
+                },
+            } : undefined}
         />
     ) : null;
 
