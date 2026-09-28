@@ -88,7 +88,7 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
         if (msg) { setShareToast(`🔗 ${msg}`); setTimeout(() => setShareToast(''), 2500); }
     };
 
-    const LOADING_STEPS = ['사진을 분석하고 있어요', '헤어스타일을 합성하는 중이에요', '윤채린이 어울림을 진단하고 있어요'];
+    const LOADING_STEPS = ['사진을 분석하고 있어요', '헤어스타일을 합성하는 중이에요', 'AI가 어울림을 진단하고 있어요'];
 
     // 생성 중 경과 시간 — 1초씩 올린다(2026-08-12).
     // ★남은 시간을 역으로 세지 않는다 — 실제 편차가 크서 카운트다운은 0이 됐는데
@@ -236,7 +236,7 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                 <div className="flex items-center justify-between mb-4">
                     <div>
                         <h2 style={{ fontFamily: 'Noto Serif KR, serif', fontSize: 20, fontWeight: 700, color: T.ink }}>💇 헤어스타일 진단</h2>
-                        <p style={{ fontSize: 12, color: T.inkMute, marginTop: 2 }}>윤채린이 어울리는 헤어를 찾아드려요</p>
+                        <p style={{ fontSize: 12, color: T.inkMute, marginTop: 2 }}>AI가 어울리는 헤어를 찾아드려요</p>
                     </div>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 22, color: T.inkMute, cursor: 'pointer' }}>✕</button>
                 </div>
