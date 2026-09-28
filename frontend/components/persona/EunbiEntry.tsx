@@ -165,6 +165,8 @@ const CSS = `
 
 .eb-main{position:relative;z-index:10;margin-top:-40svh;padding:0 16px calc(110px + env(safe-area-inset-bottom,0px))}
 .eb-wrap{max-width:1080px;margin:0 auto;display:grid;gap:22px}
+/* 선물하기 버튼으로 스크롤해 오면 고정 머리(은비♥·✕, 약 64px) 밑에 멈추게 — 없으면 제목·내 포인트가 가린다(09-28 운영 실측) */
+.eb-giftsec{scroll-margin-top:calc(76px + env(safe-area-inset-top,0px))}
 .eb-panel{background:var(--eb-card);border:1px solid rgba(255,255,255,.95);border-radius:26px;padding:18px;
   box-shadow:0 18px 40px -22px rgba(185,42,95,.45);backdrop-filter:blur(12px)}
 .eb-reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
@@ -699,7 +701,7 @@ export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature, gift,
                     </section>
 
                     {gift && (
-                        <section className="eb-panel eb-reveal" ref={giftSecRef} aria-labelledby="eb-h-gift">
+                        <section className="eb-panel eb-reveal eb-giftsec" ref={giftSecRef} aria-labelledby="eb-h-gift">
                             <div className="eb-sechead">
                                 <h2 className="eb-h2" id="eb-h-gift">은비에게 선물하기</h2>
                                 <span className="eb-wallet">내 포인트 <b data-testid="eb-wallet">{fmt(points)}P</b></span>
