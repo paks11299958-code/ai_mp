@@ -302,3 +302,6 @@
 - **축하 카드**: 하루 1장 무료(KST 자정), 이후 MenuLimit `eunbi-card` **100P**(USER·ADMIN·MANAGE 3행, 사장 결정). 하루 20장 상한(429).
   무료 판정·차감·카드 저장이 한 트랜잭션(advisory lock) — 동시 요청 무료 중복·저장 없는 차감 0. 차감은 `deductMenuPointsInTx`(type MENU).
 - 유료 카드 뒤 앱 잔액은 `EntryGiftContext.onPointsChanged` 로 재조회.
+
+## 윤채린 성형 견적 리포트 (2026-09-28)
+- MenuLimit `beauty-estimate` **300P**(USER·ADMIN·MANAGE, 사장 결정). 성공 후에만 차감(palm 패턴). 행이 없으면 503 PRICE_NOT_SET(과금 0).
