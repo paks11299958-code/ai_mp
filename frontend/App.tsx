@@ -520,6 +520,9 @@ const AppContent: React.FC = () => {
         'golf-course': () => setShowGolfCourseBoard(true),
         ebook: () => setShowEbookBoard(true),
         hair: () => setShowHairBoard(true),
+        // 성형 견적(2026-09-28) — 보드가 아니라 윤채린 진입화면 안 흐름이다. 페르소나 딥링크로 진입화면을 띄우고
+        // ChaerinClinicEntry 가 sessionStorage 'cc-open' 을 읽어 성형 메뉴부터 연다(App 상태 추가 없음).
+        'beauty-estimate': () => { try { sessionStorage.setItem('cc-open', 'clinic'); } catch { /* 무시 */ } setPendingDeepLink({ kind: 'persona', id: 'cmqgne6wz0000j3beoix3h9zc' }); },
         outfit: () => setShowOutfitBoard(true),
         lookalike: () => setShowLookalikeModal(true),
         agetransform: () => setShowAgeBoard(true),

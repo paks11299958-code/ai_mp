@@ -356,3 +356,14 @@ describe('PersonaEntrySheet 분기', () => {
         expect(screen.queryByText('CHAERIN BEAUTY CLINIC & STUDIO')).toBeNull();
     });
 });
+
+describe('ChaerinClinicEntry — 메인 성형 견적 카드 진입', () => {
+    it("sessionStorage 'cc-open'=clinic 이면 성형 메뉴부터 열고 표식을 지운다", async () => {
+        sessionStorage.setItem('cc-open', 'clinic');
+        const { render: r, screen: s } = await import('@testing-library/react');
+        const { ChaerinClinicEntry } = await import('./ChaerinClinicEntry');
+        r(<ChaerinClinicEntry guide={{ title: '윤채린', desc: '' }} onClose={() => {}} onStart={() => {}} onFeature={() => {}} onInvite={() => {}} />);
+        expect(s.getByRole('button', { name: /내 성형 견적 뽑아보기/ })).toBeTruthy();
+        expect(sessionStorage.getItem('cc-open')).toBeNull();
+    });
+});

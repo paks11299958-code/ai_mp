@@ -20,6 +20,7 @@ export const FEATURE_LABELS: Record<string, string> = {
     'quick-menu': '운세·사주(시운·재물·인연·꿈해몽)',
     'mathtutor':  'AI쌤 수학(풀이·출제)',
     'hair':       '헤어Style',
+    'beauty-estimate': '성형 견적 리포트',
     'agetransform':'시간여행(나이변환)',
     'outfit':     '프로필 사진',
     'lookalike':  '연예인 매칭',

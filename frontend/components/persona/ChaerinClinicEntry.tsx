@@ -292,7 +292,11 @@ interface Props {
 
 export const ChaerinClinicEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature, gift, onGuestGate }) => {
     const [reduce] = useState(prefersReducedMotion);
-    const [screen, setScreen] = useState<Screen>('entry');
+    // 메인 '성형 견적' 카드로 들어오면 성형 메뉴부터(App 이 sessionStorage 'cc-open' 을 남긴다, 1회용).
+    const [screen, setScreen] = useState<Screen>(() => {
+        try { if (sessionStorage.getItem('cc-open') === 'clinic') { sessionStorage.removeItem('cc-open'); return 'clinic'; } } catch { /* 무시 */ }
+        return 'entry';
+    });
     const [doorFx, setDoorFx] = useState<'' | 'clinic' | 'studio'>('');
     const [toast, setToast] = useState('');
 

@@ -13,6 +13,7 @@
 import { Persona } from './types';
 
 export type FeatureKey =
+    | 'beauty-estimate'
     | 'tarot'
     | 'tarot-daily'
     | 'news'
@@ -70,6 +71,7 @@ export const FEATURE_REGISTRY: FeatureMeta[] = [
     { key: 'webtoon',     label: '웹툰 보기',     icon: 'BookOpen',   color: '#8E6FB7', bgColor: '#F0E9F7',                  borderColor: '#C4B0DC' },
     { key: 'insurance',   label: '보험 분석',     icon: 'Shield',     color: '#8E6FB7', bgColor: '#F5E6F7',                  borderColor: '#B49AC9' },
     { key: 'hair',        label: '헤어Style', icon: 'Zap',       color: '#9B5FA8', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
+    { key: 'beauty-estimate', label: '성형 견적', icon: 'Sparkles', color: '#9C5E50', bgColor: '#F6ECE6',                  borderColor: '#DDB8A8' },
     { key: 'outfit',      label: '프로필사진', icon: 'Image', color: '#8E6FB7', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
     { key: 'agetransform', label: '시간여행',     icon: 'Clock',      color: '#9B5FA8', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
     { key: 'lookalike',   label: '연예인 매칭',    icon: 'Users',      color: '#8E6FB7', bgColor: '#F0E8F8',                  borderColor: '#C4A9E0' },
@@ -101,7 +103,7 @@ const NAME_FALLBACK: Record<string, FeatureKey[]> = {
     '박하진': ['homepage', 'learn'],
     '강지훈': ['ebook'],
     '향기(필명)': ['webtoon'],
-    '윤채린': ['hair', 'outfit', 'agetransform', 'lookalike'],
+    '윤채린': ['beauty-estimate', 'hair', 'outfit', 'agetransform', 'lookalike'],
 };
 
 function isGolf(persona: Persona): boolean {
