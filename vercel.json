@@ -11,6 +11,9 @@
     },
     "api/stock-share.ts": {
       "maxDuration": 10
+    },
+    "api/card-share.ts": {
+      "maxDuration": 10
     }
   },
   "redirects": [
@@ -25,6 +28,7 @@
   "rewrites": [
     { "source": "/api-proxy", "destination": "/api/api-proxy" },
     { "source": "/s/stock/:id", "destination": "/api/stock-share?id=:id" },
+    { "source": "/c/:id", "destination": "/api/card-share?id=:id" },
 
     { "source": "/sites/:sitename", "destination": "/sites/:sitename/index.html" },
     { "source": "/sites/:sitename/", "destination": "/sites/:sitename/index.html" },
@@ -118,6 +122,8 @@
     { "source": "/api/star/:path*",          "destination": "http://34.50.27.95:3020/api/aimp/star/:path*" },
     { "source": "/api/star-thanks",          "destination": "http://34.50.27.95:3020/api/aimp/star-thanks" },
     { "source": "/api/star-thanks/:path*",   "destination": "http://34.50.27.95:3020/api/aimp/star-thanks/:path*" },
+    { "source": "/api/eunbi-card",           "destination": "http://34.50.27.95:3020/api/aimp/eunbi-card" },
+    { "source": "/api/eunbi-card/:path*",    "destination": "http://34.50.27.95:3020/api/aimp/eunbi-card/:path*" },
     { "source": "/api/payments",             "destination": "http://34.50.27.95:3020/api/aimp/payments" },
     { "source": "/api/payments/:path*",      "destination": "http://34.50.27.95:3020/api/aimp/payments/:path*" },
     { "source": "/api/research",             "destination": "http://34.50.27.95:3020/api/aimp/research" },

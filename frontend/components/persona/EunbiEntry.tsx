@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { EntryGiftContext, GuestGate, PersonaEntryGuide } from '../PersonaEntrySheet';
 import { pointApi } from '../../services/pointService';
+import { eunbiCardApi, EunbiCardError } from '../../services/eunbiCardService';
+import type { CardOccasion, EunbiCardCreated, EunbiCardQuota } from '../../services/eunbiCardService';
 import { getStage, STAGES } from '../../utils/level';
 
 // 신은비 전용 진입화면 — 승인된 웹툰 은비 시안(eunbi-entry.html)을 제품 계약에 맞춰 옮긴다.
@@ -15,6 +17,11 @@ import { getStage, STAGES } from '../../utils/level';
 //   결제·호감도는 **기존 스타 선물 그대로**(pointApi.sendStar → POST /api/star, 서버 수정 없음).
 //   서버 규칙: amount × 10P 차감, 호감도 amount × 2, 단계 상승 시 레벨업 보너스. 부족하면 402.
 //   ★gift 가 없으면(비로그인) 선물 섹션·게이지·보상 없이, 선물 버튼이 게스트 게이트('paid','gift')를 부른다.
+//
+// 축하 카드(2026-09-28, 승인 시안 eunbi-entry/card/draft/eunbi-card.html 의 "보내는 사람 화면"):
+//   POST /api/eunbi-card(shared-api) → 받는 사람 링크 /c/:id(api/card-share.ts 가 카드 페이지를 그린다).
+//   하루 1장 무료, 이후 1장 단가(/quota 의 price). 금지어는 화면에서도 미리 막지만 **서버가 최종 판정**한다.
+//   ★비로그인은 카드 버튼·만들기 버튼 모두 게스트 게이트('free','eunbi-card') — /quota·생성 API 를 부르지 않는다.
 
 interface Props {
     guide: PersonaEntryGuide;
@@ -92,6 +99,33 @@ const EB_LEVELS = [
 /** 0부터 시작하는 단계 인덱스(STAGES 기준). */
 const levelIndex = (xp: number) => Math.max(0, STAGES.findIndex(s => s.stage === getStage(xp).stage));
 const fmt = (n: number) => n.toLocaleString('ko-KR');
+
+// ── 축하 카드 ──
+const CARD_NAME_MAX = 10;
+const CARD_STORY_MAX = 60;
+const CARD_FAIL_MSG = '카드를 만들지 못했어요. 잠시 후 다시 시도해 주세요.';
+const CARD_BLOCK_MSG = '카드에 넣을 수 없는 내용이 있어요. 인터넷 주소·전화번호·욕설·광고 문구를 지우고 다시 써 주세요.';
+const GUEST_CARD_MSG = '로그인하면 은비 카드를 보낼 수 있어요';
+const hasBatchim = (s: string) => {
+    const c = s.charCodeAt(s.length - 1);
+    return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 !== 0;
+};
+/** 부르는 말(시안 call()·서버 vocative 와 같다). */
+const callName = (n: string) => n + (hasBatchim(n) ? '아' : '야');
+/** 상황 칩 + 미리보기 첫 줄(시안 OCC.*.text 의 첫 줄 — 실제 문구는 서버에서 은비가 쓴다). */
+const CARD_OCCS: { key: CardOccasion; label: string; preview: (n: string, s: string) => string }[] = [
+    { key: 'birthday', label: '🎂 생일', preview: n => `${callName(n)}, 생일 축하해! 🎂` },
+    { key: 'cheer', label: '💪 응원', preview: n => `${callName(n)}, 요즘 많이 애썼지?` },
+    { key: 'pass', label: '🎓 합격·시험', preview: (n, s) => s ? `${callName(n)}, ${s.replace(/[.!]*$/, '')}… 정말 축하해! 🌸` : `${callName(n)}, 합격 축하해! 🌸` },
+    { key: 'thanks', label: '🙏 고마워', preview: n => `${callName(n)}, 늘 고마워.` },
+    { key: 'comfort', label: '🫂 위로', preview: n => `${callName(n)}, 오늘 하루 많이 지쳤지.` },
+];
+// 시안의 금지어 검사 그대로 + 날짜(2026.03.01)는 전화번호로 보지 않는다(서버 hasPhone 과 같은 예외 — 서버가 통과시키는 걸 화면이 막지 않게).
+const CARD_BAD = /(https?:\/\/|www\.|\.com|\.kr|\.net|카톡\s*id|오픈채팅|텔레그램|대출|수익\s*보장|무료\s*상담|코인\s*리딩|도박|카지노|시발|씨발|ㅅㅂ|개새|병신|ㅂㅅ|좆|꺼져)/i;
+const CARD_PHONE = /(\d[\s-]?){8,}/;
+const CARD_DATE = /\b(?:19|20)\d{2}\s*[.\-/]\s*\d{1,2}\s*[.\-/]\s*\d{1,2}\b/g;
+const isCardTextBlocked = (text: string) => CARD_BAD.test(text) || CARD_PHONE.test(text.replace(CARD_DATE, ' '));
+const cutChars = (s: string, max: number) => Array.from(s).slice(0, max).join('');
 
 const prefersReducedMotion = () => {
     try { return !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches; } catch { return false; }
@@ -289,6 +323,39 @@ const CSS = `
   border:1.5px solid var(--eb-rose);background:#fff;color:var(--eb-rose-deep);text-decoration:none}
 .eb-mini:disabled{opacity:.5;cursor:default}
 
+/* 축하 카드 — 다섯 번째 버튼은 전체 폭, 섹션은 선물 섹션처럼 고정 머리 밑에 멈춘다 */
+.eb-act.wide{grid-column:1/-1;grid-template-columns:46px minmax(0,1fr);justify-items:start;align-items:center;text-align:left;column-gap:12px;padding:14px 16px}
+.eb-act.wide .ic{grid-row:span 2}
+.eb-cardsec{scroll-margin-top:calc(76px + env(safe-area-inset-top,0px))}
+.eb-cform{display:flex;flex-direction:column;gap:14px}
+.eb-quota{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--eb-blush);border-radius:14px;padding:10px 12px;font-size:13.5px}
+.eb-quota b{color:var(--eb-rose-deep)}
+.eb-quota small{color:var(--eb-ink-soft);white-space:nowrap;font-size:12.5px}
+.eb-occs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.eb-occs::-webkit-scrollbar{display:none}
+.eb-occ{flex:none;appearance:none;border:1.5px solid var(--eb-line);background:#fff;border-radius:99px;padding:8px 13px;font-size:14px;cursor:pointer;color:var(--eb-ink)}
+.eb-occ[aria-pressed="true"]{border-color:var(--eb-rose);background:var(--eb-blush);color:var(--eb-rose-deep);font-weight:700}
+.eb-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.eb-field label{font-weight:700;font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.eb-field label span{font-weight:400;color:var(--eb-ink-soft);font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.eb-field input,.eb-field textarea{width:100%;box-sizing:border-box;border:1.5px solid var(--eb-line);border-radius:14px;padding:12px;font:inherit;font-size:16px;
+  background:#FFFCF8;color:var(--eb-ink);resize:none}
+.eb-rules{margin:0;font-size:12.5px;color:var(--eb-ink-soft);background:#FBF8FF;border:1px dashed var(--eb-lilac);border-radius:12px;padding:10px 12px;line-height:1.55}
+.eb-err{margin:0;font-size:13.5px;color:#B71C1C;background:#FFEBEE;border-radius:12px;padding:10px 12px}
+.eb-cpreview{display:flex;gap:12px;align-items:center;min-width:0}
+.eb-cpreview img{width:72px;height:auto;aspect-ratio:720/894;object-fit:cover;border-radius:12px;flex:none}
+.eb-cpreview p{margin:0;font-family:var(--eb-hand);font-size:21px;line-height:1.25;min-width:0;overflow-wrap:anywhere}
+.eb-cresult{margin-top:14px;display:flex;flex-direction:column;gap:12px;border:1.5px solid var(--eb-rose);border-radius:20px;background:#fff;padding:14px}
+.eb-cresult h3{margin:0;font-family:var(--eb-display);font-weight:400;font-size:18px;color:var(--eb-rose-deep)}
+.eb-cresult .row{display:flex;gap:12px;align-items:flex-start;min-width:0}
+.eb-cresult .row img{width:84px;height:auto;aspect-ratio:720/894;object-fit:cover;border-radius:12px;flex:none}
+.eb-cresult .row p{margin:0;font-family:var(--eb-hand);font-size:21px;line-height:1.3;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere;min-width:0}
+.eb-cbtns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.eb-cbtns .eb-send{margin:0;grid-column:1/-1}
+.eb-cbtn{appearance:none;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--eb-rose);background:#fff;color:var(--eb-rose-deep);
+  border-radius:99px;padding:11px 10px;font-size:14px;cursor:pointer;text-decoration:none;text-align:center}
+.eb-curl{width:100%;box-sizing:border-box;border:1px solid var(--eb-line);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;color:var(--eb-ink-soft);background:#FFFCF8}
+
 @media (max-width:860px){
   .eb-twin{grid-template-columns:1fr}
   .eb-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -368,6 +435,22 @@ export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature, gift,
     const heartSeq = useRef(0);
     const lockUntil = useRef(0);
 
+    // ── 축하 카드 상태
+    const [cardOcc, setCardOcc] = useState<CardOccasion>('birthday');
+    const [cardTo, setCardTo] = useState('');
+    const [cardFrom, setCardFrom] = useState(() => cutChars(gift?.nickname ?? '', CARD_NAME_MAX));
+    const [cardStory, setCardStory] = useState('');
+    const [cardQuota, setCardQuota] = useState<EunbiCardQuota | null>(null);
+    const [cardBusy, setCardBusy] = useState(false);
+    const [cardErr, setCardErr] = useState('');
+    const [cardResult, setCardResult] = useState<EunbiCardCreated | null>(null);
+    const cardSecRef = useRef<HTMLElement>(null);
+    const cardResultRef = useRef<HTMLDivElement>(null);
+    const cardUrlRef = useRef<HTMLInputElement>(null);
+    // ★돈이 나갈 수 있는 버튼 — 선물하기 busyRef 와 같은 이유로 ref 로 연타를 동기 차단한다.
+    const cardBusyRef = useRef(false);
+    const cardFromTouched = useRef(false);
+
     const later = (fn: () => void, ms: number) => {
         const id = setTimeout(() => { timers.current.delete(id); fn(); }, ms);
         timers.current.add(id);
@@ -382,6 +465,19 @@ export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature, gift,
     useEffect(() => { if (gift) setXp(gift.xp); }, [gift?.xp]);
     useEffect(() => { if (gift) setPoints(gift.points); }, [gift?.points]);
     useEffect(() => { holdRef.current = override !== null; }, [override]);
+    // 보내는 이름 기본값 = 닉네임(사용자가 손대기 전까지만 따라간다).
+    useEffect(() => {
+        if (gift?.nickname && !cardFromTouched.current) setCardFrom(cutChars(gift.nickname, CARD_NAME_MAX));
+    }, [gift?.nickname]);
+
+    // 오늘 무료/유료 — 로그인 회원만 부른다(비로그인은 401 이라 호출 자체를 안 한다).
+    const loggedIn = !!gift;
+    useEffect(() => {
+        if (!loggedIn) return;
+        let alive = true;
+        eunbiCardApi.getQuota().then(q => { if (alive) setCardQuota(q); }).catch(() => { /* 표시만 기본 문구로 */ });
+        return () => { alive = false; };
+    }, [loggedIn]);
 
     // 폰트는 한 번만 삽입한다(열고 닫기를 반복해도 중복 없음). 실패해도 대체 글꼴로 동작.
     useEffect(() => {
@@ -606,6 +702,75 @@ export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature, gift,
         playReaction(clip, text, 10);
     };
 
+    // ── 축하 카드 ──
+    const cardGuest = () => {
+        if (onGuestGate) onGuestGate('free', 'eunbi-card');
+        else say(GUEST_CARD_MSG);
+    };
+
+    const openCard = () => {
+        if (!gift) { cardGuest(); return; }
+        cardSecRef.current?.scrollIntoView?.({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    };
+
+    const cardToT = cardTo.trim();
+    const cardFromT = cardFrom.trim();
+    const cardBlocked = isCardTextBlocked(`${cardTo} ${cardFrom} ${cardStory}`);
+    const cardReady = !!cardToT && !!cardFromT && !cardBlocked;
+    const occ = CARD_OCCS.find(o => o.key === cardOcc) ?? CARD_OCCS[0];
+    const cardFree = !cardQuota || cardQuota.freeLeft > 0;
+
+    const makeCard = async () => {
+        if (!gift) { cardGuest(); return; }
+        if (cardBusyRef.current || !cardReady) return;
+        cardBusyRef.current = true;
+        setCardBusy(true);
+        setCardErr('');
+        try {
+            const story = cardStory.trim();
+            const r = await eunbiCardApi.create({ occasion: cardOcc, toName: cardToT, fromName: cardFromT, ...(story ? { story } : {}) });
+            setCardResult(r);
+            setCardQuota(q => q ? { ...q, freeLeft: r.freeLeft, todayCount: q.todayCount + 1 } : q);
+            if (r.pointsCharged > 0) setPoints(p => Math.max(0, p - r.pointsCharged));
+            later(() => cardResultRef.current?.scrollIntoView?.({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' }), 50);
+        } catch (e) {
+            const status = e instanceof EunbiCardError ? e.status : 0;
+            if (status === 402) gift.onNeedCharge();
+            // 검증(400)·금지 내용(422)·하루 상한(429)은 서버 문구 그대로. 그 밖(500·네트워크)은 공통 문구.
+            else if ((status === 400 || status === 422 || status === 429) && e instanceof Error && e.message) setCardErr(e.message);
+            else setCardErr(CARD_FAIL_MSG);
+        } finally {
+            cardBusyRef.current = false;
+            setCardBusy(false);
+        }
+    };
+
+    const copyCardLink = async () => {
+        if (!cardResult) return;
+        try {
+            await navigator.clipboard.writeText(cardResult.url);
+            say('카드 링크를 복사했어요');
+        } catch {
+            // 클립보드 권한이 없으면 링크 칸을 골라 둬서 직접 복사하게 한다.
+            const el = cardUrlRef.current;
+            el?.focus();
+            el?.select();
+            say('링크를 길게 눌러 복사해 주세요');
+        }
+    };
+
+    const shareCard = async () => {
+        if (!cardResult) return;
+        const title = `💌 ${cardResult.toName}에게 은비가 카드를 전해요`;
+        if (typeof navigator.share !== 'function') { void copyCardLink(); return; }
+        try {
+            await navigator.share({ title, text: `${title}\n${cardResult.url}`, url: cardResult.url });
+        } catch (e) {
+            if ((e as { name?: string })?.name === 'AbortError') return;   // 사용자가 공유창을 닫음
+            void copyCardLink();
+        }
+    };
+
     const nextMin = STAGES[lv + 1]?.minXp;
     const curMin = STAGES[lv]?.minXp ?? 0;
     const barPct = nextMin === undefined ? 100 : Math.min(100, Math.max(0, (xp - curMin) / (nextMin - curMin) * 100));
@@ -697,6 +862,9 @@ export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature, gift,
                             <button className="eb-act is-soon" type="button" aria-label="웹툰 보기 · 은비 웹툰 곧 연재" onClick={webtoon}>
                                 <em className="eb-soon">곧 연재</em><span className="ic" aria-hidden="true">🖼️</span><b>웹툰 보기</b><span className="d">은비 웹툰 · 곧 연재</span>
                             </button>
+                            <button className="eb-act wide" type="button" aria-label="축하 카드 보내기" onClick={openCard}>
+                                <span className="ic" aria-hidden="true">💌</span><b>축하 카드</b><span className="d">은비가 대신 마음을 전해요</span>
+                            </button>
                         </div>
                     </section>
 
@@ -727,6 +895,70 @@ export const EunbiEntry: React.FC<Props> = ({ onClose, onStart, onFeature, gift,
                             <p className="eb-fine">선물은 은비 호감도에 쌓여요. 레벨이 오르면 보너스 포인트와 은비 선물이 열려요.</p>
                         </section>
                     )}
+
+                    <section className="eb-panel eb-reveal eb-cardsec" ref={cardSecRef} aria-labelledby="eb-h-card">
+                        <div className="eb-sechead">
+                            <h2 className="eb-h2" id="eb-h-card">은비 축하 카드</h2>
+                            <span className="eb-wallet">은비가 대신 마음을 전해요</span>
+                        </div>
+                        <div className="eb-cform">
+                            <div className="eb-quota" data-testid="eb-card-quota">
+                                {!gift ? <span>회원은 하루 <b>1장</b> 무료로 보낼 수 있어요</span>
+                                    : !cardQuota ? <span>하루 <b>1장</b>은 무료예요</span>
+                                    : cardQuota.freeLeft > 0
+                                        ? <><span>오늘 무료 카드 <b>{cardQuota.freeLeft}장</b> 남았어요</span><small>이후 1장 {fmt(cardQuota.price)}P</small></>
+                                        : <><span>오늘 무료 카드를 다 썼어요</span><small>추가 1장 <b>{fmt(cardQuota.price)}P</b></small></>}
+                            </div>
+                            <div className="eb-occs" role="group" aria-label="카드 상황">
+                                {CARD_OCCS.map(o => (
+                                    <button key={o.key} type="button" className="eb-occ" aria-pressed={cardOcc === o.key} onClick={() => setCardOcc(o.key)}>
+                                        {o.label}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="eb-field">
+                                <label htmlFor="eb-card-to">받는 사람 이름 <span data-testid="eb-cnt-to">{cardTo.length} / {CARD_NAME_MAX}자</span></label>
+                                <input id="eb-card-to" type="text" maxLength={CARD_NAME_MAX} placeholder="예: 민지" autoComplete="off"
+                                       value={cardTo} onChange={e => setCardTo(e.target.value)} />
+                            </div>
+                            <div className="eb-field">
+                                <label htmlFor="eb-card-from">보내는 사람 이름 <span data-testid="eb-cnt-from">{cardFrom.length} / {CARD_NAME_MAX}자</span></label>
+                                <input id="eb-card-from" type="text" maxLength={CARD_NAME_MAX} placeholder="예: 준호" autoComplete="off"
+                                       value={cardFrom} onChange={e => { cardFromTouched.current = true; setCardFrom(e.target.value); }} />
+                            </div>
+                            <div className="eb-field">
+                                <label htmlFor="eb-card-story">은비에게 알려 줄 한 줄 사연 (선택) <span data-testid="eb-cnt-story">{cardStory.length} / {CARD_STORY_MAX}자</span></label>
+                                <textarea id="eb-card-story" rows={2} maxLength={CARD_STORY_MAX} placeholder="예: 3년 동안 준비한 시험에 붙었어"
+                                          value={cardStory} onChange={e => setCardStory(e.target.value)} />
+                            </div>
+                            <p className="eb-rules">✍️ 이름은 <b>10자</b>, 사연은 <b>60자</b>까지 쓸 수 있어요.<br />🚫 인터넷 주소, 전화번호, 욕설·비방, 광고 문구가 들어가면 카드를 만들 수 없어요. 은비가 쓴 문구도 같은 기준으로 한 번 더 확인해요.</p>
+                            {(cardBlocked || cardErr) && <p className="eb-err" role="alert">{cardBlocked ? CARD_BLOCK_MSG : cardErr}</p>}
+                            <div className="eb-cpreview">
+                                <img src={`/eunbi/card_${cardOcc}.jpg`} alt="" width={720} height={894} />
+                                <p>{occ.preview(cardToT || '민지', cardStory.trim())}</p>
+                            </div>
+                            <button className="eb-send" type="button" style={{ marginTop: 0 }} disabled={cardBusy || (!!gift && !cardReady)} onClick={makeCard}>
+                                {cardBusy ? '은비가 카드를 쓰는 중…' : `은비가 카드 쓰기 · ${cardFree ? '무료' : `${fmt(cardQuota!.price)}P`}`}
+                            </button>
+                            <p className="eb-fine" style={{ marginTop: 0 }}>보내기를 누르면 휴대폰 공유창이 열려요. 카카오톡을 고르면 돼요.</p>
+                        </div>
+                        {cardResult && (
+                            <div className="eb-cresult" ref={cardResultRef} data-testid="eb-card-result" aria-live="polite">
+                                <h3>💌 {cardResult.toName}에게 보낼 카드가 완성됐어요</h3>
+                                <div className="row">
+                                    <img src={`/eunbi/card_${cardResult.occasion}.jpg`} alt="" width={720} height={894} />
+                                    <p>{cardResult.message}</p>
+                                </div>
+                                <div className="eb-cbtns">
+                                    <button className="eb-send" type="button" onClick={shareCard}>카톡으로 보내기</button>
+                                    <button className="eb-cbtn" type="button" onClick={copyCardLink}>링크 복사</button>
+                                    <a className="eb-cbtn" href={cardResult.url} target="_blank" rel="noopener">카드 미리 보기</a>
+                                </div>
+                                <input className="eb-curl" ref={cardUrlRef} type="text" readOnly value={cardResult.url} aria-label="카드 링크"
+                                       onFocus={e => e.currentTarget.select()} />
+                            </div>
+                        )}
+                    </section>
 
                     {gift && (
                         <section className="eb-panel eb-reveal" aria-labelledby="eb-h-rw">
