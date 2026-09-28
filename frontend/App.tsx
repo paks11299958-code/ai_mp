@@ -22,6 +22,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
 import { GuestUpgradeModal } from './components/GuestUpgradeModal';
 import { GuestTrialModal } from './components/GuestTrialModal';
+import { guestNoticeForFeature, type GuestNotice } from './lib/guestFeatureGate';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { LandingPageNew } from './components/LandingPageNew';
 import { MainPageNew, FEATURES_GRID, MpnFeatureIcon } from './components/MainPageNew';
@@ -188,7 +189,12 @@ const AppContent: React.FC = () => {
     // null=닫힘. featureKey가 있으면 그 기능 설명을 보여주고, 체험 시작 후 그 기능으로 보낸다.
     // ★기존엔 곧바로 가입 창(setShowAuthModal)이라 "무엇을 주는지" 한 줄도 없었다 —
     //   그냥 방문한 사람은 체험 포인트의 존재조차 모른 채 나갔고, 8월 정회원 가입은 0명이었다.
-    const [guestTrialModal, setGuestTrialModal] = useState<{ featureKey?: string; expired?: boolean } | null>(null);
+    // notice/personaId/personaName 은 **비로그인 진입화면 위에서** 띄울 때만 채운다(2026-09-28).
+    //   notice 가 없으면 GuestTrialModal 은 종전과 똑같이 렌더된다.
+    const [guestTrialModal, setGuestTrialModal] = useState<{
+        featureKey?: string; expired?: boolean;
+        notice?: GuestNotice; personaId?: string; personaName?: string;
+    } | null>(null);
     const [guestAuthMode, setGuestAuthMode] = useState<'login' | 'register'>('login');
 
     // 학습자료(/learn) 게이트에서 온 로그인 복귀 — 이메일/카카오/모달 등 모든 로그인 경로 공통.
@@ -471,6 +477,10 @@ const AppContent: React.FC = () => {
      *    페르소나(신은비=명품감정, 유나=타로, 서아=뉴스 등 9명)가 전부 걸려 **"OO와 시작하기"를
      *    눌렀는데 기능 보드가 뜨는** 문제가 있었다(2026-07-29 사장 지적). */
     const [deepLinkGuide, setDeepLinkGuide] = useState<PersonaEntryGuide | null>(null);
+    /** 비로그인 방문자가 지금 보고 있는 진입화면의 페르소나 id(2026-09-28 사장 지시 "일단 진입화면을
+     *  무조건 띄워주고"). 체험 시작·가입 뒤 **그 페르소나로 이어 보내기** 위해 기억한다.
+     *  로그인 회원 경로에서는 쓰지 않는다(항상 null). */
+    const [guestEntryPersonaId, setGuestEntryPersonaId] = useState<string | null>(null);
     /** 진입 랜딩에서 기능을 열었을 때, 그 보드를 닫으면 **랜딩으로 돌아오기** 위한 기억
      *  (2026-09-06 사장 지적 "진입페이지로 안 가고 채팅으로 간다").
      *  ★시트를 열어둔 채 보드를 띄울 수는 없다 — 시트가 z-85, 보드는 z-50~70 이라 가려진다.
@@ -667,7 +677,11 @@ const AppContent: React.FC = () => {
                 const grid = FEATURES_GRID.find(g => g.key === pendingDeepLink.key);
                 return grid?.personaName ? personas.find(p => p.name === grid.personaName) : undefined;
             })();
-        if (prefetchTarget) handleSelectPersona(prefetchTarget.id, { prefetchOnly: true });
+        // ★비로그인 페르소나 링크(?p=)는 세션·인사말 선생성을 하지 않는다(2026-09-28) — 로그인이
+        //   필요한 호출이다. ?f= 비로그인 동작은 범위 밖이라 종전 그대로 둔다.
+        if (prefetchTarget && (user || pendingDeepLink.kind !== 'persona')) {
+            handleSelectPersona(prefetchTarget.id, { prefetchOnly: true });
+        }
 
         if (pendingDeepLink.kind === 'persona') {
             const target = personas.find(p => p.id === pendingDeepLink.id && p.isVisible !== false);
@@ -687,7 +701,12 @@ const AppContent: React.FC = () => {
                 // 할지 모른다. 메인 카드 클릭과 **같은 함수**를 쓴다(2026-07-29 공통화).
                 showPersonaGuide(target);
             } else {
-                handleGuestPersonaClick(target.id); // 가입 강요 X → 인트로(소개) 노출
+                // ★비로그인도 회원과 **같은 진입화면**을 본다(2026-09-28 사장 지시).
+                //   전엔 handleGuestPersonaClick → introVideoModal 이었는데 그 모달 JSX 가
+                //   로그인 화면 return 안에만 있어 **아무것도 안 떴다**(운영 실측).
+                //   showPersonaGuide 는 로그인 정보를 쓰지 않는 순수 함수라 그대로 쓴다.
+                showPersonaGuide(target);
+                setGuestEntryPersonaId(target.id);
             }
             setPendingDeepLink(null);
             return;
@@ -1578,6 +1597,31 @@ const AppContent: React.FC = () => {
         />
     ) : null;
 
+    // ── 비로그인 진입화면(2026-09-28 사장 지시) ─────────────────────────────────
+    // "일단 진입화면을 무조건 띄워주고, 유료 메뉴 클릭하면 유료 서비스 안내 문구 보여주고
+    //  회원가입 메뉴 나오게." — 같은 PersonaEntrySheet 를 **비로그인용 콜백**으로 렌더한다.
+    // ★진입화면은 닫지 않고 그 위(z-95)에 GuestTrialModal(notice)을 띄운다 → 닫으면 진입화면으로 복귀.
+    // ★로그인이 필요한 호출(handleSelectPersona·세션 생성)은 하지 않는다.
+    // ★선언 위치: 아래 `if (!user)` 조기 return 이 이걸 쓰므로 **그보다 앞**이어야 한다(TDZ 백지 사고).
+    const openGuestNotice = (notice: GuestNotice, featureKey?: string) => setGuestTrialModal({
+        featureKey, notice, expired: hasUsedGuestTrial,
+        personaId: guestEntryPersonaId ?? undefined,
+        personaName: deepLinkGuide?.personaName || deepLinkGuide?.title,
+    });
+    const guestPersonaEntrySheet = !user && deepLinkGuide && !rewardAlert ? (
+        <PersonaEntrySheet
+            guide={deepLinkGuide}
+            onClose={() => { setDeepLinkGuide(null); setGuestEntryPersonaId(null); }}
+            // 대화 CTA → "대화는 무료" 안내. 인자가 있으면(유나 '카드 뽑으러 가기' 등) 그 기능 기준으로 안내한다
+            //   — 타로는 유료라 "대화는 무료"라고 하면 거짓말이 된다.
+            onStart={(runKey) => runKey ? openGuestNotice(guestNoticeForFeature(runKey), runKey) : openGuestNotice('chat')}
+            onFeature={(key) => openGuestNotice(guestNoticeForFeature(key), key)}
+            onInvite={() => openGuestNotice('invite')}
+            isGuest
+            onGuestGate={openGuestNotice}
+        />
+    ) : null;
+
     // 로그인 전용 화면 — 로그인/비로그인 무관하게 screen==='authPage'면 항상 노출
     // (탑메뉴 로그인 토글 → goTo('authPage'). 상태 불일치로 안 뜨던 문제 방지차 최상위로).
     if (screen === 'authPage') {
@@ -1641,7 +1685,13 @@ const AppContent: React.FC = () => {
                     spotlightOrder={spotlightOrder}
                     newFeaturesOrder={newFeaturesOrder}
                             isLoading={isPersonasLoading}
-                            onSelectPersona={requireLogin}
+                            // ★페르소나 카드는 체험 안내 대신 **진입화면**부터(2026-09-28 사장 지시).
+                            onSelectPersona={(id: string) => {
+                                const p = personas.find(x => x.id === id);
+                                if (!p) { requireLogin(); return; }
+                                showPersonaGuide(p);
+                                setGuestEntryPersonaId(p.id);
+                            }}
                             onFeatureSelect={(_personaName: string, featureKey?: string) => openTrialFor(featureKey)}
                             onAdminClick={() => {}}
                             onAnnouncementClick={() => setShowAnnouncementModal(true)}
@@ -1685,13 +1735,27 @@ const AppContent: React.FC = () => {
                             <GuestTrialModal
                                 feature={g ? { name: g.name, catch: g.catch, desc: g.desc, accent: g.palette?.accent } : undefined}
                                 expired={guestTrialModal.expired}
+                                notice={guestTrialModal.notice}
+                                personaName={guestTrialModal.personaName}
                                 onExpired={markGuestTrialUsed}
                                 onSuccess={(u, token) => {
                                     setGuestTrialModal(null);
                                     // 체험 계정으로 로그인시키고, 누르려던 기능으로 이어서 보낸다.
                                     // (딥링크와 같은 통로를 쓴다 — user가 채워지면 처리 useEffect가 받는다)
-                                    if (guestTrialModal.featureKey) {
-                                        setPendingDeepLink({ kind: 'feature', key: guestTrialModal.featureKey });
+                                    // ★기능 딥링크는 **등록된 기능 키**만 받는다(모르는 키는 처리부에서 버려져 메인으로 떨어짐).
+                                    //   도결 퀵메뉴('siwoon' 등)·유나 'tarot-daily' 처럼 목록에 없는 키면 그 페르소나로 이어 보낸다.
+                                    const fk = guestTrialModal.featureKey;
+                                    const knownFeature = !!fk && (FEATURES_GRID.some(g => g.key === fk) || !!FEATURE_BY_KEY[fk]);
+                                    if (fk && knownFeature) {
+                                        setPendingDeepLink({ kind: 'feature', key: fk });
+                                    } else if (guestTrialModal.notice && guestTrialModal.personaId) {
+                                        // 진입화면에서 대화/초대를 눌렀던 경우 → 그 페르소나로 이어 보낸다.
+                                        setPendingDeepLink({ kind: 'persona', id: guestTrialModal.personaId });
+                                    }
+                                    if (guestTrialModal.notice) {
+                                        // 비로그인용 시트는 걷는다 — 이어지는 딥링크가 회원용 시트를 다시 연다.
+                                        setDeepLinkGuide(null);
+                                        setGuestEntryPersonaId(null);
                                     }
                                     handleGuestAuthSuccess(u, token);
                                 }}
@@ -1701,16 +1765,32 @@ const AppContent: React.FC = () => {
                             />
                         );
                     })()}
-                    {showAuthModal && (
-                        <ErrorBoundary label="로그인 화면 오류" onClose={() => setShowAuthModal(false)}>
-                            <AuthModal
-                                onSuccess={handleAuthSuccessWithWelcome}
-                                onClose={() => { setShowAuthModal(false); setGuestAuthMode('login'); }}
-                                defaultMode={guestAuthMode}
-                                personas={personas}
-                            />
-                        </ErrorBoundary>
-                    )}
+                    {guestPersonaEntrySheet}
+                    {showAuthModal && (() => {
+                        const authModal = (
+                            <ErrorBoundary label="로그인 화면 오류" onClose={() => setShowAuthModal(false)}>
+                                <AuthModal
+                                    onSuccess={(u, token, isNewUser) => {
+                                        // 진입화면에서 가입/로그인했으면 그 페르소나로 이어 보낸다(2026-09-28).
+                                        if (guestEntryPersonaId) {
+                                            setPendingDeepLink({ kind: 'persona', id: guestEntryPersonaId });
+                                            setDeepLinkGuide(null);
+                                            setGuestEntryPersonaId(null);
+                                        }
+                                        handleAuthSuccessWithWelcome(u, token, isNewUser);
+                                    }}
+                                    onClose={() => { setShowAuthModal(false); setGuestAuthMode('login'); }}
+                                    defaultMode={guestAuthMode}
+                                    personas={personas}
+                                />
+                            </ErrorBoundary>
+                        );
+                        // ★AuthModal 은 z-50 이라 진입화면(z-85) 뒤에 가린다. 진입화면이 떠 있을 때만
+                        //   z-95 층으로 감싸 올린다(닫으면 진입화면으로 돌아온다). 평소엔 종전 그대로.
+                        return guestPersonaEntrySheet
+                            ? <div style={{ position: 'relative', zIndex: 95 }}>{authModal}</div>
+                            : authModal;
+                    })()}
                     {showAnnouncementModal && (
                         <AnnouncementModal
                             announcements={announcements}

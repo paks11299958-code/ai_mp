@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MpnFeatureIcon } from '../MainPageNew';
-import type { PersonaEntryGuide } from '../PersonaEntrySheet';
+import type { PersonaEntryGuide, GuestGate } from '../PersonaEntrySheet';
+import { guestNoticeForFeature } from '../../lib/guestFeatureGate';
 import { SAJU_TONE, SAJU_HERO_IMAGES, SAJU_HERO_ASPECT, mountSajuHero, mountSajuLoadingSmoke, prefersReducedMotion } from './sajuHero';
 import { usePersonaMenus, useSajuRunner, useSavedBirth, sheetMenuFor, inputKindFor, dreamPlaceholder, withPartner, withTwoPartners, type SajuInputKind, type SajuBirth } from './useSajuRunner';
 // 2단계 — 기존 모달·결과 카드를 그대로 재사용한다(새로 만들지 않는다).
@@ -231,20 +232,26 @@ interface Props {
     onStart: (featureKey?: string) => void;
     onFeature: (featureKey: string) => void;
     onInvite: () => void;
+    /** 비로그인일 때만 들어온다(PersonaEntrySheet). 풀이는 창 안에서 유료 API(quick-menu-result)를
+     *  직접 부르므로, 비로그인이면 실행하지 않고 안내 모달로 보낸다. 없으면 종전과 같다. */
+    onGuestGate?: GuestGate;
 }
 
-export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature, onInvite }) => {
+export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature, onInvite, onGuestGate }) => {
     const featsRef = useRef<HTMLDivElement | null>(null);
     const heroRef = useRef<HTMLCanvasElement | null>(null);
 
     // ★창 안에서 풀이까지 끝낸다 — 채팅으로 나가지 않는다(2026-08-27 사장 지시).
     //   퀵메뉴·명부는 DB 정본을 그대로 읽고, 실행도 채팅이 쓰던 같은 API 를 부른다.
     const { id: personaId, menus } = usePersonaMenus(guide.personaName || guide.title);
-    const [birth] = useSavedBirth();
+    const [birth] = useSavedBirth(!onGuestGate);   // 비로그인이면 명부(로그인 전용)를 읽지 않는다
     const runner = useSajuRunner(personaId, birth);
     /** 기능 클릭 — 창 안에서 돌릴 수 있으면 여기서 풀고, 아니면 기존 채팅 경로로 넘긴다.
      *  ★해몽(텍스트)·관상/손금(사진)은 입력 UI 가 따로 필요해 아직 채팅으로 보낸다. */
     const handleFeature = (featureKey: string) => {
+        // ★비로그인(2026-09-28) — 풀이·해몽·관상·궁합은 전부 이 아래에서 유료 API 로 이어진다.
+        //   실행하지 않고 안내 모달로 보낸다. 회원이면 onGuestGate 가 undefined 라 종전 그대로.
+        if (onGuestGate) { onGuestGate(guestNoticeForFeature(featureKey), featureKey); return; }
         const menu = sheetMenuFor(menus, featureKey);
         if (menu) { runner.select(menu); return; }
         // 2단계 — 입력이 필요한 기능도 창 안에서 받는다(2026-08-27).

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MpnFeatureIcon } from '../MainPageNew';
-import type { PersonaEntryGuide } from '../PersonaEntrySheet';
+import type { PersonaEntryGuide, GuestGate } from '../PersonaEntrySheet';
 // 뉴스 본문은 **기존 보드를 그대로** 재사용한다(새로 만들지 않는다).
 // ★유료(50P) 호출은 저 컴포넌트가 마운트된 뒤에만 일어난다 — 여기서는 렌더 자체를
 //   사용자의 카테고리 클릭에 묶어 둔다.
@@ -453,9 +453,11 @@ interface Props {
     onClose: () => void;
     onInvite: () => void;
     onFeature: (featureKey: string) => void;
+    /** 비로그인일 때만 들어온다(PersonaEntrySheet). 없으면 종전처럼 needLogin 힌트를 띄운다. */
+    onGuestGate?: GuestGate;
 }
 
-export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, onFeature }) => {
+export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, onFeature, onGuestGate }) => {
     // 히어로는 **마운트 시 한 번** 뽑는다. 렌더마다 뽑으면 상태가 바뀔 때마다
     // 서 있다 앉았다 하며 화면이 튄다.
     const [heroSrc] = useState(() => pickOne(SEOA_HERO_IMAGES));
@@ -636,7 +638,11 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
      *   fetch 뒤의 play() 가 차단되지 않는다(TodayNewsBoard 에서 검증된 패턴).
      */
     const playNews = async (key: string, trigger?: HTMLElement) => {
-        if (!localStorage.getItem('token')) { setNeedLogin(true); return; }
+        // 비로그인(2026-09-28): 듣기는 무료지만 로그인이 필요하다 → 무료 안내 + 회원가입 모달.
+        if (!localStorage.getItem('token')) {
+            if (onGuestGate) { onGuestGate('free'); return; }
+            setNeedLogin(true); return;
+        }
         setNeedLogin(false);
         setPlayError('');
 
@@ -711,7 +717,11 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
     /** 카테고리 클릭 — **여기서부터가 유료 구간**이다. */
     const openNews = (key: string) => {
         // 유료 조회는 로그인 필수(news.ts:72). 모달을 띄워 401을 보여주기보다 먼저 알린다.
-        if (!localStorage.getItem('token')) { setNeedLogin(true); return; }
+        if (!localStorage.getItem('token')) {
+            // 비로그인(2026-09-28): 본문 조회는 유료(news) → 유료 안내 모달.
+            if (onGuestGate) { onGuestGate('paid', 'news'); return; }
+            setNeedLogin(true); return;
+        }
         setNeedLogin(false);
         setOpenCategory(key);
     };

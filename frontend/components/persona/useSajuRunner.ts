@@ -96,9 +96,11 @@ const messageFor = (e: any): string | null => {
 /** 저장된 명부를 서버에서 한 번 읽어온다.
  *  ★App.tsx 의 `useQuickMenu` 가 쓰는 것과 **같은 API**다 — 별도 저장소를 만들지 않는다.
  *  실패해도 조용히 null 로 둔다(명부 없이도 풀이는 나온다, 정확도만 떨어진다). */
-export const useSavedBirth = (): [SajuBirth | null, (b: SajuBirth) => void] => {
+export const useSavedBirth = (enabled = true): [SajuBirth | null, (b: SajuBirth) => void] => {
     const [birth, setBirth] = useState<SajuBirth | null>(null);
     useEffect(() => {
+        // 비로그인 진입화면(2026-09-28)에선 부르지 않는다 — 로그인 전용 API 라 401 만 난다.
+        if (!enabled) return;
         let alive = true;
         userProfileApi.getBirthInfo()
             .then(({ birthInfoJson }: any) => {
@@ -108,7 +110,7 @@ export const useSavedBirth = (): [SajuBirth | null, (b: SajuBirth) => void] => {
             })
             .catch(() => { /* 비로그인·네트워크 실패 — 명부 없이 진행 */ });
         return () => { alive = false; };
-    }, []);
+    }, [enabled]);
     return [birth, setBirth];
 };
 

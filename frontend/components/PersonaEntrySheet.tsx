@@ -9,6 +9,12 @@ import { YunaTarotEntry } from './persona/YunaTarotEntry';
 import { JihoonBookEntry } from './persona/JihoonBookEntry';
 import { SeolaGolfEntry } from './persona/SeolaGolfEntry';
 import { EunbiEntry } from './persona/EunbiEntry';
+import type { GuestNotice } from '../lib/guestFeatureGate';
+
+/** 비로그인 방문자가 진입화면 **안에서 직접 서버를 부르는** 동작을 눌렀을 때 App 에 알린다
+ *  (2026-09-28). 앱 콜백(onFeature·onStart·onInvite)을 거치는 동작은 App 이 비로그인용 콜백으로
+ *  이미 막으므로, 이건 화면 안에서 스스로 요청하는 곳(도결 풀이·서아 뉴스)만 쓴다. */
+export type GuestGate = (kind: GuestNotice, featureKey?: string) => void;
 
 // 페르소나 진입 시트 — 메인/채팅 어느 화면에서든 **화면 전환 없이** 덮어 띄운다.
 //
@@ -63,9 +69,15 @@ interface Props {
     onFeature: (featureKey: string) => void;
     /** 도결 랜딩의 친구 초대 CTA — 기존 초대 모달을 연다. */
     onInvite: () => void;
+    /** 비로그인 방문자용(2026-09-28). ★없거나 false 면 로그인 회원 동작과 **완전히 같다**.
+     *  직접 요청이 있는 전용 화면(도결·서아)에만 전달한다. */
+    isGuest?: boolean;
+    onGuestGate?: GuestGate;
 }
 
-export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, onFeature, onInvite }) => {
+export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, onFeature, onInvite, isGuest, onGuestGate }) => {
+    // 비로그인일 때만 gate 를 넘긴다 — 회원이면 undefined 라 각 화면은 종전 경로를 탄다.
+    const guestGate = isGuest ? onGuestGate : undefined;
     // ★도결(道潔) 선생만 사주 랜딩으로 갈아 끼운다(2026-08-26 사장 지시).
     //   사주는 분위기 자체가 상품인데 채팅창이 먼저 보여 일반 챗봇과 구분이 안 됐다.
     //   분기를 **여기서** 하는 이유: App.tsx를 고치면 전 화면 백지 사고가 재발한다
@@ -73,14 +85,14 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     //   ★도결이 아니면 아래 기존 JSX가 **한 줄도 바뀌지 않은 채** 그대로 나간다.
     //   이 컴포넌트에는 훅이 없으므로 이 조기 return이 훅 순서를 깨지 않는다.
     if (guide.title?.startsWith('도결')) {
-        return <SajuEntry guide={guide} onClose={onClose} onStart={onStart} onFeature={onFeature} onInvite={onInvite} />;
+        return <SajuEntry guide={guide} onClose={onClose} onStart={onStart} onFeature={onFeature} onInvite={onInvite} onGuestGate={guestGate} />;
     }
     // ★서아도 같은 규약으로 뉴스데스크 랜딩으로 갈아 끼운다(2026-08-27 사장 지시).
     //   판별 키는 도결과 **똑같이** guide.title 접두사다 — 페르소나 카드로 들어오면
     //   title이 persona.name('서아')이다(App.tsx showPersonaGuide).
     //   ★임의 문자열 매칭이 아니라 위 도결 분기와 같은 규약을 그대로 쓴다.
     if (guide.title?.startsWith('서아')) {
-        return <SeoaNewsDeskEntry guide={guide} onClose={onClose} onInvite={onInvite} onFeature={onFeature} />;
+        return <SeoaNewsDeskEntry guide={guide} onClose={onClose} onInvite={onInvite} onFeature={onFeature} onGuestGate={guestGate} />;
     }
     // 설아는 스윙 분석과 내 주변 골프장을 한 흐름으로 보여주는 전용 골프 코칭 랜딩을 쓴다.
     // '서아'와 한 글자 차이이므로 위 뉴스데스크 분기와 별도로 정확한 접두사를 검사한다.

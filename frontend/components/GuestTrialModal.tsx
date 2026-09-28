@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { authApi } from '../services/apiService';
 import { User } from '../types';
 import { Icon } from './Icons';
+import { josaEunNeun, josaGwaWa } from './PersonaEntrySheet';
+import type { GuestNotice } from '../lib/guestFeatureGate';
 
 // 비회원이 기능/페르소나를 클릭했을 때 뜨는 '체험 시작' 안내 모달 (2026-08-07).
 //
@@ -36,9 +38,17 @@ interface GuestTrialModalProps {
     /** 체험 대신 정식 로그인/가입을 원할 때. */
     onLogin: () => void;
     onClose: () => void;
+    /** 진입화면(z-85) 위에서 띄울 때의 안내 종류(2026-09-28 사장 지시 "유료 메뉴 클릭하면 유료
+     *  서비스 안내 문구 보여주고 회원가입 메뉴 나오게").
+     *  ★없으면 **종전과 완전히 같게** 렌더한다(기존 호출부 회귀 0) — 아래 분기는 전부 notice 가 있을 때만.
+     *  있으면: 안내 배너 + 회원가입 버튼 상시 노출 + 진입화면보다 위(z-95). 가격 숫자는 넣지 않는다
+     *  (비로그인은 menu-prices 가 401 이라 알 수 없다). */
+    notice?: GuestNotice;
+    /** notice='chat' 문구에 넣을 페르소나 이름("은비와의 대화는 무료예요"). */
+    personaName?: string;
 }
 
-export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuccess, expired = false, onExpired, onRegister, onLogin, onClose }) => {
+export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuccess, expired = false, onExpired, onRegister, onLogin, onClose, notice, personaName }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [trialExpired, setTrialExpired] = useState(expired);
@@ -64,11 +74,35 @@ export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuc
 
     const accent = feature?.accent || '#6D5BD0';
 
+    // 안내 배너 문구 — notice 가 있을 때만 쓴다.
+    const who = personaName?.trim() || '';
+    const noticeBox = notice ? (() => {
+        if (notice === 'paid') {
+            const subj = feature?.name ? `${feature.name}${josaEunNeun(feature.name)} ` : '';
+            return { tone: 'paid', head: '💎 유료 서비스예요',
+                     body: `${subj}포인트로 이용하는 기능이에요. 회원가입하고 이용해 보세요.` };
+        }
+        if (notice === 'free') {
+            return { tone: 'free', head: '✨ 무료로 이용할 수 있어요',
+                     body: '회원가입하면 바로 시작할 수 있어요.' };
+        }
+        if (notice === 'chat') {
+            return { tone: 'free', head: who ? `💬 ${who}${josaGwaWa(who)}의 대화는 무료예요` : '💬 대화는 무료예요',
+                     body: '가입하면 바로 대화를 시작할 수 있어요.' };
+        }
+        return { tone: 'free', head: '🎁 친구 초대는 회원 기능이에요',
+                 body: '회원가입하면 초대 링크를 받아 포인트를 모을 수 있어요.' };
+    })() : null;
+    // 대화 안내는 기능 설명이 없으므로 제목을 "OO와 대화하기"로 바꾼다(일반 문구 "AI 놀이터 체험하기" 대신).
+    const chatTitle = notice === 'chat' && !feature && who ? `${who}${josaGwaWa(who)} 대화하기` : null;
+
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        // ★notice 가 있으면 진입화면(z-85) 위로 올린다. 없으면 종전 z-60 그대로.
+        <div className={`fixed inset-0 ${notice ? 'z-[95]' : 'z-[60]'} flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm`}
              onClick={onClose}>
-            <div className="w-full max-w-sm rounded-3xl bg-white shadow-2xl overflow-hidden"
-                 onClick={e => e.stopPropagation()}>
+            <div className={`w-full max-w-sm rounded-3xl bg-white shadow-2xl ${notice ? 'max-h-[calc(100dvh-32px)] overflow-y-auto' : 'overflow-hidden'}`}
+                 onClick={e => e.stopPropagation()}
+                 {...(notice ? { role: 'dialog', 'aria-modal': true, 'aria-label': noticeBox?.head } : {})}>
                 <div className="px-6 pt-7 pb-6 text-center">
                     <div className="mx-auto mb-4 w-14 h-14 rounded-2xl flex items-center justify-center"
                          style={{ background: `${accent}1A`, color: accent }}>
@@ -92,6 +126,8 @@ export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuc
                                 <p className="mt-3 text-[13px] leading-relaxed text-gray-600">{feature.desc}</p>
                             )}
                         </>
+                    ) : chatTitle ? (
+                        <h2 className="text-lg font-bold text-gray-900">{chatTitle}</h2>
                     ) : (
                         <>
                             <h2 className="text-lg font-bold text-gray-900">AI 놀이터 체험하기</h2>
@@ -99,6 +135,14 @@ export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuc
                                 헤어스타일·관상·꿈해몽까지, AI로 할 수 있는 걸 직접 해보세요.
                             </p>
                         </>
+                    )}
+
+                    {noticeBox && (
+                        <div className={`mt-4 rounded-2xl px-4 py-3 border ${noticeBox.tone === 'paid' ? 'bg-violet-50 border-violet-200' : 'bg-emerald-50 border-emerald-200'}`}
+                             data-testid="guest-notice">
+                            <p className={`text-sm font-bold ${noticeBox.tone === 'paid' ? 'text-violet-900' : 'text-emerald-900'}`}>{noticeBox.head}</p>
+                            <p className={`mt-1 text-[12px] leading-relaxed ${noticeBox.tone === 'paid' ? 'text-violet-800' : 'text-emerald-800'}`}>{noticeBox.body}</p>
+                        </div>
                     )}
 
                     {!trialExpired && (
@@ -122,6 +166,16 @@ export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuc
                     >
                         {trialExpired ? '무료 회원가입' : loading ? '체험 준비 중…' : '1,000P 받고 바로 체험하기'}
                     </button>
+                    {/* ★notice 가 있으면 회원가입을 **항상** 보인다(만료면 위 주 버튼이 이미 가입이라 생략). */}
+                    {notice && !trialExpired && (
+                        <button
+                            onClick={onRegister}
+                            className="w-full py-3 rounded-2xl font-bold text-[14px] border transition active:scale-[0.98]"
+                            style={{ color: accent, borderColor: accent, background: '#fff' }}
+                        >
+                            무료 회원가입
+                        </button>
+                    )}
                     <button
                         onClick={onLogin}
                         className="w-full py-2.5 text-[13px] text-gray-500 hover:text-gray-700 transition"
