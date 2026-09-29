@@ -85,7 +85,16 @@ vitest(은비·게스트 게이트·무료 키) · `tsc --noEmit` · `npm run ch
 - 서버 `routes/aimp/eunbi-card.ts`(POST·/quota·/public/:id), 금지어 `lib/eunbiCardFilter.ts`, DB `EunbiCard`(db_schema.md), 가격 points_payment.md.
 - 비로그인: 카드 버튼 → 무료 안내+회원가입 게이트.
 
-## 9. 남은 것
+## 9. 채팅 감정 사진 + 진입화면 채팅 모달 (2026-09-29)
+
+- **감정 사진 10종**(`public/eunbi/emo/{greeting,happy,shy,love,sad,surprised,pout,cheer,thinking,sleepy}.jpg`, 600x800): greeting=진입화면 원본, 9장 gemini-3.1-flash-image 원본 참조 편집(`~/eunbi-entry/emo/gen_emotions.py`, ~$0.6). 프로필·채팅 메인도 웹툰 이미지로 교체, '라면' 트리거 영상 삭제(백업 `~/eunbi-entry/removed_20260929/`).
+- **판정**: 답장 완료 → `POST /api/persona-emotion`(shared-api, gemini-2.5-flash-lite thinking0 + enum 스키마, 실패=null, 시간당 60회) → 사진 교체. 인사말(role `assistant`)은 AI 없이 greeting. 프론트 `lib/personaEmotion.ts`·`hooks/usePersonaEmotion.ts`(`emotionSeq`=연출 재생 순번). ★`vercel.json` rewrite 필수(처음 누락 → 404).
+- 표시: PC 왼쪽 패널·모바일 헤더·홈 아래 갤러리 메인 칸(`PersonaImageViewer` `mainOverrideUrl`)·확대 모달.
+- **진입화면 채팅 모달**(`components/persona/EntryChatModal.tsx`, 테마 `lib/entryChatThemes.ts`): "이야기 시작하기" → 진입화면 위 모달(모바일 바텀시트·PC 480px). 초상 무대(감정 크로스페이드·숨쉬기·보케) + 감정별 연출 10종, 말풍선 스프링·지문 기울임·하트 입력 중·보내기 버스트. 채팅은 App `handleSendMessage(overrideText?)` 재사용(차감·가드 그대로). 다른 페르소나 = 테마 추가.
+  - 🔴 메인 보내기 버튼에 `onClick={handleSendMessage}` 직결 금지(이벤트가 글로 들어감, `appSendButton.test.ts`).
+  - 🔴 좁은 폭(Z Fold4 커버 344px)·글자 확대에서 오른쪽 잘림 → 격자 `minmax(0,1fr)`+textarea `min-width:0`(`e3cb278`). 검수는 320·344·360 × 글자 1.3~1.6배.
+
+## 10. 남은 것
 
 - 은비 웹툰 연재 시작 시 웹툰 카드 연결(App.tsx `FEATURE_ACTIONS.webtoon`은 activePersona 기준).
 - ✅명품 감정은 2026-09-28 이아린으로 이관(`2f1d141`, DB features도 변경). 은비 담당 기능 없음.

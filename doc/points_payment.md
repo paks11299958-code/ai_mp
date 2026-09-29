@@ -32,7 +32,16 @@
 
 ---
 
-## 💸 대화 전면 무료화 (2026-07-08 사장 결정)
+## 💬 대화 유료 복귀 — 메시지당 10P 고정 (2026-09-29 사장 결정, 아래 무료화 종료)
+
+- **단가**: 회원 메시지 1통 = **10P 고정**(관계 단계 무관). 정본 = shared-api `lib/points.ts` `CHAT_MESSAGE_COST` ↔ 프론트 `frontend/lib/chatCost.ts`(**쌍** — 한쪽만 바꾸면 안내·차감 어긋남). 하루 100회 한도 **폐지**.
+- **차감 지점**: `POST /sessions/:id/messages`(role user) → `deductPointsForMessage`(XP+1·레벨업 보너스 유지, `CHAT` 거래). 잔액 부족 = **402** `{required,balance,shortfall,feature:'chat'}` → 프론트는 쓰던 글을 입력창에 되돌리고 충전 모달. ADMIN·MANAGE 차감 없음. **자동 인사·감정 사진 판정은 무료**.
+- **차감 가드**(`lib/chatChargeGuard.ts`): `/chat-stream` 은 같은 세션의 마지막 회원 메시지 = 요청 text, 10분 이내, 그 뒤 답장 저장 없음일 때만 답장. 아니면 **403 `CHAT_NOT_CHARGED`**. (무료 시절엔 직접 호출·임베드 위젯 회원 경로가 차감 없이 답장을 받았다 — 위젯은 이제 저장(차감) 선행.)
+- **답장 실패**: 429·503 은 첫 조각 전 최대 2회 재시도(1.5s·3s, `lib/chatStreamRetry.ts`), 끝내 실패하면 원문 대신 "지금 대화가 몰려서…" + `refundLastChatDeduction` 환불.
+- 화면: 입력창 아래 "메시지당 10P"(관리자 제외), 충전 모달·체험 안내·넛지 문구 교체. 커밋 shared-api `ec0469e`, ai_mp `701273a`.
+- 무료화 코드(`DAILY_FREE_CHAT_LIMIT`·`recordFreeChatActivity`·`countTodayChatMessages`)는 되돌림 대비 **보존**(호출부 없음).
+
+## 💸 (종료됨) 대화 전면 무료화 (2026-07-08 사장 결정 → 2026-09-29 종료)
 
 - **회원 일반 채팅 = 포인트 차감 0**. 기능·이미지(관상/손금/헤어/타로 등 MenuLimit) 과금은 불변.
 - **하루 100회 한도**(KST 자정 리셋): `DAILY_FREE_CHAT_LIMIT`(shared-api lib/points.ts). 초과 시 **429 `DAILY_CHAT_LIMIT`** → 프론트는 충전 모달이 아니라 채팅 내 안내 말풍선(App.tsx).
@@ -74,7 +83,7 @@
 | **500pt** | 주식(stock)·명품(luxury)·중고(used-item)·보험(insurance)·운세/퀵메뉴(quick-menu) | 무거운 전문 분석 |
 | **1000pt** | 헤어스타일 진단(hair) | 합성 실비 높음(~57원) |
 | (사장 설정) | 닮은 연예인 찾기(lookalike) | 텍스트 1회 분석, 실비 ~2원, 바이럴 미끼 저가 의도. **MenuLimit 미등록 시 기본 50pt**(checkMenuAccess 폴백) |
-| 채팅 | **무료**(2026-07-08, 일 100회 한도. 구: 레벨별 100→50pt) | `recordFreeChatActivity` |
+| 채팅 | **메시지당 10P 고정**(2026-09-29 유료 복귀·한도 폐지. 07-08~09-28 무료·일 100회 / 그 전 레벨별 100→50pt) | `deductPointsForMessage` |
 
 - ⚠️ **1pt=1원 전환 시 ×10한 것**: STAGE_COSTS·LEVELUP_BONUS·가입보너스(5000)·미션(5000)·충전 PACKAGES·MenuLimit 단가·**기존 User 잔액(paidPoints·bonusPoints)**. 구매력 동일, 화폐만 직관화. 배포순서 shared-api→DB ×10 즉시→ai_mp.
 - ⚠️ **수학(mathtutor)은 원래 운세와 같은 `quick-menu` 키였다가 분리** → 단가 독립.
