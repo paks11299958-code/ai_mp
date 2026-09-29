@@ -4,6 +4,7 @@ import { User } from '../types';
 import { Icon } from './Icons';
 import { josaEunNeun, josaGwaWa } from './PersonaEntrySheet';
 import type { GuestNotice } from '../lib/guestFeatureGate';
+import { CHAT_MESSAGE_COST } from '../lib/chatCost';
 
 // 비회원이 기능/페르소나를 클릭했을 때 뜨는 '체험 시작' 안내 모달 (2026-08-07).
 //
@@ -44,7 +45,7 @@ interface GuestTrialModalProps {
      *  있으면: 안내 배너 + 회원가입 버튼 상시 노출 + 진입화면보다 위(z-95). 가격 숫자는 넣지 않는다
      *  (비로그인은 menu-prices 가 401 이라 알 수 없다). */
     notice?: GuestNotice;
-    /** notice='chat' 문구에 넣을 페르소나 이름("은비와의 대화는 무료예요"). */
+    /** notice='chat' 문구에 넣을 페르소나 이름("신은비와의 대화는 메시지당 10P예요"). */
     personaName?: string;
 }
 
@@ -87,8 +88,9 @@ export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuc
                      body: '회원가입하면 바로 시작할 수 있어요.' };
         }
         if (notice === 'chat') {
-            return { tone: 'free', head: who ? `💬 ${who}${josaGwaWa(who)}의 대화는 무료예요` : '💬 대화는 무료예요',
-                     body: '가입하면 바로 대화를 시작할 수 있어요.' };
+            // 2026-09-29 무료화 종료 — 대화는 메시지당 CHAT_MESSAGE_COST(10P). 체험 1,000P 로 바로 시작할 수 있다는 점을 앞세운다.
+            return { tone: 'paid', head: who ? `💬 ${who}${josaGwaWa(who)}의 대화는 메시지당 ${CHAT_MESSAGE_COST}P예요` : `💬 대화는 메시지당 ${CHAT_MESSAGE_COST}P예요`,
+                     body: '가입하면 체험 포인트로 바로 대화를 시작할 수 있어요.' };
         }
         return { tone: 'free', head: '🎁 친구 초대는 회원 기능이에요',
                  body: '회원가입하면 초대 링크를 받아 포인트를 모을 수 있어요.' };

@@ -29,6 +29,7 @@ import { MainPageNew, FEATURES_GRID, MpnFeatureIcon } from './components/MainPag
 import { PersonaEntrySheet, PersonaEntryGuide, josaGwaWa, josaEunNeun } from './components/PersonaEntrySheet';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { usePersonaEmotion } from './hooks/usePersonaEmotion';
+import { CHAT_MESSAGE_COST } from './lib/chatCost';
 import { BoardPanel } from './components/BoardPanel';
 import { PartnerBoardPanel } from './components/PartnerBoardPanel';
 import { UserProfileModal } from './components/UserProfileModal';
@@ -3316,6 +3317,8 @@ const AppContent: React.FC = () => {
                             </div>
                             <div className="flex items-center justify-between mt-2">
                                 <div className="text-[10px] text-gray-600">
+                                    {/* 대화 유료 복귀(2026-09-29) — 보내기 전에 단가가 보여야 한다. 관리자·매니저는 차감 없음. */}
+                                    {user && user.role !== 'ADMIN' && user.role !== 'MANAGE' && <span className="text-[#8E6FB7] font-semibold">메시지당 {CHAT_MESSAGE_COST}P · </span>}
                                     AI는 실수를 할 수 있습니다. 중요한 정보는 확인해주세요.
                                 </div>
                                 <div className="flex items-center gap-2">

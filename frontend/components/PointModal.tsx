@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Coins, X, Loader2 } from 'lucide-react';
 import { shortFeatureLabel } from '../lib/featureLabels';
+import { CHAT_MESSAGE_COST } from '../lib/chatCost';
 import { INSUFFICIENT_REASSURE } from '../lib/pointNudges';
 
 // 1pt=1원(2026-06-17). 기본 1:1, 큰 패키지는 보너스 %.
@@ -149,7 +150,7 @@ export const PointModal: React.FC<PointModalProps> = ({ currentPoints, userId, o
                     </button>
                 )}
 
-                <p className="text-xs text-gray-600 text-center">대화는 무료! 포인트는 관상·타로·이미지 같은 스페셜 기능에 사용돼요</p>
+                <p className="text-xs text-gray-600 text-center">대화는 메시지당 {CHAT_MESSAGE_COST}P · 관상·타로·이미지 같은 스페셜 기능에도 포인트가 사용돼요</p>
             </div>
         </div>
     );

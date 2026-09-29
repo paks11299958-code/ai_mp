@@ -38,6 +38,7 @@ export const FEATURE_LABELS: Record<string, string> = {
     'homepage_edit_upload': '홈페이지 수정(내 사진)',
     'shorts_maker_research': '쇼츠 만들기(리서치+시나리오5개)',
     'shorts_maker_produce':  '쇼츠 만들기(영상 제작)',
+    'chat':                  '대화',   // 대화 402(메시지당 10P) — 충전 모달 문구용
 };
 
 /**

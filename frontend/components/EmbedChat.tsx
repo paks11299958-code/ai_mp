@@ -66,12 +66,28 @@ export const EmbedChat: React.FC<{ personaKey: string }> = ({ personaKey }) => {
                     const s = await sessionApi.create(persona.id, t.slice(0, 30));
                     sid = s.id; setSessionId(sid);
                 }
+                // ★대화 유료 복귀(2026-09-29): 본 앱과 같이 **회원 메시지 저장(=10P 차감)을 먼저** 한다.
+                //   서버 chat-stream 은 차감된 메시지가 없으면 403 이다(무료 답장 우회 차단).
+                try {
+                    await sessionApi.saveMessage(sid!, 'user', t);
+                } catch (e: any) {
+                    const msg = e?.message === 'INSUFFICIENT_POINTS'
+                        ? '포인트가 부족해요. AI 놀이터에서 충전한 뒤 이어서 대화해 주세요 🙏'
+                        : '메시지를 보내지 못했어요. 잠시 후 다시 시도해 주세요.';
+                    setMsgs(m => [...m, { role: 'model', text: msg }]);
+                    return;
+                }
                 await new Promise<void>((resolve) => {
                     let full = '';
                     chatApi.stream(
                         { personaId: persona.id, text: t, sessionId: sid ?? undefined },
                         chunk => { full += chunk; },
-                        fullText => { setMsgs(m => [...m, { role: 'model', text: (fullText || full) || '(응답 없음)' }]); resolve(); },
+                        fullText => {
+                            const reply = fullText || full;
+                            setMsgs(m => [...m, { role: 'model', text: reply || '(응답 없음)' }]);
+                            if (reply && sid) sessionApi.saveMessage(sid, 'model', reply).catch(() => {});
+                            resolve();
+                        },
                         () => { setMsgs(m => [...m, { role: 'model', text: '응답에 실패했어요. 잠시 후 다시 시도해 주세요.' }]); resolve(); },
                     );
                 });

@@ -72,11 +72,11 @@ describe('GuestTrialModal 진입화면 안내(notice)', () => {
 
     it('chat: 페르소나 이름과 조사를 넣는다(은비와 / 도결 선생과)', () => {
         const { unmount } = render(<GuestTrialModal {...props()} notice="chat" personaName="신은비" />);
-        expect(screen.getByText('💬 신은비와의 대화는 무료예요')).toBeTruthy();
+        expect(screen.getByText('💬 신은비와의 대화는 메시지당 10P예요')).toBeTruthy();
         expect(screen.getByRole('heading', { name: '신은비와 대화하기' })).toBeTruthy();
         unmount();
         render(<GuestTrialModal {...props()} notice="chat" personaName="도결 선생" />);
-        expect(screen.getByText('💬 도결 선생과의 대화는 무료예요')).toBeTruthy();
+        expect(screen.getByText('💬 도결 선생과의 대화는 메시지당 10P예요')).toBeTruthy();
     });
 
     it('notice + 체험 만료면 회원가입 버튼이 주 버튼 하나만 나온다', () => {
