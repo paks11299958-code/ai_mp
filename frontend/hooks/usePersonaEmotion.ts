@@ -10,6 +10,8 @@ import { Emotion, classifyReplyEmotion, emotionImageFor, hasEmotionImages, isGre
  */
 export function usePersonaEmotion(activePersonaId: string, lastMessage: { id: string; role: string } | undefined) {
     const [emotions, setEmotions] = useState<Record<string, Emotion>>({});
+    /** 감정이 새로 정해질 때마다 +1(같은 감정이 연달아 와도) — 화면 연출을 다시 재생하는 key 로 쓴다. */
+    const [emotionSeq, setEmotionSeq] = useState(0);
     const seenGreeting = useRef<Record<string, string>>({});
 
     useEffect(() => { if (activePersonaId) preloadEmotionImages(activePersonaId); }, [activePersonaId]);
@@ -20,12 +22,13 @@ export function usePersonaEmotion(activePersonaId: string, lastMessage: { id: st
         if (seenGreeting.current[activePersonaId] === lastMessage.id) return;
         seenGreeting.current[activePersonaId] = lastMessage.id;
         setEmotions(prev => ({ ...prev, [activePersonaId]: 'greeting' }));
+        setEmotionSeq(n => n + 1);
     }, [activePersonaId, lastMessage?.id, lastMessage?.role]);
 
     const onReplyDone = useCallback((personaId: string, userText: string, reply: string) => {
         if (!hasEmotionImages(personaId) || !reply.trim()) return;
         classifyReplyEmotion(userText, reply).then(emotion => {
-            if (emotion) setEmotions(prev => ({ ...prev, [personaId]: emotion }));
+            if (emotion) { setEmotions(prev => ({ ...prev, [personaId]: emotion })); setEmotionSeq(n => n + 1); }
         });
     }, []);
 
@@ -36,6 +39,7 @@ export function usePersonaEmotion(activePersonaId: string, lastMessage: { id: st
 
     return {
         emotion: emotions[activePersonaId] as Emotion | undefined,
+        emotionSeq,
         emotionImageUrl: emotionImageFor(activePersonaId, emotions[activePersonaId]),
         onReplyDone,
         clearEmotion,

@@ -30,6 +30,8 @@ import { PersonaEntrySheet, PersonaEntryGuide, josaGwaWa, josaEunNeun } from './
 import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { usePersonaEmotion } from './hooks/usePersonaEmotion';
 import { CHAT_MESSAGE_COST } from './lib/chatCost';
+import { EntryChatModal, type EntryChatSendResult } from './components/persona/EntryChatModal';
+import { entryStartDestination, getEntryChatTheme } from './lib/entryChatThemes';
 import { BoardPanel } from './components/BoardPanel';
 import { PartnerBoardPanel } from './components/PartnerBoardPanel';
 import { UserProfileModal } from './components/UserProfileModal';
@@ -479,6 +481,8 @@ const AppContent: React.FC = () => {
      *    페르소나(신은비=명품감정, 유나=타로, 서아=뉴스 등 9명)가 전부 걸려 **"OO와 시작하기"를
      *    눌렀는데 기능 보드가 뜨는** 문제가 있었다(2026-07-29 사장 지적). */
     const [deepLinkGuide, setDeepLinkGuide] = useState<PersonaEntryGuide | null>(null);
+    const [entryChatPersonaId, setEntryChatPersonaId] = useState<string | null>(null);
+    const entryChatOpenerRef = useRef<HTMLElement | null>(null);
     /** 비로그인 방문자가 지금 보고 있는 진입화면의 페르소나 id(2026-09-28 사장 지시 "일단 진입화면을
      *  무조건 띄워주고"). 체험 시작·가입 뒤 **그 페르소나로 이어 보내기** 위해 기억한다.
      *  로그인 회원 경로에서는 쓰지 않는다(항상 null). */
@@ -1106,7 +1110,7 @@ const AppContent: React.FC = () => {
     const currentSession = sessions[activePersonaId] || { messages: [], isTyping: false };
     const activeImages = personaImages[activePersonaId] || [];
     // 채팅 감정 사진(2026-09-29) — 답장 감정에 맞춰 메인 사진을 바꿔 끼운다. 사진 없는 페르소나는 그대로.
-    const { emotionImageUrl, onReplyDone: onEmotionReplyDone, clearEmotion } =
+    const { emotion, emotionSeq, emotionImageUrl, onReplyDone: onEmotionReplyDone, clearEmotion } =
         usePersonaEmotion(activePersonaId, currentSession.messages[currentSession.messages.length - 1]);
     /** 화면에 보일 메인 사진: 감정 사진 > 갤러리 메인 > 프로필. */
     const chatMainImageUrl = emotionImageUrl || activeImages.find(img => img.isMain)?.imageUrl || activePersona?.imageUrl;
@@ -1261,16 +1265,19 @@ const AppContent: React.FC = () => {
         e.target.value = '';
     };
 
-    const handleSendMessage = async () => {
-        const text = inputText.trim();
-        if (!text || currentSession.isTyping || !user) return;
+    const handleSendMessage = async (overrideText?: string): Promise<EntryChatSendResult> => {
+        const usesOverride = overrideText !== undefined;
+        const text = (usesOverride ? overrideText : inputText).trim();
+        if (!text || currentSession.isTyping || !user) return 'blocked';
 
         const userMsgId = Date.now().toString();
         addMessageToSession(activePersonaId, { id: userMsgId, role: 'user', text });
-        setInputText('');
-        setInputPlaceholder(null);
-        setActiveQuickMenu(null);
-        if (textareaRef.current) textareaRef.current.style.height = 'auto';
+        if (!usesOverride) {
+            setInputText('');
+            setInputPlaceholder(null);
+            setActiveQuickMenu(null);
+            if (textareaRef.current) textareaRef.current.style.height = 'auto';
+        }
         setSessionTyping(activePersonaId, true);
 
         // DB 세션 생성 (없을 경우)
@@ -1321,11 +1328,13 @@ const AppContent: React.FC = () => {
                             messages: (prev[activePersonaId]?.messages || []).filter(m => m.id !== userMsgId),
                         },
                     }));
-                    setInputText(text);
-                    saveUnsentDraft(activePersonaId, text);
+                    if (!usesOverride) {
+                        setInputText(text);
+                        saveUnsentDraft(activePersonaId, text);
+                    }
                     setShowPointModal(true);
                     setSessionTyping(activePersonaId, false);
-                    return;
+                    return 'insufficient';
                 }
                 if (e.code === 'DAILY_CHAT_LIMIT') {
                     // 대화 무료화(2026-07-08) 하루 한도 도달 — 충전 모달 대신 안내만
@@ -1334,7 +1343,7 @@ const AppContent: React.FC = () => {
                         text: e.message || '오늘의 무료 대화를 모두 사용했어요. 내일 다시 만나요!',
                     });
                     setSessionTyping(activePersonaId, false);
-                    return;
+                    return 'blocked';
                 }
                 console.error('메시지 저장 실패:', e);
             }
@@ -1398,6 +1407,7 @@ const AppContent: React.FC = () => {
             });
             setSessionTyping(activePersonaId, false);
         }
+        return 'sent';
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1579,6 +1589,13 @@ const AppContent: React.FC = () => {
             onClose={() => setDeepLinkGuide(null)}
             // ★화면 전환은 여기서 **딱 한 번**. 사용자가 의도한 순간이라 전환이 납득된다.
             onStart={(runKey) => {
+                if (entryStartDestination(deepLinkGuide.personaId, runKey) === 'modal') {
+                    const personaId = deepLinkGuide.personaId!;
+                    entryChatOpenerRef.current = document.activeElement as HTMLElement | null;
+                    if (activePersonaId !== personaId) handleSelectPersona(personaId);
+                    setEntryChatPersonaId(personaId);
+                    return;
+                }
                 setDeepLinkGuide(null);
                 goTo('chat');
                 if (runKey) {
@@ -1632,6 +1649,35 @@ const AppContent: React.FC = () => {
                     setShowPointModal(true);
                 },
             } : undefined}
+        />
+    ) : null;
+
+    const entryChatTheme = getEntryChatTheme(entryChatPersonaId ?? undefined);
+    const entryChatModal = entryChatTheme && entryChatPersonaId ? (
+        <EntryChatModal
+            theme={entryChatTheme}
+            messages={sessions[entryChatPersonaId]?.messages ?? []}
+            isTyping={sessions[entryChatPersonaId]?.isTyping ?? false}
+            emotion={emotion}
+            emotionSeq={emotionSeq}
+            emotionImageUrl={emotionImageUrl}
+            relationshipStage={getStage(user?.personaXp?.[entryChatPersonaId] ?? 0).name}
+            balance={userPaidPoints + userBonusPoints}
+            hideCost={user?.role === 'ADMIN' || user?.role === 'MANAGE' || user?.role === 'MANAGER'}
+            opener={entryChatOpenerRef.current}
+            onSend={handleSendMessage}
+            onClose={() => setEntryChatPersonaId(null)}
+            onNeedCharge={() => {
+                // ★insufficientInfo 는 지우지 않는다 — 402 이벤트가 채운 "10P 필요·잔액"을 충전 모달이 보여준다.
+                setEntryChatPersonaId(null);
+                setDeepLinkGuide(null);
+                setShowPointModal(true);
+            }}
+            onOpenFullChat={() => {
+                setEntryChatPersonaId(null);
+                setDeepLinkGuide(null);
+                goTo('chat');
+            }}
         />
     ) : null;
 
@@ -2212,6 +2258,7 @@ const AppContent: React.FC = () => {
                     전엔 chat return에만 있어서 소개를 보려면 화면이 먼저 채팅으로 갈아치워졌다.
                     이제 메인에 머문 채 시트만 덮이고, 전환은 CTA를 눌렀을 때 한 번만 일어난다. */}
                 {personaEntrySheet}
+                {entryChatModal}
             </>
         );
     }
@@ -2623,6 +2670,7 @@ const AppContent: React.FC = () => {
                 ★main return(아래)에서도 **같은 personaEntrySheet를 렌더**한다. 그래야
                   소개를 띄우려고 goTo('chat')으로 화면을 갈아치울 필요가 없다. */}
             {personaEntrySheet}
+            {entryChatModal}
 
             {quickMenuLoading && <QuickMenuLoading title={activeQuickMenu ?? ''} />}
 
@@ -3304,7 +3352,8 @@ const AppContent: React.FC = () => {
                                     disabled={!activePersona}
                                 />
                                 <button
-                                    onClick={handleSendMessage}
+                                    // ★인자 없이 부른다 — handleSendMessage(overrideText?) 라 onClick 에 직접 넘기면 클릭 이벤트가 보낼 글로 들어간다(09-29 검수).
+                                    onClick={() => { void handleSendMessage(); }}
                                     disabled={!inputText.trim() || currentSession.isTyping || !activePersona}
                                     className={`absolute right-2 bottom-2 p-2 rounded-xl transition-colors ${inputText.trim() && !currentSession.isTyping && activePersona ? 'text-white shadow-lg' : 'text-[#9089A1] cursor-not-allowed'}`}
                                     style={inputText.trim() && !currentSession.isTyping && activePersona ? {

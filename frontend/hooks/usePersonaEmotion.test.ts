@@ -89,4 +89,13 @@ describe('usePersonaEmotion', () => {
         rerender();
         expect(result.current.emotion).toBeUndefined();
     });
+    it('같은 감정이 연달아 와도 emotionSeq 는 오른다(연출 재생용)', async () => {
+        fetchMock.mockImplementation(async () => new Response(JSON.stringify({ emotion: 'happy' }), { status: 200 }));
+        const { result } = renderHook(() => usePersonaEmotion(EUNBI_ID, undefined));
+        act(() => result.current.onReplyDone(EUNBI_ID, 'a', 'b'));
+        await waitFor(() => expect(result.current.emotionSeq).toBe(1));
+        act(() => result.current.onReplyDone(EUNBI_ID, 'a', 'c'));
+        await waitFor(() => expect(result.current.emotionSeq).toBe(2));
+        expect(result.current.emotion).toBe('happy');
+    });
 });
