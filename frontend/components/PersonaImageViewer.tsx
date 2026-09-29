@@ -25,9 +25,11 @@ interface PersonaImageViewerProps {
     newUi?: boolean;
     featureCards?: FeatureCard[];   // 표준 기능: 아이콘 카드(사진 행 인라인)
     featureChips?: FeatureChip[];   // 도결 퀵메뉴: 텍스트 칩(사진 아래 전체폭)
+    /** 채팅 감정 사진(2026-09-29) — 있으면 **메인 칸**을 이 사진으로 보여준다(갤러리 원본은 그대로). */
+    mainOverrideUrl?: string;
 }
 
-export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain, userXp, newUi, featureCards, featureChips }) => {
+export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain, userXp, newUi, featureCards, featureChips, mainOverrideUrl }) => {
     const [videosByImage, setVideosByImage] = useState<Record<number, PersonaVideo[]>>({});
     const [playingVideo, setPlayingVideo] = useState<PersonaVideo | null>(null);
     const [previewImage, setPreviewImage] = useState<PersonaImage | null>(null);
@@ -51,6 +53,9 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
 
     const handleImageClick = (img: PersonaImage) => {
         if (userStage < img.requiredLevel) return;
+        // 감정 사진이 떠 있는 메인 칸을 누르면 **지금 표정**을 크게 보여준다. onSelectMain 을 부르면
+        // 감정 사진이 걷혀 기본 사진으로 돌아가므로(사진 1장인 은비는 누를 때마다 표정이 사라짐) 부르지 않는다.
+        if (mainOverrideUrl && img.id === mainImage?.id) { setPreviewImage({ ...img, imageUrl: mainOverrideUrl }); return; }
         onSelectMain(img);
         setPreviewImage(img);
     };
@@ -75,9 +80,10 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                                         title={isLocked ? `${img.requiredLevel}단계 "${reqStageName}" 달성 시 해제` : (img.description || '')}
                                     >
                                         <img
-                                            src={img.imageUrl}
+                                            key={!isLocked && img.id === mainImage?.id ? (mainOverrideUrl || img.imageUrl) : img.imageUrl}
+                                            src={!isLocked && img.id === mainImage?.id && mainOverrideUrl ? mainOverrideUrl : img.imageUrl}
                                             alt={img.description || ''}
-                                            className={`w-14 h-14 rounded-lg object-cover border-2 transition-all ${
+                                            className={`w-14 h-14 rounded-lg object-cover border-2 transition-all ${!isLocked && img.id === mainImage?.id && mainOverrideUrl ? 'emo-pop ' : ''}${
                                                 isLocked
                                                     ? 'border-gray-700 opacity-30 blur-[2px]'
                                                     : img.id === mainImage?.id

@@ -3085,7 +3085,7 @@ const AppContent: React.FC = () => {
                                 }));
                             })();
                             if (activeImages.length > 0) {
-                                return <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={true} featureCards={standardCards} featureChips={quickMenuChips} />;
+                                return <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={true} featureCards={standardCards} featureChips={quickMenuChips} mainOverrideUrl={emotionImageUrl} />;
                             }
                             // ★갤러리 사진이 없는 페르소나(유나 등)도 퀵메뉴·기능 카드는 보여야 함
                             //   (종전엔 사진 있는 페르소나만 렌더돼 퀵메뉴가 숨는 커플링 버그, 2026-07-06)
