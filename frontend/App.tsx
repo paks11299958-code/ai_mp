@@ -28,6 +28,7 @@ import { LandingPageNew } from './components/LandingPageNew';
 import { MainPageNew, FEATURES_GRID, MpnFeatureIcon } from './components/MainPageNew';
 import { PersonaEntrySheet, PersonaEntryGuide, josaGwaWa, josaEunNeun } from './components/PersonaEntrySheet';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
+import { usePersonaEmotion } from './hooks/usePersonaEmotion';
 import { BoardPanel } from './components/BoardPanel';
 import { PartnerBoardPanel } from './components/PartnerBoardPanel';
 import { UserProfileModal } from './components/UserProfileModal';
@@ -1103,6 +1104,11 @@ const AppContent: React.FC = () => {
     const activePersona = personas.find(p => p.id === activePersonaId) || visiblePersonas[0];
     const currentSession = sessions[activePersonaId] || { messages: [], isTyping: false };
     const activeImages = personaImages[activePersonaId] || [];
+    // 채팅 감정 사진(2026-09-29) — 답장 감정에 맞춰 메인 사진을 바꿔 끼운다. 사진 없는 페르소나는 그대로.
+    const { emotionImageUrl, onReplyDone: onEmotionReplyDone, clearEmotion } =
+        usePersonaEmotion(activePersonaId, currentSession.messages[currentSession.messages.length - 1]);
+    /** 화면에 보일 메인 사진: 감정 사진 > 갤러리 메인 > 프로필. */
+    const chatMainImageUrl = emotionImageUrl || activeImages.find(img => img.isMain)?.imageUrl || activePersona?.imageUrl;
     const isGolfPersona = !!(activePersona?.jobTitle?.includes('골프') || activePersona?.name?.includes('골프'));
 
     // undefined(미설정) = ON 기본값, false만 OFF
@@ -1119,6 +1125,7 @@ const AppContent: React.FC = () => {
     };
 
     const handleSwitchImage = (image: PersonaImage) => {
+        clearEmotion(activePersonaId);
         setPersonaImages(prev => ({
             ...prev,
             [activePersonaId]: (prev[activePersonaId] || []).map(img => ({ ...img, isMain: img.id === image.id })),
@@ -1353,6 +1360,7 @@ const AppContent: React.FC = () => {
                     fullResponse = finalText;
                     updateMessageInSession(activePersonaId, modelMsgId, { text: fullResponse, isStreaming: false });
                     setSessionTyping(activePersonaId, false);
+                    onEmotionReplyDone(activePersonaId, text, fullResponse);
 
                     // AI 응답 DB 저장
                     if (dbSessionId && fullResponse) {
@@ -2814,15 +2822,17 @@ const AppContent: React.FC = () => {
                 <div className="flex-1 flex h-full relative min-w-0">
                     {(() => {
                         const mainImg = activeImages.find(img => img.isMain);
-                        const displayUrl = mainImg?.imageUrl;
+                        // ★감정 사진은 갤러리 메인이 있을 때만 이 패널에 뜬다(패널 자체가 갤러리 메인 기준 — 종전 조건 유지).
+                        const displayUrl = mainImg?.imageUrl ? (emotionImageUrl || mainImg.imageUrl) : undefined;
                         const displayDesc = mainImg?.description;
                         return displayUrl ? (
                             <div className="hidden md:flex w-1/3 p-8 flex-col items-center justify-center border-r border-[#F0E9DE] bg-transparent">
                                 <div className="w-full max-h-[60%] flex items-center justify-center">
                                     <img
+                                        key={displayUrl}
                                         src={displayUrl}
                                         alt={`${activePersona?.name} 프로필`}
-                                        className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl transition-all duration-300"
+                                        className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl transition-all duration-300 emo-swap"
                                     />
                                 </div>
                                 <h3 className="mt-8 text-2xl font-bold text-center text-[#2D2438]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{activePersona?.name}</h3>
@@ -2833,7 +2843,7 @@ const AppContent: React.FC = () => {
 
                     {/* 모바일 썸네일 전체보기 모달 */}
                     {headerImageModal && activePersona && (() => {
-                        const mainImg = activeImages.find(img => img.isMain)?.imageUrl || activePersona.imageUrl;
+                        const mainImg = chatMainImageUrl;
                         return mainImg ? (
                             <div
                                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 md:hidden"
@@ -2892,10 +2902,10 @@ const AppContent: React.FC = () => {
                                 {activePersona && (
                                     <>
                                         {(() => {
-                                            const mainImg = activeImages.find(img => img.isMain)?.imageUrl || activePersona.imageUrl;
+                                            const mainImg = chatMainImageUrl;
                                             return mainImg ? (
                                                 <button onClick={() => setHeaderImageModal(true)} className="md:hidden mr-3 shrink-0 focus:outline-none">
-                                                    <img src={mainImg} alt={activePersona.name} className="w-10 h-10 rounded-lg object-cover" />
+                                                    <img key={mainImg} src={mainImg} alt={activePersona.name} className="w-10 h-10 rounded-lg object-cover emo-pop" />
                                                 </button>
                                             ) : (
                                                 <div className={`p-1.5 rounded-md mr-3 bg-gradient-to-br ${activePersona.colorClass} text-white`}>

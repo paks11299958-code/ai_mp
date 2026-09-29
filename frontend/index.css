@@ -50,6 +50,13 @@ html { color-scheme: light; }
     100% { transform: translateX(300%); }
 }
 
+/* 채팅 감정 사진(2026-09-29) — 사진이 바뀔 때(img key 교체) 부드럽게 나타난다. PC 큰 사진=페이드, 모바일 썸네일=톡 튀기 */
+@keyframes emo-swap-in { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes emo-pop-in  { 0% { transform: scale(.82); } 60% { transform: scale(1.08); } 100% { transform: none; } }
+.emo-swap { animation: emo-swap-in .45s ease-out both; }
+.emo-pop  { animation: emo-pop-in .38s cubic-bezier(.3,1.4,.5,1) both; }
+@media (prefers-reduced-motion: reduce) { .emo-swap, .emo-pop { animation: none; } }
+
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #C4A9E0; border-radius: 4px; }
