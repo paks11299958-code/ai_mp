@@ -252,6 +252,25 @@ model PointTransaction {
   persona      Persona? @relation(fields: [personaId], references: [id], onDelete: SetNull)
 }
 
+/// 충전 유도 문구 A/B 이벤트(2026-09-29, docs/ab-charge-copy.md).
+/// 실험 설정(on/off·비율·문구)은 테이블을 따로 두지 않고 AppConfig 'ab.charge_copy'(JSON)에 둔다.
+/// ★결제 전환(paid)은 여기 적지 않는다 — PointTransaction(type=CHARGE)의 orderId와
+///   checkout 행의 orderId를 조인해 판정한다(승인 진실은 결제 원장 한 곳).
+/// ★User 관계(FK)를 걸지 않는다 — 탈퇴로 행이 지워지면 과거 실험 분모가 흔들린다.
+model ChargeAbEvent {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  experimentKey String   // 예: 'charge_copy_v1'
+  variant       String   // 'control' | 'badge' | 'bonus'
+  event         String   // 'exposure' | 'click' | 'checkout'
+  packageId     String?  // 'basic' | 'popular' | 'premium' (click·checkout)
+  orderId       String?  // checkout 시 토스에 넘긴 orderId — PointTransaction.orderId와 조인
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([experimentKey])
+}
+
 model Star {
   id          Int      @id @default(autoincrement())
   fromUserId  Int

@@ -310,6 +310,17 @@ exports.Prisma.PointTransactionScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.ChargeAbEventScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  experimentKey: 'experimentKey',
+  variant: 'variant',
+  event: 'event',
+  packageId: 'packageId',
+  orderId: 'orderId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.StarScalarFieldEnum = {
   id: 'id',
   fromUserId: 'fromUserId',
@@ -620,6 +631,7 @@ exports.Prisma.DevProjectScalarFieldEnum = {
   status: 'status',
   herdrProjectId: 'herdrProjectId',
   workdir: 'workdir',
+  useReview: 'useReview',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -631,6 +643,7 @@ exports.Prisma.DevProjectVersionScalarFieldEnum = {
   features: 'features',
   specBody: 'specBody',
   refUrls: 'refUrls',
+  brief: 'brief',
   note: 'note',
   createdAt: 'createdAt'
 };
@@ -702,6 +715,7 @@ exports.Prisma.ModelName = {
   BoardReply: 'BoardReply',
   Announcement: 'Announcement',
   PointTransaction: 'PointTransaction',
+  ChargeAbEvent: 'ChargeAbEvent',
   Star: 'Star',
   PendingVerification: 'PendingVerification',
   PartnerPost: 'PartnerPost',

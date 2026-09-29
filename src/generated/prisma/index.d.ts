@@ -104,6 +104,15 @@ export type Announcement = $Result.DefaultSelection<Prisma.$AnnouncementPayload>
  */
 export type PointTransaction = $Result.DefaultSelection<Prisma.$PointTransactionPayload>
 /**
+ * Model ChargeAbEvent
+ * 충전 유도 문구 A/B 이벤트(2026-09-29, docs/ab-charge-copy.md).
+ * 실험 설정(on/off·비율·문구)은 테이블을 따로 두지 않고 AppConfig 'ab.charge_copy'(JSON)에 둔다.
+ * ★결제 전환(paid)은 여기 적지 않는다 — PointTransaction(type=CHARGE)의 orderId와
+ * checkout 행의 orderId를 조인해 판정한다(승인 진실은 결제 원장 한 곳).
+ * ★User 관계(FK)를 걸지 않는다 — 탈퇴로 행이 지워지면 과거 실험 분모가 흔들린다.
+ */
+export type ChargeAbEvent = $Result.DefaultSelection<Prisma.$ChargeAbEventPayload>
+/**
  * Model Star
  * 
  */
@@ -545,6 +554,16 @@ export class PrismaClient<
     * ```
     */
   get pointTransaction(): Prisma.PointTransactionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.chargeAbEvent`: Exposes CRUD operations for the **ChargeAbEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ChargeAbEvents
+    * const chargeAbEvents = await prisma.chargeAbEvent.findMany()
+    * ```
+    */
+  get chargeAbEvent(): Prisma.ChargeAbEventDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.star`: Exposes CRUD operations for the **Star** model.
@@ -1267,6 +1286,7 @@ export namespace Prisma {
     BoardReply: 'BoardReply',
     Announcement: 'Announcement',
     PointTransaction: 'PointTransaction',
+    ChargeAbEvent: 'ChargeAbEvent',
     Star: 'Star',
     PendingVerification: 'PendingVerification',
     PartnerPost: 'PartnerPost',
@@ -1309,7 +1329,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "stockReportChunk" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory" | "menuLimit" | "menuUsageLog" | "golfBookingSchedule" | "golfCourse" | "aiUsageLog" | "hairStyle" | "inverseTraderConfig" | "inverseOrder" | "inverseFill" | "inversePosition" | "inverseDailyStat" | "inverseTraderSession" | "devProject" | "devProjectVersion" | "devProjectFile" | "devProjectEvent" | "devProjectResult"
+      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "chargeAbEvent" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "stockReportChunk" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory" | "menuLimit" | "menuUsageLog" | "golfBookingSchedule" | "golfCourse" | "aiUsageLog" | "hairStyle" | "inverseTraderConfig" | "inverseOrder" | "inverseFill" | "inversePosition" | "inverseDailyStat" | "inverseTraderSession" | "devProject" | "devProjectVersion" | "devProjectFile" | "devProjectEvent" | "devProjectResult"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2642,6 +2662,80 @@ export namespace Prisma {
           count: {
             args: Prisma.PointTransactionCountArgs<ExtArgs>
             result: $Utils.Optional<PointTransactionCountAggregateOutputType> | number
+          }
+        }
+      }
+      ChargeAbEvent: {
+        payload: Prisma.$ChargeAbEventPayload<ExtArgs>
+        fields: Prisma.ChargeAbEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ChargeAbEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChargeAbEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ChargeAbEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChargeAbEventPayload>
+          }
+          findFirst: {
+            args: Prisma.ChargeAbEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChargeAbEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ChargeAbEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChargeAbEventPayload>
+          }
+          findMany: {
+            args: Prisma.ChargeAbEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChargeAbEventPayload>[]
+          }
+          create: {
+            args: Prisma.ChargeAbEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChargeAbEventPayload>
+          }
+          createMany: {
+            args: Prisma.ChargeAbEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ChargeAbEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChargeAbEventPayload>[]
+          }
+          delete: {
+            args: Prisma.ChargeAbEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChargeAbEventPayload>
+          }
+          update: {
+            args: Prisma.ChargeAbEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChargeAbEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.ChargeAbEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ChargeAbEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ChargeAbEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChargeAbEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.ChargeAbEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChargeAbEventPayload>
+          }
+          aggregate: {
+            args: Prisma.ChargeAbEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateChargeAbEvent>
+          }
+          groupBy: {
+            args: Prisma.ChargeAbEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ChargeAbEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ChargeAbEventCountArgs<ExtArgs>
+            result: $Utils.Optional<ChargeAbEventCountAggregateOutputType> | number
           }
         }
       }
@@ -4769,6 +4863,7 @@ export namespace Prisma {
     boardReply?: BoardReplyOmit
     announcement?: AnnouncementOmit
     pointTransaction?: PointTransactionOmit
+    chargeAbEvent?: ChargeAbEventOmit
     star?: StarOmit
     pendingVerification?: PendingVerificationOmit
     partnerPost?: PartnerPostOmit
@@ -26631,6 +26726,1083 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: PointTransactionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ChargeAbEvent
+   */
+
+  export type AggregateChargeAbEvent = {
+    _count: ChargeAbEventCountAggregateOutputType | null
+    _avg: ChargeAbEventAvgAggregateOutputType | null
+    _sum: ChargeAbEventSumAggregateOutputType | null
+    _min: ChargeAbEventMinAggregateOutputType | null
+    _max: ChargeAbEventMaxAggregateOutputType | null
+  }
+
+  export type ChargeAbEventAvgAggregateOutputType = {
+    id: number | null
+    userId: number | null
+  }
+
+  export type ChargeAbEventSumAggregateOutputType = {
+    id: number | null
+    userId: number | null
+  }
+
+  export type ChargeAbEventMinAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    experimentKey: string | null
+    variant: string | null
+    event: string | null
+    packageId: string | null
+    orderId: string | null
+    createdAt: Date | null
+  }
+
+  export type ChargeAbEventMaxAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    experimentKey: string | null
+    variant: string | null
+    event: string | null
+    packageId: string | null
+    orderId: string | null
+    createdAt: Date | null
+  }
+
+  export type ChargeAbEventCountAggregateOutputType = {
+    id: number
+    userId: number
+    experimentKey: number
+    variant: number
+    event: number
+    packageId: number
+    orderId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ChargeAbEventAvgAggregateInputType = {
+    id?: true
+    userId?: true
+  }
+
+  export type ChargeAbEventSumAggregateInputType = {
+    id?: true
+    userId?: true
+  }
+
+  export type ChargeAbEventMinAggregateInputType = {
+    id?: true
+    userId?: true
+    experimentKey?: true
+    variant?: true
+    event?: true
+    packageId?: true
+    orderId?: true
+    createdAt?: true
+  }
+
+  export type ChargeAbEventMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    experimentKey?: true
+    variant?: true
+    event?: true
+    packageId?: true
+    orderId?: true
+    createdAt?: true
+  }
+
+  export type ChargeAbEventCountAggregateInputType = {
+    id?: true
+    userId?: true
+    experimentKey?: true
+    variant?: true
+    event?: true
+    packageId?: true
+    orderId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ChargeAbEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChargeAbEvent to aggregate.
+     */
+    where?: ChargeAbEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChargeAbEvents to fetch.
+     */
+    orderBy?: ChargeAbEventOrderByWithRelationInput | ChargeAbEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ChargeAbEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChargeAbEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChargeAbEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ChargeAbEvents
+    **/
+    _count?: true | ChargeAbEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ChargeAbEventAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ChargeAbEventSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ChargeAbEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ChargeAbEventMaxAggregateInputType
+  }
+
+  export type GetChargeAbEventAggregateType<T extends ChargeAbEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateChargeAbEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateChargeAbEvent[P]>
+      : GetScalarType<T[P], AggregateChargeAbEvent[P]>
+  }
+
+
+
+
+  export type ChargeAbEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ChargeAbEventWhereInput
+    orderBy?: ChargeAbEventOrderByWithAggregationInput | ChargeAbEventOrderByWithAggregationInput[]
+    by: ChargeAbEventScalarFieldEnum[] | ChargeAbEventScalarFieldEnum
+    having?: ChargeAbEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ChargeAbEventCountAggregateInputType | true
+    _avg?: ChargeAbEventAvgAggregateInputType
+    _sum?: ChargeAbEventSumAggregateInputType
+    _min?: ChargeAbEventMinAggregateInputType
+    _max?: ChargeAbEventMaxAggregateInputType
+  }
+
+  export type ChargeAbEventGroupByOutputType = {
+    id: number
+    userId: number
+    experimentKey: string
+    variant: string
+    event: string
+    packageId: string | null
+    orderId: string | null
+    createdAt: Date
+    _count: ChargeAbEventCountAggregateOutputType | null
+    _avg: ChargeAbEventAvgAggregateOutputType | null
+    _sum: ChargeAbEventSumAggregateOutputType | null
+    _min: ChargeAbEventMinAggregateOutputType | null
+    _max: ChargeAbEventMaxAggregateOutputType | null
+  }
+
+  type GetChargeAbEventGroupByPayload<T extends ChargeAbEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ChargeAbEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ChargeAbEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ChargeAbEventGroupByOutputType[P]>
+            : GetScalarType<T[P], ChargeAbEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ChargeAbEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    experimentKey?: boolean
+    variant?: boolean
+    event?: boolean
+    packageId?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["chargeAbEvent"]>
+
+  export type ChargeAbEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    experimentKey?: boolean
+    variant?: boolean
+    event?: boolean
+    packageId?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["chargeAbEvent"]>
+
+  export type ChargeAbEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    experimentKey?: boolean
+    variant?: boolean
+    event?: boolean
+    packageId?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["chargeAbEvent"]>
+
+  export type ChargeAbEventSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    experimentKey?: boolean
+    variant?: boolean
+    event?: boolean
+    packageId?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+  }
+
+  export type ChargeAbEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "experimentKey" | "variant" | "event" | "packageId" | "orderId" | "createdAt", ExtArgs["result"]["chargeAbEvent"]>
+
+  export type $ChargeAbEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ChargeAbEvent"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      userId: number
+      experimentKey: string
+      variant: string
+      event: string
+      packageId: string | null
+      orderId: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["chargeAbEvent"]>
+    composites: {}
+  }
+
+  type ChargeAbEventGetPayload<S extends boolean | null | undefined | ChargeAbEventDefaultArgs> = $Result.GetResult<Prisma.$ChargeAbEventPayload, S>
+
+  type ChargeAbEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ChargeAbEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ChargeAbEventCountAggregateInputType | true
+    }
+
+  export interface ChargeAbEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ChargeAbEvent'], meta: { name: 'ChargeAbEvent' } }
+    /**
+     * Find zero or one ChargeAbEvent that matches the filter.
+     * @param {ChargeAbEventFindUniqueArgs} args - Arguments to find a ChargeAbEvent
+     * @example
+     * // Get one ChargeAbEvent
+     * const chargeAbEvent = await prisma.chargeAbEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ChargeAbEventFindUniqueArgs>(args: SelectSubset<T, ChargeAbEventFindUniqueArgs<ExtArgs>>): Prisma__ChargeAbEventClient<$Result.GetResult<Prisma.$ChargeAbEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ChargeAbEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ChargeAbEventFindUniqueOrThrowArgs} args - Arguments to find a ChargeAbEvent
+     * @example
+     * // Get one ChargeAbEvent
+     * const chargeAbEvent = await prisma.chargeAbEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ChargeAbEventFindUniqueOrThrowArgs>(args: SelectSubset<T, ChargeAbEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ChargeAbEventClient<$Result.GetResult<Prisma.$ChargeAbEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ChargeAbEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChargeAbEventFindFirstArgs} args - Arguments to find a ChargeAbEvent
+     * @example
+     * // Get one ChargeAbEvent
+     * const chargeAbEvent = await prisma.chargeAbEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ChargeAbEventFindFirstArgs>(args?: SelectSubset<T, ChargeAbEventFindFirstArgs<ExtArgs>>): Prisma__ChargeAbEventClient<$Result.GetResult<Prisma.$ChargeAbEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ChargeAbEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChargeAbEventFindFirstOrThrowArgs} args - Arguments to find a ChargeAbEvent
+     * @example
+     * // Get one ChargeAbEvent
+     * const chargeAbEvent = await prisma.chargeAbEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ChargeAbEventFindFirstOrThrowArgs>(args?: SelectSubset<T, ChargeAbEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__ChargeAbEventClient<$Result.GetResult<Prisma.$ChargeAbEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ChargeAbEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChargeAbEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ChargeAbEvents
+     * const chargeAbEvents = await prisma.chargeAbEvent.findMany()
+     * 
+     * // Get first 10 ChargeAbEvents
+     * const chargeAbEvents = await prisma.chargeAbEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const chargeAbEventWithIdOnly = await prisma.chargeAbEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ChargeAbEventFindManyArgs>(args?: SelectSubset<T, ChargeAbEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChargeAbEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ChargeAbEvent.
+     * @param {ChargeAbEventCreateArgs} args - Arguments to create a ChargeAbEvent.
+     * @example
+     * // Create one ChargeAbEvent
+     * const ChargeAbEvent = await prisma.chargeAbEvent.create({
+     *   data: {
+     *     // ... data to create a ChargeAbEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends ChargeAbEventCreateArgs>(args: SelectSubset<T, ChargeAbEventCreateArgs<ExtArgs>>): Prisma__ChargeAbEventClient<$Result.GetResult<Prisma.$ChargeAbEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ChargeAbEvents.
+     * @param {ChargeAbEventCreateManyArgs} args - Arguments to create many ChargeAbEvents.
+     * @example
+     * // Create many ChargeAbEvents
+     * const chargeAbEvent = await prisma.chargeAbEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ChargeAbEventCreateManyArgs>(args?: SelectSubset<T, ChargeAbEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ChargeAbEvents and returns the data saved in the database.
+     * @param {ChargeAbEventCreateManyAndReturnArgs} args - Arguments to create many ChargeAbEvents.
+     * @example
+     * // Create many ChargeAbEvents
+     * const chargeAbEvent = await prisma.chargeAbEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ChargeAbEvents and only return the `id`
+     * const chargeAbEventWithIdOnly = await prisma.chargeAbEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ChargeAbEventCreateManyAndReturnArgs>(args?: SelectSubset<T, ChargeAbEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChargeAbEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ChargeAbEvent.
+     * @param {ChargeAbEventDeleteArgs} args - Arguments to delete one ChargeAbEvent.
+     * @example
+     * // Delete one ChargeAbEvent
+     * const ChargeAbEvent = await prisma.chargeAbEvent.delete({
+     *   where: {
+     *     // ... filter to delete one ChargeAbEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ChargeAbEventDeleteArgs>(args: SelectSubset<T, ChargeAbEventDeleteArgs<ExtArgs>>): Prisma__ChargeAbEventClient<$Result.GetResult<Prisma.$ChargeAbEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ChargeAbEvent.
+     * @param {ChargeAbEventUpdateArgs} args - Arguments to update one ChargeAbEvent.
+     * @example
+     * // Update one ChargeAbEvent
+     * const chargeAbEvent = await prisma.chargeAbEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ChargeAbEventUpdateArgs>(args: SelectSubset<T, ChargeAbEventUpdateArgs<ExtArgs>>): Prisma__ChargeAbEventClient<$Result.GetResult<Prisma.$ChargeAbEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ChargeAbEvents.
+     * @param {ChargeAbEventDeleteManyArgs} args - Arguments to filter ChargeAbEvents to delete.
+     * @example
+     * // Delete a few ChargeAbEvents
+     * const { count } = await prisma.chargeAbEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ChargeAbEventDeleteManyArgs>(args?: SelectSubset<T, ChargeAbEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ChargeAbEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChargeAbEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ChargeAbEvents
+     * const chargeAbEvent = await prisma.chargeAbEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ChargeAbEventUpdateManyArgs>(args: SelectSubset<T, ChargeAbEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ChargeAbEvents and returns the data updated in the database.
+     * @param {ChargeAbEventUpdateManyAndReturnArgs} args - Arguments to update many ChargeAbEvents.
+     * @example
+     * // Update many ChargeAbEvents
+     * const chargeAbEvent = await prisma.chargeAbEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ChargeAbEvents and only return the `id`
+     * const chargeAbEventWithIdOnly = await prisma.chargeAbEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ChargeAbEventUpdateManyAndReturnArgs>(args: SelectSubset<T, ChargeAbEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChargeAbEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ChargeAbEvent.
+     * @param {ChargeAbEventUpsertArgs} args - Arguments to update or create a ChargeAbEvent.
+     * @example
+     * // Update or create a ChargeAbEvent
+     * const chargeAbEvent = await prisma.chargeAbEvent.upsert({
+     *   create: {
+     *     // ... data to create a ChargeAbEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ChargeAbEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ChargeAbEventUpsertArgs>(args: SelectSubset<T, ChargeAbEventUpsertArgs<ExtArgs>>): Prisma__ChargeAbEventClient<$Result.GetResult<Prisma.$ChargeAbEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ChargeAbEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChargeAbEventCountArgs} args - Arguments to filter ChargeAbEvents to count.
+     * @example
+     * // Count the number of ChargeAbEvents
+     * const count = await prisma.chargeAbEvent.count({
+     *   where: {
+     *     // ... the filter for the ChargeAbEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends ChargeAbEventCountArgs>(
+      args?: Subset<T, ChargeAbEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ChargeAbEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ChargeAbEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChargeAbEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ChargeAbEventAggregateArgs>(args: Subset<T, ChargeAbEventAggregateArgs>): Prisma.PrismaPromise<GetChargeAbEventAggregateType<T>>
+
+    /**
+     * Group by ChargeAbEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChargeAbEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ChargeAbEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ChargeAbEventGroupByArgs['orderBy'] }
+        : { orderBy?: ChargeAbEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ChargeAbEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetChargeAbEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ChargeAbEvent model
+   */
+  readonly fields: ChargeAbEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ChargeAbEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ChargeAbEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ChargeAbEvent model
+   */
+  interface ChargeAbEventFieldRefs {
+    readonly id: FieldRef<"ChargeAbEvent", 'Int'>
+    readonly userId: FieldRef<"ChargeAbEvent", 'Int'>
+    readonly experimentKey: FieldRef<"ChargeAbEvent", 'String'>
+    readonly variant: FieldRef<"ChargeAbEvent", 'String'>
+    readonly event: FieldRef<"ChargeAbEvent", 'String'>
+    readonly packageId: FieldRef<"ChargeAbEvent", 'String'>
+    readonly orderId: FieldRef<"ChargeAbEvent", 'String'>
+    readonly createdAt: FieldRef<"ChargeAbEvent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ChargeAbEvent findUnique
+   */
+  export type ChargeAbEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChargeAbEvent
+     */
+    select?: ChargeAbEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChargeAbEvent
+     */
+    omit?: ChargeAbEventOmit<ExtArgs> | null
+    /**
+     * Filter, which ChargeAbEvent to fetch.
+     */
+    where: ChargeAbEventWhereUniqueInput
+  }
+
+  /**
+   * ChargeAbEvent findUniqueOrThrow
+   */
+  export type ChargeAbEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChargeAbEvent
+     */
+    select?: ChargeAbEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChargeAbEvent
+     */
+    omit?: ChargeAbEventOmit<ExtArgs> | null
+    /**
+     * Filter, which ChargeAbEvent to fetch.
+     */
+    where: ChargeAbEventWhereUniqueInput
+  }
+
+  /**
+   * ChargeAbEvent findFirst
+   */
+  export type ChargeAbEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChargeAbEvent
+     */
+    select?: ChargeAbEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChargeAbEvent
+     */
+    omit?: ChargeAbEventOmit<ExtArgs> | null
+    /**
+     * Filter, which ChargeAbEvent to fetch.
+     */
+    where?: ChargeAbEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChargeAbEvents to fetch.
+     */
+    orderBy?: ChargeAbEventOrderByWithRelationInput | ChargeAbEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChargeAbEvents.
+     */
+    cursor?: ChargeAbEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChargeAbEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChargeAbEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChargeAbEvents.
+     */
+    distinct?: ChargeAbEventScalarFieldEnum | ChargeAbEventScalarFieldEnum[]
+  }
+
+  /**
+   * ChargeAbEvent findFirstOrThrow
+   */
+  export type ChargeAbEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChargeAbEvent
+     */
+    select?: ChargeAbEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChargeAbEvent
+     */
+    omit?: ChargeAbEventOmit<ExtArgs> | null
+    /**
+     * Filter, which ChargeAbEvent to fetch.
+     */
+    where?: ChargeAbEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChargeAbEvents to fetch.
+     */
+    orderBy?: ChargeAbEventOrderByWithRelationInput | ChargeAbEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChargeAbEvents.
+     */
+    cursor?: ChargeAbEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChargeAbEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChargeAbEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChargeAbEvents.
+     */
+    distinct?: ChargeAbEventScalarFieldEnum | ChargeAbEventScalarFieldEnum[]
+  }
+
+  /**
+   * ChargeAbEvent findMany
+   */
+  export type ChargeAbEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChargeAbEvent
+     */
+    select?: ChargeAbEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChargeAbEvent
+     */
+    omit?: ChargeAbEventOmit<ExtArgs> | null
+    /**
+     * Filter, which ChargeAbEvents to fetch.
+     */
+    where?: ChargeAbEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChargeAbEvents to fetch.
+     */
+    orderBy?: ChargeAbEventOrderByWithRelationInput | ChargeAbEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ChargeAbEvents.
+     */
+    cursor?: ChargeAbEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChargeAbEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChargeAbEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChargeAbEvents.
+     */
+    distinct?: ChargeAbEventScalarFieldEnum | ChargeAbEventScalarFieldEnum[]
+  }
+
+  /**
+   * ChargeAbEvent create
+   */
+  export type ChargeAbEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChargeAbEvent
+     */
+    select?: ChargeAbEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChargeAbEvent
+     */
+    omit?: ChargeAbEventOmit<ExtArgs> | null
+    /**
+     * The data needed to create a ChargeAbEvent.
+     */
+    data: XOR<ChargeAbEventCreateInput, ChargeAbEventUncheckedCreateInput>
+  }
+
+  /**
+   * ChargeAbEvent createMany
+   */
+  export type ChargeAbEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ChargeAbEvents.
+     */
+    data: ChargeAbEventCreateManyInput | ChargeAbEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ChargeAbEvent createManyAndReturn
+   */
+  export type ChargeAbEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChargeAbEvent
+     */
+    select?: ChargeAbEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChargeAbEvent
+     */
+    omit?: ChargeAbEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many ChargeAbEvents.
+     */
+    data: ChargeAbEventCreateManyInput | ChargeAbEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ChargeAbEvent update
+   */
+  export type ChargeAbEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChargeAbEvent
+     */
+    select?: ChargeAbEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChargeAbEvent
+     */
+    omit?: ChargeAbEventOmit<ExtArgs> | null
+    /**
+     * The data needed to update a ChargeAbEvent.
+     */
+    data: XOR<ChargeAbEventUpdateInput, ChargeAbEventUncheckedUpdateInput>
+    /**
+     * Choose, which ChargeAbEvent to update.
+     */
+    where: ChargeAbEventWhereUniqueInput
+  }
+
+  /**
+   * ChargeAbEvent updateMany
+   */
+  export type ChargeAbEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ChargeAbEvents.
+     */
+    data: XOR<ChargeAbEventUpdateManyMutationInput, ChargeAbEventUncheckedUpdateManyInput>
+    /**
+     * Filter which ChargeAbEvents to update
+     */
+    where?: ChargeAbEventWhereInput
+    /**
+     * Limit how many ChargeAbEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ChargeAbEvent updateManyAndReturn
+   */
+  export type ChargeAbEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChargeAbEvent
+     */
+    select?: ChargeAbEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChargeAbEvent
+     */
+    omit?: ChargeAbEventOmit<ExtArgs> | null
+    /**
+     * The data used to update ChargeAbEvents.
+     */
+    data: XOR<ChargeAbEventUpdateManyMutationInput, ChargeAbEventUncheckedUpdateManyInput>
+    /**
+     * Filter which ChargeAbEvents to update
+     */
+    where?: ChargeAbEventWhereInput
+    /**
+     * Limit how many ChargeAbEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ChargeAbEvent upsert
+   */
+  export type ChargeAbEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChargeAbEvent
+     */
+    select?: ChargeAbEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChargeAbEvent
+     */
+    omit?: ChargeAbEventOmit<ExtArgs> | null
+    /**
+     * The filter to search for the ChargeAbEvent to update in case it exists.
+     */
+    where: ChargeAbEventWhereUniqueInput
+    /**
+     * In case the ChargeAbEvent found by the `where` argument doesn't exist, create a new ChargeAbEvent with this data.
+     */
+    create: XOR<ChargeAbEventCreateInput, ChargeAbEventUncheckedCreateInput>
+    /**
+     * In case the ChargeAbEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ChargeAbEventUpdateInput, ChargeAbEventUncheckedUpdateInput>
+  }
+
+  /**
+   * ChargeAbEvent delete
+   */
+  export type ChargeAbEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChargeAbEvent
+     */
+    select?: ChargeAbEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChargeAbEvent
+     */
+    omit?: ChargeAbEventOmit<ExtArgs> | null
+    /**
+     * Filter which ChargeAbEvent to delete.
+     */
+    where: ChargeAbEventWhereUniqueInput
+  }
+
+  /**
+   * ChargeAbEvent deleteMany
+   */
+  export type ChargeAbEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChargeAbEvents to delete
+     */
+    where?: ChargeAbEventWhereInput
+    /**
+     * Limit how many ChargeAbEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ChargeAbEvent without action
+   */
+  export type ChargeAbEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChargeAbEvent
+     */
+    select?: ChargeAbEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChargeAbEvent
+     */
+    omit?: ChargeAbEventOmit<ExtArgs> | null
   }
 
 
@@ -51749,6 +52921,7 @@ export namespace Prisma {
     status: string | null
     herdrProjectId: string | null
     workdir: string | null
+    useReview: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -51759,6 +52932,7 @@ export namespace Prisma {
     status: string | null
     herdrProjectId: string | null
     workdir: string | null
+    useReview: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -51769,6 +52943,7 @@ export namespace Prisma {
     status: number
     herdrProjectId: number
     workdir: number
+    useReview: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -51781,6 +52956,7 @@ export namespace Prisma {
     status?: true
     herdrProjectId?: true
     workdir?: true
+    useReview?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -51791,6 +52967,7 @@ export namespace Prisma {
     status?: true
     herdrProjectId?: true
     workdir?: true
+    useReview?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -51801,6 +52978,7 @@ export namespace Prisma {
     status?: true
     herdrProjectId?: true
     workdir?: true
+    useReview?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -51884,6 +53062,7 @@ export namespace Prisma {
     status: string
     herdrProjectId: string | null
     workdir: string
+    useReview: boolean
     createdAt: Date
     updatedAt: Date
     _count: DevProjectCountAggregateOutputType | null
@@ -51911,6 +53090,7 @@ export namespace Prisma {
     status?: boolean
     herdrProjectId?: boolean
     workdir?: boolean
+    useReview?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     versions?: boolean | DevProject$versionsArgs<ExtArgs>
@@ -51926,6 +53106,7 @@ export namespace Prisma {
     status?: boolean
     herdrProjectId?: boolean
     workdir?: boolean
+    useReview?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["devProject"]>
@@ -51936,6 +53117,7 @@ export namespace Prisma {
     status?: boolean
     herdrProjectId?: boolean
     workdir?: boolean
+    useReview?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["devProject"]>
@@ -51946,11 +53128,12 @@ export namespace Prisma {
     status?: boolean
     herdrProjectId?: boolean
     workdir?: boolean
+    useReview?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type DevProjectOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "status" | "herdrProjectId" | "workdir" | "createdAt" | "updatedAt", ExtArgs["result"]["devProject"]>
+  export type DevProjectOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "status" | "herdrProjectId" | "workdir" | "useReview" | "createdAt" | "updatedAt", ExtArgs["result"]["devProject"]>
   export type DevProjectInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     versions?: boolean | DevProject$versionsArgs<ExtArgs>
     files?: boolean | DevProject$filesArgs<ExtArgs>
@@ -51985,6 +53168,12 @@ export namespace Prisma {
        * 작업 저장소 경로. 기본은 ai_mp.
        */
       workdir: string
+      /**
+       * 허드 메이커-체커 사용 여부 — Developer가 만들고 Reviewer가 검증(왕복 상한 있음).
+       * ★기본 꺼짐. 단일 홈페이지처럼 눈으로 보면 되는 작업엔 낭비다(비용 2배, pane 2개).
+       * 로직이 있는 개발·큰 작업에만 켠다(사장 결정 2026-08-20).
+       */
+      useReview: boolean
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["devProject"]>
@@ -52419,6 +53608,7 @@ export namespace Prisma {
     readonly status: FieldRef<"DevProject", 'String'>
     readonly herdrProjectId: FieldRef<"DevProject", 'String'>
     readonly workdir: FieldRef<"DevProject", 'String'>
+    readonly useReview: FieldRef<"DevProject", 'Boolean'>
     readonly createdAt: FieldRef<"DevProject", 'DateTime'>
     readonly updatedAt: FieldRef<"DevProject", 'DateTime'>
   }
@@ -52952,6 +54142,7 @@ export namespace Prisma {
     features: string | null
     specBody: string | null
     refUrls: string | null
+    brief: string | null
     note: string | null
     createdAt: Date | null
   }
@@ -52963,6 +54154,7 @@ export namespace Prisma {
     features: string | null
     specBody: string | null
     refUrls: string | null
+    brief: string | null
     note: string | null
     createdAt: Date | null
   }
@@ -52974,6 +54166,7 @@ export namespace Prisma {
     features: number
     specBody: number
     refUrls: number
+    brief: number
     note: number
     createdAt: number
     _all: number
@@ -52997,6 +54190,7 @@ export namespace Prisma {
     features?: true
     specBody?: true
     refUrls?: true
+    brief?: true
     note?: true
     createdAt?: true
   }
@@ -53008,6 +54202,7 @@ export namespace Prisma {
     features?: true
     specBody?: true
     refUrls?: true
+    brief?: true
     note?: true
     createdAt?: true
   }
@@ -53019,6 +54214,7 @@ export namespace Prisma {
     features?: true
     specBody?: true
     refUrls?: true
+    brief?: true
     note?: true
     createdAt?: true
     _all?: true
@@ -53117,6 +54313,7 @@ export namespace Prisma {
     features: string
     specBody: string
     refUrls: string
+    brief: string
     note: string | null
     createdAt: Date
     _count: DevProjectVersionCountAggregateOutputType | null
@@ -53147,6 +54344,7 @@ export namespace Prisma {
     features?: boolean
     specBody?: boolean
     refUrls?: boolean
+    brief?: boolean
     note?: boolean
     createdAt?: boolean
     project?: boolean | DevProjectDefaultArgs<ExtArgs>
@@ -53159,6 +54357,7 @@ export namespace Prisma {
     features?: boolean
     specBody?: boolean
     refUrls?: boolean
+    brief?: boolean
     note?: boolean
     createdAt?: boolean
     project?: boolean | DevProjectDefaultArgs<ExtArgs>
@@ -53171,6 +54370,7 @@ export namespace Prisma {
     features?: boolean
     specBody?: boolean
     refUrls?: boolean
+    brief?: boolean
     note?: boolean
     createdAt?: boolean
     project?: boolean | DevProjectDefaultArgs<ExtArgs>
@@ -53183,11 +54383,12 @@ export namespace Prisma {
     features?: boolean
     specBody?: boolean
     refUrls?: boolean
+    brief?: boolean
     note?: boolean
     createdAt?: boolean
   }
 
-  export type DevProjectVersionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "version" | "features" | "specBody" | "refUrls" | "note" | "createdAt", ExtArgs["result"]["devProjectVersion"]>
+  export type DevProjectVersionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "version" | "features" | "specBody" | "refUrls" | "brief" | "note" | "createdAt", ExtArgs["result"]["devProjectVersion"]>
   export type DevProjectVersionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     project?: boolean | DevProjectDefaultArgs<ExtArgs>
   }
@@ -53222,6 +54423,14 @@ export namespace Prisma {
        * 참조 사이트 URL 목록(JSON 배열 문자열)
        */
       refUrls: string
+      /**
+       * 홈페이지 요구사항(JSON 문자열). 상호명·서비스·톤앤매너·연락처 등.
+       * ★칼럼을 15개로 쪼개지 않고 JSON 한 칸에 둔다 — 항목이 계속 늘어날 자리이고,
+       * 버전마다 통째로 스냅샷돼야 비포/애프터 비교가 그대로 성립한다.
+       * ★연락처(주소·전화·이메일·사업자번호)는 비어 있으면 **비워둔 채로 둔다**.
+       * AI가 지어내면 실제 고객이 잘못된 곳으로 연락한다(사장 지시 2026-08-20).
+       */
+      brief: string
       /**
        * 이 버전에서 무엇을 왜 바꿨는지
        */
@@ -53657,6 +54866,7 @@ export namespace Prisma {
     readonly features: FieldRef<"DevProjectVersion", 'String'>
     readonly specBody: FieldRef<"DevProjectVersion", 'String'>
     readonly refUrls: FieldRef<"DevProjectVersion", 'String'>
+    readonly brief: FieldRef<"DevProjectVersion", 'String'>
     readonly note: FieldRef<"DevProjectVersion", 'String'>
     readonly createdAt: FieldRef<"DevProjectVersion", 'DateTime'>
   }
@@ -57762,6 +58972,20 @@ export namespace Prisma {
   export type PointTransactionScalarFieldEnum = (typeof PointTransactionScalarFieldEnum)[keyof typeof PointTransactionScalarFieldEnum]
 
 
+  export const ChargeAbEventScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    experimentKey: 'experimentKey',
+    variant: 'variant',
+    event: 'event',
+    packageId: 'packageId',
+    orderId: 'orderId',
+    createdAt: 'createdAt'
+  };
+
+  export type ChargeAbEventScalarFieldEnum = (typeof ChargeAbEventScalarFieldEnum)[keyof typeof ChargeAbEventScalarFieldEnum]
+
+
   export const StarScalarFieldEnum: {
     id: 'id',
     fromUserId: 'fromUserId',
@@ -58138,6 +59362,7 @@ export namespace Prisma {
     status: 'status',
     herdrProjectId: 'herdrProjectId',
     workdir: 'workdir',
+    useReview: 'useReview',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -58152,6 +59377,7 @@ export namespace Prisma {
     features: 'features',
     specBody: 'specBody',
     refUrls: 'refUrls',
+    brief: 'brief',
     note: 'note',
     createdAt: 'createdAt'
   };
@@ -59650,6 +60876,75 @@ export namespace Prisma {
     personaId?: StringNullableWithAggregatesFilter<"PointTransaction"> | string | null
     balanceAfter?: IntWithAggregatesFilter<"PointTransaction"> | number
     createdAt?: DateTimeWithAggregatesFilter<"PointTransaction"> | Date | string
+  }
+
+  export type ChargeAbEventWhereInput = {
+    AND?: ChargeAbEventWhereInput | ChargeAbEventWhereInput[]
+    OR?: ChargeAbEventWhereInput[]
+    NOT?: ChargeAbEventWhereInput | ChargeAbEventWhereInput[]
+    id?: IntFilter<"ChargeAbEvent"> | number
+    userId?: IntFilter<"ChargeAbEvent"> | number
+    experimentKey?: StringFilter<"ChargeAbEvent"> | string
+    variant?: StringFilter<"ChargeAbEvent"> | string
+    event?: StringFilter<"ChargeAbEvent"> | string
+    packageId?: StringNullableFilter<"ChargeAbEvent"> | string | null
+    orderId?: StringNullableFilter<"ChargeAbEvent"> | string | null
+    createdAt?: DateTimeFilter<"ChargeAbEvent"> | Date | string
+  }
+
+  export type ChargeAbEventOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    experimentKey?: SortOrder
+    variant?: SortOrder
+    event?: SortOrder
+    packageId?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ChargeAbEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: ChargeAbEventWhereInput | ChargeAbEventWhereInput[]
+    OR?: ChargeAbEventWhereInput[]
+    NOT?: ChargeAbEventWhereInput | ChargeAbEventWhereInput[]
+    userId?: IntFilter<"ChargeAbEvent"> | number
+    experimentKey?: StringFilter<"ChargeAbEvent"> | string
+    variant?: StringFilter<"ChargeAbEvent"> | string
+    event?: StringFilter<"ChargeAbEvent"> | string
+    packageId?: StringNullableFilter<"ChargeAbEvent"> | string | null
+    orderId?: StringNullableFilter<"ChargeAbEvent"> | string | null
+    createdAt?: DateTimeFilter<"ChargeAbEvent"> | Date | string
+  }, "id">
+
+  export type ChargeAbEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    experimentKey?: SortOrder
+    variant?: SortOrder
+    event?: SortOrder
+    packageId?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: ChargeAbEventCountOrderByAggregateInput
+    _avg?: ChargeAbEventAvgOrderByAggregateInput
+    _max?: ChargeAbEventMaxOrderByAggregateInput
+    _min?: ChargeAbEventMinOrderByAggregateInput
+    _sum?: ChargeAbEventSumOrderByAggregateInput
+  }
+
+  export type ChargeAbEventScalarWhereWithAggregatesInput = {
+    AND?: ChargeAbEventScalarWhereWithAggregatesInput | ChargeAbEventScalarWhereWithAggregatesInput[]
+    OR?: ChargeAbEventScalarWhereWithAggregatesInput[]
+    NOT?: ChargeAbEventScalarWhereWithAggregatesInput | ChargeAbEventScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"ChargeAbEvent"> | number
+    userId?: IntWithAggregatesFilter<"ChargeAbEvent"> | number
+    experimentKey?: StringWithAggregatesFilter<"ChargeAbEvent"> | string
+    variant?: StringWithAggregatesFilter<"ChargeAbEvent"> | string
+    event?: StringWithAggregatesFilter<"ChargeAbEvent"> | string
+    packageId?: StringNullableWithAggregatesFilter<"ChargeAbEvent"> | string | null
+    orderId?: StringNullableWithAggregatesFilter<"ChargeAbEvent"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ChargeAbEvent"> | Date | string
   }
 
   export type StarWhereInput = {
@@ -61517,6 +62812,7 @@ export namespace Prisma {
     status?: StringFilter<"DevProject"> | string
     herdrProjectId?: StringNullableFilter<"DevProject"> | string | null
     workdir?: StringFilter<"DevProject"> | string
+    useReview?: BoolFilter<"DevProject"> | boolean
     createdAt?: DateTimeFilter<"DevProject"> | Date | string
     updatedAt?: DateTimeFilter<"DevProject"> | Date | string
     versions?: DevProjectVersionListRelationFilter
@@ -61531,6 +62827,7 @@ export namespace Prisma {
     status?: SortOrder
     herdrProjectId?: SortOrderInput | SortOrder
     workdir?: SortOrder
+    useReview?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     versions?: DevProjectVersionOrderByRelationAggregateInput
@@ -61548,6 +62845,7 @@ export namespace Prisma {
     status?: StringFilter<"DevProject"> | string
     herdrProjectId?: StringNullableFilter<"DevProject"> | string | null
     workdir?: StringFilter<"DevProject"> | string
+    useReview?: BoolFilter<"DevProject"> | boolean
     createdAt?: DateTimeFilter<"DevProject"> | Date | string
     updatedAt?: DateTimeFilter<"DevProject"> | Date | string
     versions?: DevProjectVersionListRelationFilter
@@ -61562,6 +62860,7 @@ export namespace Prisma {
     status?: SortOrder
     herdrProjectId?: SortOrderInput | SortOrder
     workdir?: SortOrder
+    useReview?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: DevProjectCountOrderByAggregateInput
@@ -61578,6 +62877,7 @@ export namespace Prisma {
     status?: StringWithAggregatesFilter<"DevProject"> | string
     herdrProjectId?: StringNullableWithAggregatesFilter<"DevProject"> | string | null
     workdir?: StringWithAggregatesFilter<"DevProject"> | string
+    useReview?: BoolWithAggregatesFilter<"DevProject"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"DevProject"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"DevProject"> | Date | string
   }
@@ -61592,6 +62892,7 @@ export namespace Prisma {
     features?: StringFilter<"DevProjectVersion"> | string
     specBody?: StringFilter<"DevProjectVersion"> | string
     refUrls?: StringFilter<"DevProjectVersion"> | string
+    brief?: StringFilter<"DevProjectVersion"> | string
     note?: StringNullableFilter<"DevProjectVersion"> | string | null
     createdAt?: DateTimeFilter<"DevProjectVersion"> | Date | string
     project?: XOR<DevProjectScalarRelationFilter, DevProjectWhereInput>
@@ -61604,6 +62905,7 @@ export namespace Prisma {
     features?: SortOrder
     specBody?: SortOrder
     refUrls?: SortOrder
+    brief?: SortOrder
     note?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     project?: DevProjectOrderByWithRelationInput
@@ -61620,6 +62922,7 @@ export namespace Prisma {
     features?: StringFilter<"DevProjectVersion"> | string
     specBody?: StringFilter<"DevProjectVersion"> | string
     refUrls?: StringFilter<"DevProjectVersion"> | string
+    brief?: StringFilter<"DevProjectVersion"> | string
     note?: StringNullableFilter<"DevProjectVersion"> | string | null
     createdAt?: DateTimeFilter<"DevProjectVersion"> | Date | string
     project?: XOR<DevProjectScalarRelationFilter, DevProjectWhereInput>
@@ -61632,6 +62935,7 @@ export namespace Prisma {
     features?: SortOrder
     specBody?: SortOrder
     refUrls?: SortOrder
+    brief?: SortOrder
     note?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: DevProjectVersionCountOrderByAggregateInput
@@ -61651,6 +62955,7 @@ export namespace Prisma {
     features?: StringWithAggregatesFilter<"DevProjectVersion"> | string
     specBody?: StringWithAggregatesFilter<"DevProjectVersion"> | string
     refUrls?: StringWithAggregatesFilter<"DevProjectVersion"> | string
+    brief?: StringWithAggregatesFilter<"DevProjectVersion"> | string
     note?: StringNullableWithAggregatesFilter<"DevProjectVersion"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"DevProjectVersion"> | Date | string
   }
@@ -63246,6 +64551,80 @@ export namespace Prisma {
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     personaId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceAfter?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChargeAbEventCreateInput = {
+    userId: number
+    experimentKey: string
+    variant: string
+    event: string
+    packageId?: string | null
+    orderId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ChargeAbEventUncheckedCreateInput = {
+    id?: number
+    userId: number
+    experimentKey: string
+    variant: string
+    event: string
+    packageId?: string | null
+    orderId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ChargeAbEventUpdateInput = {
+    userId?: IntFieldUpdateOperationsInput | number
+    experimentKey?: StringFieldUpdateOperationsInput | string
+    variant?: StringFieldUpdateOperationsInput | string
+    event?: StringFieldUpdateOperationsInput | string
+    packageId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChargeAbEventUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    experimentKey?: StringFieldUpdateOperationsInput | string
+    variant?: StringFieldUpdateOperationsInput | string
+    event?: StringFieldUpdateOperationsInput | string
+    packageId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChargeAbEventCreateManyInput = {
+    id?: number
+    userId: number
+    experimentKey: string
+    variant: string
+    event: string
+    packageId?: string | null
+    orderId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ChargeAbEventUpdateManyMutationInput = {
+    userId?: IntFieldUpdateOperationsInput | number
+    experimentKey?: StringFieldUpdateOperationsInput | string
+    variant?: StringFieldUpdateOperationsInput | string
+    event?: StringFieldUpdateOperationsInput | string
+    packageId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChargeAbEventUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    experimentKey?: StringFieldUpdateOperationsInput | string
+    variant?: StringFieldUpdateOperationsInput | string
+    event?: StringFieldUpdateOperationsInput | string
+    packageId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -65321,6 +66700,7 @@ export namespace Prisma {
     status?: string
     herdrProjectId?: string | null
     workdir?: string
+    useReview?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     versions?: DevProjectVersionCreateNestedManyWithoutProjectInput
@@ -65335,6 +66715,7 @@ export namespace Prisma {
     status?: string
     herdrProjectId?: string | null
     workdir?: string
+    useReview?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     versions?: DevProjectVersionUncheckedCreateNestedManyWithoutProjectInput
@@ -65349,6 +66730,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
     workdir?: StringFieldUpdateOperationsInput | string
+    useReview?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     versions?: DevProjectVersionUpdateManyWithoutProjectNestedInput
@@ -65363,6 +66745,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
     workdir?: StringFieldUpdateOperationsInput | string
+    useReview?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     versions?: DevProjectVersionUncheckedUpdateManyWithoutProjectNestedInput
@@ -65377,6 +66760,7 @@ export namespace Prisma {
     status?: string
     herdrProjectId?: string | null
     workdir?: string
+    useReview?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -65387,6 +66771,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
     workdir?: StringFieldUpdateOperationsInput | string
+    useReview?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -65397,6 +66782,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
     workdir?: StringFieldUpdateOperationsInput | string
+    useReview?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -65406,6 +66792,7 @@ export namespace Prisma {
     features?: string
     specBody?: string
     refUrls?: string
+    brief?: string
     note?: string | null
     createdAt?: Date | string
     project: DevProjectCreateNestedOneWithoutVersionsInput
@@ -65418,6 +66805,7 @@ export namespace Prisma {
     features?: string
     specBody?: string
     refUrls?: string
+    brief?: string
     note?: string | null
     createdAt?: Date | string
   }
@@ -65427,6 +66815,7 @@ export namespace Prisma {
     features?: StringFieldUpdateOperationsInput | string
     specBody?: StringFieldUpdateOperationsInput | string
     refUrls?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     project?: DevProjectUpdateOneRequiredWithoutVersionsNestedInput
@@ -65439,6 +66828,7 @@ export namespace Prisma {
     features?: StringFieldUpdateOperationsInput | string
     specBody?: StringFieldUpdateOperationsInput | string
     refUrls?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -65450,6 +66840,7 @@ export namespace Prisma {
     features?: string
     specBody?: string
     refUrls?: string
+    brief?: string
     note?: string | null
     createdAt?: Date | string
   }
@@ -65459,6 +66850,7 @@ export namespace Prisma {
     features?: StringFieldUpdateOperationsInput | string
     specBody?: StringFieldUpdateOperationsInput | string
     refUrls?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -65470,6 +66862,7 @@ export namespace Prisma {
     features?: StringFieldUpdateOperationsInput | string
     specBody?: StringFieldUpdateOperationsInput | string
     refUrls?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -66888,6 +68281,49 @@ export namespace Prisma {
     balanceAfter?: SortOrder
   }
 
+  export type ChargeAbEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    experimentKey?: SortOrder
+    variant?: SortOrder
+    event?: SortOrder
+    packageId?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ChargeAbEventAvgOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+  }
+
+  export type ChargeAbEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    experimentKey?: SortOrder
+    variant?: SortOrder
+    event?: SortOrder
+    packageId?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ChargeAbEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    experimentKey?: SortOrder
+    variant?: SortOrder
+    event?: SortOrder
+    packageId?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ChargeAbEventSumOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+  }
+
   export type StarCountOrderByAggregateInput = {
     id?: SortOrder
     fromUserId?: SortOrder
@@ -68198,6 +69634,7 @@ export namespace Prisma {
     status?: SortOrder
     herdrProjectId?: SortOrder
     workdir?: SortOrder
+    useReview?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -68208,6 +69645,7 @@ export namespace Prisma {
     status?: SortOrder
     herdrProjectId?: SortOrder
     workdir?: SortOrder
+    useReview?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -68218,6 +69656,7 @@ export namespace Prisma {
     status?: SortOrder
     herdrProjectId?: SortOrder
     workdir?: SortOrder
+    useReview?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -68239,6 +69678,7 @@ export namespace Prisma {
     features?: SortOrder
     specBody?: SortOrder
     refUrls?: SortOrder
+    brief?: SortOrder
     note?: SortOrder
     createdAt?: SortOrder
   }
@@ -68255,6 +69695,7 @@ export namespace Prisma {
     features?: SortOrder
     specBody?: SortOrder
     refUrls?: SortOrder
+    brief?: SortOrder
     note?: SortOrder
     createdAt?: SortOrder
   }
@@ -68266,6 +69707,7 @@ export namespace Prisma {
     features?: SortOrder
     specBody?: SortOrder
     refUrls?: SortOrder
+    brief?: SortOrder
     note?: SortOrder
     createdAt?: SortOrder
   }
@@ -76294,6 +77736,7 @@ export namespace Prisma {
     features?: string
     specBody?: string
     refUrls?: string
+    brief?: string
     note?: string | null
     createdAt?: Date | string
   }
@@ -76304,6 +77747,7 @@ export namespace Prisma {
     features?: string
     specBody?: string
     refUrls?: string
+    brief?: string
     note?: string | null
     createdAt?: Date | string
   }
@@ -76424,6 +77868,7 @@ export namespace Prisma {
     features?: StringFilter<"DevProjectVersion"> | string
     specBody?: StringFilter<"DevProjectVersion"> | string
     refUrls?: StringFilter<"DevProjectVersion"> | string
+    brief?: StringFilter<"DevProjectVersion"> | string
     note?: StringNullableFilter<"DevProjectVersion"> | string | null
     createdAt?: DateTimeFilter<"DevProjectVersion"> | Date | string
   }
@@ -76523,6 +77968,7 @@ export namespace Prisma {
     status?: string
     herdrProjectId?: string | null
     workdir?: string
+    useReview?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     files?: DevProjectFileCreateNestedManyWithoutProjectInput
@@ -76536,6 +77982,7 @@ export namespace Prisma {
     status?: string
     herdrProjectId?: string | null
     workdir?: string
+    useReview?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     files?: DevProjectFileUncheckedCreateNestedManyWithoutProjectInput
@@ -76565,6 +78012,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
     workdir?: StringFieldUpdateOperationsInput | string
+    useReview?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     files?: DevProjectFileUpdateManyWithoutProjectNestedInput
@@ -76578,6 +78026,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
     workdir?: StringFieldUpdateOperationsInput | string
+    useReview?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     files?: DevProjectFileUncheckedUpdateManyWithoutProjectNestedInput
@@ -76591,6 +78040,7 @@ export namespace Prisma {
     status?: string
     herdrProjectId?: string | null
     workdir?: string
+    useReview?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     versions?: DevProjectVersionCreateNestedManyWithoutProjectInput
@@ -76604,6 +78054,7 @@ export namespace Prisma {
     status?: string
     herdrProjectId?: string | null
     workdir?: string
+    useReview?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     versions?: DevProjectVersionUncheckedCreateNestedManyWithoutProjectInput
@@ -76633,6 +78084,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
     workdir?: StringFieldUpdateOperationsInput | string
+    useReview?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     versions?: DevProjectVersionUpdateManyWithoutProjectNestedInput
@@ -76646,6 +78098,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
     workdir?: StringFieldUpdateOperationsInput | string
+    useReview?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     versions?: DevProjectVersionUncheckedUpdateManyWithoutProjectNestedInput
@@ -76659,6 +78112,7 @@ export namespace Prisma {
     status?: string
     herdrProjectId?: string | null
     workdir?: string
+    useReview?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     versions?: DevProjectVersionCreateNestedManyWithoutProjectInput
@@ -76672,6 +78126,7 @@ export namespace Prisma {
     status?: string
     herdrProjectId?: string | null
     workdir?: string
+    useReview?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     versions?: DevProjectVersionUncheckedCreateNestedManyWithoutProjectInput
@@ -76701,6 +78156,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
     workdir?: StringFieldUpdateOperationsInput | string
+    useReview?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     versions?: DevProjectVersionUpdateManyWithoutProjectNestedInput
@@ -76714,6 +78170,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
     workdir?: StringFieldUpdateOperationsInput | string
+    useReview?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     versions?: DevProjectVersionUncheckedUpdateManyWithoutProjectNestedInput
@@ -76727,6 +78184,7 @@ export namespace Prisma {
     status?: string
     herdrProjectId?: string | null
     workdir?: string
+    useReview?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     versions?: DevProjectVersionCreateNestedManyWithoutProjectInput
@@ -76740,6 +78198,7 @@ export namespace Prisma {
     status?: string
     herdrProjectId?: string | null
     workdir?: string
+    useReview?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     versions?: DevProjectVersionUncheckedCreateNestedManyWithoutProjectInput
@@ -76769,6 +78228,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
     workdir?: StringFieldUpdateOperationsInput | string
+    useReview?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     versions?: DevProjectVersionUpdateManyWithoutProjectNestedInput
@@ -76782,6 +78242,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
     workdir?: StringFieldUpdateOperationsInput | string
+    useReview?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     versions?: DevProjectVersionUncheckedUpdateManyWithoutProjectNestedInput
@@ -78193,6 +79654,7 @@ export namespace Prisma {
     features?: string
     specBody?: string
     refUrls?: string
+    brief?: string
     note?: string | null
     createdAt?: Date | string
   }
@@ -78221,6 +79683,7 @@ export namespace Prisma {
     features?: StringFieldUpdateOperationsInput | string
     specBody?: StringFieldUpdateOperationsInput | string
     refUrls?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -78231,6 +79694,7 @@ export namespace Prisma {
     features?: StringFieldUpdateOperationsInput | string
     specBody?: StringFieldUpdateOperationsInput | string
     refUrls?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -78241,6 +79705,7 @@ export namespace Prisma {
     features?: StringFieldUpdateOperationsInput | string
     specBody?: StringFieldUpdateOperationsInput | string
     refUrls?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

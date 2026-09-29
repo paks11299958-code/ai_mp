@@ -253,6 +253,25 @@ model PointTransaction {
   persona      Persona? @relation(fields: [personaId], references: [id], onDelete: SetNull)
 }
 
+/// 충전 유도 문구 A/B 이벤트(2026-09-29, docs/ab-charge-copy.md).
+/// 실험 설정(on/off·비율·문구)은 테이블을 따로 두지 않고 AppConfig 'ab.charge_copy'(JSON)에 둔다.
+/// ★결제 전환(paid)은 여기 적지 않는다 — PointTransaction(type=CHARGE)의 orderId와
+///   checkout 행의 orderId를 조인해 판정한다(승인 진실은 결제 원장 한 곳).
+/// ★User 관계(FK)를 걸지 않는다 — 탈퇴로 행이 지워지면 과거 실험 분모가 흔들린다.
+model ChargeAbEvent {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  experimentKey String // 예: 'charge_copy_v1'
+  variant       String // 'control' | 'badge' | 'bonus'
+  event         String // 'exposure' | 'click' | 'checkout'
+  packageId     String? // 'basic' | 'popular' | 'premium' (click·checkout)
+  orderId       String? // checkout 시 토스에 넘긴 orderId — PointTransaction.orderId와 조인
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([experimentKey])
+}
+
 model Star {
   id          Int      @id @default(autoincrement())
   fromUserId  Int
@@ -653,6 +672,10 @@ model DevProject {
   herdrProjectId String?
   /// 작업 저장소 경로. 기본은 ai_mp.
   workdir        String  @default("/home/paks11299958/ai_mp")
+  /// 허드 메이커-체커 사용 여부 — Developer가 만들고 Reviewer가 검증(왕복 상한 있음).
+  /// ★기본 꺼짐. 단일 홈페이지처럼 눈으로 보면 되는 작업엔 낭비다(비용 2배, pane 2개).
+  ///   로직이 있는 개발·큰 작업에만 켠다(사장 결정 2026-08-20).
+  useReview      Boolean @default(false)
 
   versions DevProjectVersion[]
   files    DevProjectFile[]
@@ -679,6 +702,12 @@ model DevProjectVersion {
   specBody  String     @default("")
   /// 참조 사이트 URL 목록(JSON 배열 문자열)
   refUrls   String     @default("[]")
+  /// 홈페이지 요구사항(JSON 문자열). 상호명·서비스·톤앤매너·연락처 등.
+  /// ★칼럼을 15개로 쪼개지 않고 JSON 한 칸에 둔다 — 항목이 계속 늘어날 자리이고,
+  ///   버전마다 통째로 스냅샷돼야 비포/애프터 비교가 그대로 성립한다.
+  /// ★연락처(주소·전화·이메일·사업자번호)는 비어 있으면 **비워둔 채로 둔다**.
+  ///   AI가 지어내면 실제 고객이 잘못된 곳으로 연락한다(사장 지시 2026-08-20).
+  brief     String     @default("{}")
   /// 이 버전에서 무엇을 왜 바꿨는지
   note      String?
   createdAt DateTime   @default(now())
