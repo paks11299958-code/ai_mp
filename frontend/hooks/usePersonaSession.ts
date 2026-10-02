@@ -148,10 +148,15 @@ export function usePersonaSession(
                 if (mapped.length === 0) setIsGreeting(true);
                 sessionApi.greet(existing.id).then(greetMsg => {
                     if ((greetMsg as any).skipped) return;
-                    setSessions(prev => ({
-                        ...prev,
-                        [personaId]: { ...prev[personaId], messages: [...prev[personaId].messages, { ...greetMsg, id: String(greetMsg.id) }] },
-                    }));
+                    // ★답 없이 재방문하면 서버가 직전 인사를 갈아 끼우고 같은 id 를 돌려준다(2026-10-03) —
+                    //   이어 붙이면 옛 인사와 새 인사가 둘 다 보이므로 같은 id 는 제자리에서 바꾼다.
+                    const greet = { ...greetMsg, id: String(greetMsg.id) };
+                    setSessions(prev => {
+                        const list = prev[personaId].messages;
+                        const at = list.findIndex(m => m.id === greet.id);
+                        const messages = at >= 0 ? [...list.slice(0, at), greet, ...list.slice(at + 1)] : [...list, greet];
+                        return { ...prev, [personaId]: { ...prev[personaId], messages } };
+                    });
                 }).catch(() => {}).finally(() => setIsGreeting(false));
 
                 // 메시지 10개 이상인데 요약 없으면 백그라운드 생성
