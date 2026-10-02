@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PersonaEntrySheet } from '../PersonaEntrySheet';
 import { SeolaGolfEntry } from './SeolaGolfEntry';
@@ -15,8 +15,14 @@ const renderEntry = () => {
     return props;
 };
 
+beforeEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+        vi.stubGlobal('matchMedia', vi.fn((query: string) => ({ matches: false, media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() })));
+        vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+    });
+
 describe('SeolaGolfEntry', () => {
-    beforeEach(() => vi.clearAllMocks());
 
     it('스윙·골프장·대화 CTA를 기존 계약으로 연결한다', () => {
         const props = renderEntry();
@@ -42,45 +48,69 @@ describe('SeolaGolfEntry', () => {
         expect(props.onClose).toHaveBeenCalledTimes(2);
     });
 
-    it('첫 퍼팅 자세 뒤 게임 모달이 뜨고 홀인 후 성공 장면이 남는다', () => {
-        vi.useFakeTimers();
+    it('처음부터 무음 인라인 인트로와 두 화면 소스를 제공한다', () => {
         renderEntry();
-        expect(screen.queryByRole('dialog', { name: '설아의 퍼팅 게임' })).toBeNull();
-        expect(screen.getByRole('img', { name: '정석 어드레스로 퍼팅을 준비하는 설아' })).toBeTruthy();
-        act(() => vi.advanceTimersByTime(900));
-        expect(screen.getByRole('dialog', { name: '설아의 퍼팅 게임' })).toBeTruthy();
-        const video = document.querySelector<HTMLVideoElement>('.sg-game-video');
-        expect(video).toBeTruthy();
-        expect(video?.autoplay).toBe(true);
-        expect(video?.muted).toBe(true);
-        expect(document.querySelector('source[src="/seola/seola-putt-mobile-v8.mp4"]')).toBeTruthy();
-        expect(document.querySelector('source[src="/seola/seola-putt-desktop-v8.mp4"]')).toBeTruthy();
-        expect(document.querySelector('.sg-game-ball')).toBeNull();
-        act(() => vi.advanceTimersByTime(5200));
-        expect(screen.queryByRole('dialog', { name: '설아의 퍼팅 게임' })).toBeNull();
-        expect(screen.queryByRole('img', { name: '정석 어드레스로 퍼팅을 준비하는 설아' })).toBeNull();
-        expect(screen.getByRole('img', { name: '퍼팅에 성공해 기뻐하는 설아' })).toBeTruthy();
-        expect(document.querySelector('source[srcSet="/seola/celebrate-mobile-v3.png"]')).toBeTruthy();
-        vi.useRealTimers();
+        const video = document.querySelector<HTMLVideoElement>('.sg-intro-video')!;
+        expect(video.autoplay).toBe(true); expect(video.muted).toBe(true);
+        expect(video.hasAttribute('playsinline')).toBe(true);
+        expect(video.preload).toBe('auto');
+        expect(document.querySelector('source[src="/seola/intro-mobile-v9.mp4"]')).toBeTruthy();
+        expect(document.querySelector('source[src="/seola/intro-desktop-v9.mp4"]')).toBeTruthy();
+        expect(document.querySelector('.sg-game')).toBeNull();
+        expect(screen.getByRole('button', { name: '설아와 대화하기' })).toBeTruthy();
+    });
+    it('건너뛰기와 종료는 마지막 이미지로 바뀌고 다시 보기로 재생한다', () => {
+        renderEntry();
+        fireEvent.click(screen.getByRole('button', { name: '건너뛰기' }));
+        expect(document.querySelector('.sg-intro-video')).toBeNull();
+        expect(document.querySelector('img[src="/seola/intro-end-desktop-v9.webp"]')).toBeTruthy();
+        fireEvent.click(screen.getByRole('button', { name: '다시 보기' }));
+        fireEvent.ended(document.querySelector('.sg-intro-video')!);
+        expect(screen.getByRole('img', { name: '퍼팅을 마치고 미소 짓는 설아' })).toBeTruthy();
+    });
+    it('reduced-motion이면 영상 없이 끝 정지만 표시한다', () => {
+        vi.stubGlobal('matchMedia', vi.fn((query: string) => ({ matches: query.includes('reduced-motion'), addEventListener: vi.fn(), removeEventListener: vi.fn() })));
+        renderEntry();
+        expect(document.querySelector('video')).toBeNull();
+        expect(document.querySelector('img[src="/seola/intro-end-desktop-v9.webp"]')).toBeTruthy();
+    });
+    it('자동재생 거부 시 포스터와 기능 버튼을 유지한다', async () => {
+        vi.spyOn(HTMLMediaElement.prototype, 'play').mockRejectedValue(new Error('blocked'));
+        const props = renderEntry();
+        await waitFor(() => expect(document.querySelector('video')).toBeNull());
+        expect(document.querySelector('img[src="/seola/intro-poster-desktop-v9.webp"]')).toBeTruthy();
+        fireEvent.click(screen.getByRole('button', { name: '내 스윙 점검하기' }));
+        expect(props.onFeature).toHaveBeenCalledWith('swing');
     });
 
-    it('첫 화면에 데스크톱과 모바일 전용 퍼팅 이미지를 제공한다', () => {
-        renderEntry();
-        expect(document.querySelector('source[srcSet="/seola/putt-address-mobile-v7.webp"]')).toBeTruthy();
-        expect(document.querySelector('img[src="/seola/putt-address-desktop-v7.webp"]')).toBeTruthy();
+    it('소스 선택 중 취소는 포스터 실패로 오인하지 않는다', async () => {
+        vi.spyOn(HTMLMediaElement.prototype, 'play').mockRejectedValue(new DOMException('selection changed', 'AbortError'));
+        await act(async () => { renderEntry(); });
+        expect(document.querySelector('video')).toBeTruthy();
     });
+    it('자식 소스 오류는 허용하고 실제 영상 오류만 포스터로 대체한다', () => {
+        renderEntry();
+        const video = document.querySelector<HTMLVideoElement>('video')!;
+        fireEvent.error(video.querySelector('source')!);
+        expect(document.querySelector('video')).toBeTruthy();
+        Object.defineProperty(video, 'error', { value: { code: 4 }, configurable: true });
+        fireEvent.error(video);
+        expect(document.querySelector('video')).toBeNull();
+        expect(document.querySelector('img[src="/seola/intro-poster-desktop-v9.webp"]')).toBeTruthy();
+    });
+
 });
 
 describe('PersonaEntrySheet 설아 분기', () => {
     const base = { onClose: noop, onStart: noop, onFeature: noop, onInvite: noop };
 
-    it('설아면 새벽 티하우스 진입화면이 뜬다', () => {
-        render(<PersonaEntrySheet guide={{ title: '설아', desc: '' }} {...base} />);
+    it('설아면 새벽 티하우스 진입화면이 뜬다', async () => {
+        await act(async () => { render(<PersonaEntrySheet guide={{ title: '설아', desc: '' }} {...base} />); });
         expect(screen.getByRole('heading', { name: /감이 아니라/ })).toBeTruthy();
     });
 
-    it('한 글자 차이인 서아 화면을 뺏지 않는다', () => {
-        render(<PersonaEntrySheet guide={{ title: '서아', desc: '' }} {...base} />);
+    it('한 글자 차이인 서아 화면을 뺏지 않는다', async () => {
+        await act(async () => { render(<PersonaEntrySheet guide={{ title: '서아', desc: '' }} {...base} />); });
         expect(screen.queryByRole('heading', { name: /감이 아니라/ })).toBeNull();
     });
 });
