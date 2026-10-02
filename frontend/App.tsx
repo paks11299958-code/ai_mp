@@ -1267,6 +1267,8 @@ const AppContent: React.FC = () => {
 
     const handleSendMessage = async (overrideText?: string): Promise<EntryChatSendResult> => {
         const usesOverride = overrideText !== undefined;
+        // Modal sends must never target a different active persona during a pending selection.
+        if (usesOverride && entryChatPersonaId && entryChatPersonaId !== activePersonaId) return 'blocked';
         const text = (usesOverride ? overrideText : inputText).trim();
         if (!text || currentSession.isTyping || !user) return 'blocked';
 
@@ -1656,6 +1658,7 @@ const AppContent: React.FC = () => {
     const entryChatModal = entryChatTheme && entryChatPersonaId ? (
         <EntryChatModal
             theme={entryChatTheme}
+            draftOwner={String(user?.id ?? 'anonymous')}
             messages={sessions[entryChatPersonaId]?.messages ?? []}
             isTyping={sessions[entryChatPersonaId]?.isTyping ?? false}
             emotion={emotion}

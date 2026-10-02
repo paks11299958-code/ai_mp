@@ -25,7 +25,7 @@ const WheelPicker: React.FC<{
     displayItems?: string[];
 }> = ({ items, value, onChange, label, width = 100, displayItems }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
-    const timerRef = useRef<ReturnType<typeof setTimeout>>();
+    const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
     const scrollToIdx = useCallback((idx: number, behavior: ScrollBehavior = 'smooth') => {
         scrollRef.current?.scrollTo({ top: idx * ITEM_H, behavior });

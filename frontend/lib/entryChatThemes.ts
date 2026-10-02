@@ -5,9 +5,14 @@ export interface EntryChatTheme {
     displayName: string;
     fallbackPortrait: string;
     accent: string;
+    visualPreset?: 'letter';
+    headerCaption?: string;
 }
 
+export const DOGYEOL_ID = 'cmopfkd4o000004la2q5p3nle';
+
 export const ENTRY_CHAT_THEMES: Record<string, EntryChatTheme> = {
+    [DOGYEOL_ID]: { personaId: DOGYEOL_ID, displayName: '도결 선생', fallbackPortrait: '/dogyeol/portrait.webp', accent: '#22324A', visualPreset: 'letter', headerCaption: '道潔 선생의 서재' },
     [EUNBI_ID]: {
         personaId: EUNBI_ID,
         displayName: '신은비',

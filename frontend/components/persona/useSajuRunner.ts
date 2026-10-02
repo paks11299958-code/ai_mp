@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { personaApi, quickMenuApi, userProfileApi } from '../../services/apiService';
 
 // ★`QuickMenuItem` 은 App.tsx 안의 **지역 타입**이라 가져올 수 없다.
@@ -121,15 +121,15 @@ export const useSavedBirth = (enabled = true): [SajuBirth | null, (b: SajuBirth)
  *    안 걸리므로 **불일치가 조용히 남지 않는다**.
  *  ★정본은 DB `Persona.quickMenuJson` — 프롬프트를 화면에 하드코딩하지 않는다.
  *    어드민이 메뉴를 고치면 이 화면도 따라간다. */
-export const usePersonaMenus = (personaName: string | undefined): { id?: string; menus: SajuMenu[] } => {
+export const usePersonaMenus = (personaName: string | undefined, personaId?: string): { id?: string; menus: SajuMenu[] } => {
     const [found, setFound] = useState<{ id?: string; menus: SajuMenu[] }>({ menus: [] });
     useEffect(() => {
-        if (!personaName) return;
+        if (!personaName && !personaId) return;
         let alive = true;
         personaApi.getAll()
             .then((list: any[]) => {
                 if (!alive) return;
-                const p = list.find(x => x.name === personaName);
+                const p = list.find(x => personaId ? x.id === personaId : x.name === personaName);
                 if (!p) return;
                 let menus: SajuMenu[] = [];
                 try { menus = JSON.parse(p.quickMenuJson || '{}').menus ?? []; } catch { /* 형식 깨짐 */ }
@@ -137,24 +137,37 @@ export const usePersonaMenus = (personaName: string | undefined): { id?: string;
             })
             .catch(() => { /* 실패하면 칩이 안 보일 뿐, '대화하기' 버튼은 그대로 동작한다 */ });
         return () => { alive = false; };
-    }, [personaName]);
+    }, [personaName, personaId]);
     return found;
 };
 
-export const useSajuRunner = (personaId: string | undefined, birth: SajuBirth | null) => {
+export const useSajuRunner = (personaId: string | undefined, birth: SajuBirth | null, options?: { onPaid?: (paid: number, bonus: number) => void; onInsufficient?: () => void }) => {
     const [state, setState] = useState<SajuRunnerState>(EMPTY);
+    const busy = useRef(false);
+    const callbacks = useRef(options); callbacks.current = options;
+    const alive = useRef(true);
+    useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
     /** 프롬프트 하나를 실행해 결과를 창 안에 담는다. */
     const run = useCallback((title: string, prompt: string) => {
-        if (!personaId) return;
+        if (!personaId || busy.current) return;
+        busy.current = true;
         setState({ picking: null, loading: true, result: null, error: null });
         quickMenuApi.generate(personaId, withBirth(prompt, birth))
-            .then(({ result }) => setState({ picking: null, loading: false, result: { title, body: result }, error: null }))
-            .catch(e => setState({ picking: null, loading: false, result: null, error: messageFor(e) }));
+            .then(({ result, paidBalance, bonusBalance }) => {
+                if (paidBalance !== undefined && bonusBalance !== undefined) callbacks.current?.onPaid?.(paidBalance, bonusBalance);
+                if (alive.current) setState({ picking: null, loading: false, result: { title, body: result }, error: null });
+            })
+            .catch(e => {
+                if (e?.code === 'INSUFFICIENT_POINTS') callbacks.current?.onInsufficient?.();
+                if (alive.current) setState({ picking: null, loading: false, result: null, error: messageFor(e) });
+            })
+            .finally(() => { busy.current = false; });
     }, [personaId, birth]);
 
     /** 칩·카드 클릭. 서브메뉴가 있으면 항목 선택을 먼저 띄운다. */
     const select = useCallback((menu: SajuMenu) => {
+        if (busy.current) return;
         if (menu.subMenu) { setState({ ...EMPTY, picking: menu }); return; }
         run(menu.label, menu.prompt ?? '');
     }, [run]);
@@ -162,7 +175,7 @@ export const useSajuRunner = (personaId: string | undefined, birth: SajuBirth | 
     /** 서브메뉴 항목 선택 */
     const pick = useCallback((label: string, prompt: string) => run(label, prompt), [run]);
 
-    const reset = useCallback(() => setState(EMPTY), []);
+    const reset = useCallback(() => { if (!busy.current) setState(EMPTY); }, []);
 
     return { ...state, select, pick, run, reset };
 };
