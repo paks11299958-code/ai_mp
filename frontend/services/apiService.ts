@@ -1,4 +1,5 @@
 import { Persona, PersonaImage, PersonaVideo, User, DbSession, Message, ConversationSummary, UserMemory, SwingAnalysis, UserSwingAnalysis, Category } from '../types';
+import { getDeviceFp, initDeviceFp } from '../lib/deviceFingerprint';
 import { getStoredRef } from './referral';
 import type {
     AiAvatarAssetRow,
@@ -16,7 +17,9 @@ function getToken(): string | null {
 
 function authHeaders(): HeadersInit {
     const token = getToken();
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    // 기기 지문(lib/deviceFingerprint.ts) — 서버가 같은 기기 추천 보상 차단에 쓴다. 아직 계산 전이면 생략.
+    const fp = getDeviceFp();
+    return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(fp ? { 'X-Device-Fp': fp } : {}) };
 }
 
 /**
@@ -138,9 +141,8 @@ export const authApi = {
 
     logout: () =>
         post<{ message: string }>('/auth/logout'),
-
-    me: () =>
-        get<{ user: User }>('/auth/me'),
+    // 기기 지문 계산을 기다린 뒤 보낸다 — /me 가 접속 기기를 기록한다(같은 기기 추천 보상 차단).
+    me: async () => { await initDeviceFp(); return get<{ user: User }>('/auth/me'); },
 
     forgotPassword: (email: string) =>
         post<{ message: string }>('/auth/forgot-password', { email }),
@@ -155,8 +157,9 @@ export const authApi = {
         post<{ user: User; token: string }>('/auth/verify-register', { type, identifier, code, password, username, ref: getStoredRef() }),
 
     // 레퍼럴 링크(?ref) 방문자 자동 체험 계정 — 가입 없이 임시계정+보너스1000P로 정식 사이트 체험.
-    guestRegister: () =>
-        post<{ user: User; token: string }>('/auth/guest-register', { ref: getStoredRef() }),
+    // ★체험 "한 기기 영구 1회"(2026-10-03) — 지문 계산을 기다린 뒤 본문에 실어 보낸다(헤더 경쟁 없음).
+    guestRegister: async () =>
+        post<{ user: User; token: string }>('/auth/guest-register', { ref: getStoredRef(), fp: await initDeviceFp() }),
 
     // 임시(게스트) 계정 → 정식 전환(이메일/전화 인증 후). 전환 완료 시 레퍼럴 보상도 이 시점에 지급됨.
     upgradeGuest: (type: 'EMAIL' | 'PHONE', identifier: string, code: string, password: string, username?: string) =>
