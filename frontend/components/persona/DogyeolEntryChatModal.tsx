@@ -1,5 +1,5 @@
 import ReactMarkdown from 'react-markdown';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { EntryChatModalProps } from './EunbiEntryChatModal';
 import { CHAT_MESSAGE_COST } from '../../lib/chatCost';
 import { usePoints } from '../../contexts/PointsContext';
@@ -50,6 +50,13 @@ export const DogyeolEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?
     const actions = useRef({onClose, inputKind, partnerFor, twoStep, faceResult, palmResult});
     actions.current = {onClose, inputKind, partnerFor, twoStep, faceResult, palmResult};
     const nested = inputKind === 'face' || inputKind === 'palm' || !!partnerFor || twoStep > 0 || !!faceResult || !!palmResult;
+    // 사진·상대 정보 창이 떠도 도결 머리말(초상·이름)은 보이게 — 실제 머리말 높이만큼 창을 내린다.
+    // 머리말은 화면 폭(초상 28vw)과 대화 여부(dg-compact)에 따라 높이가 달라 CSS 고정값으로는 어긋난다.
+    useLayoutEffect(() => {
+        if (!nested) return;
+        const header = dialog.current?.querySelector<HTMLElement>('.dg-header');
+        if (header) dialog.current?.style.setProperty('--dg-head', `${header.offsetHeight}px`);
+    }, [nested]);
     const pending = runner.loading || isTyping || sending;
     const currentItem = ITEMS.find(i => i[0] === activeKey);
     const cost = points.priceOf('quick-menu');

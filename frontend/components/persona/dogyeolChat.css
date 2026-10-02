@@ -16,3 +16,13 @@
 .dg-result-body h1,.dg-result-body h2,.dg-result-body h3{font-family:inherit;font-size:.875rem;font-weight:600;color:var(--dg-navy);margin:22px 0 9px;line-height:1.6}.dg-result-body p+p{margin-top:10px}.dg-result-body a{color:var(--dg-navy);text-decoration:underline}.dg-result-body pre{white-space:pre-wrap;overflow-wrap:anywhere}
 
 .dg-identity h1{font-weight:600}.dg-compact .dg-intro{display:none}.dg-compact .dg-header{padding-top:18px;padding-bottom:17px}
+
+/* 사진·상대 정보 창: 도결 머리말 아래 한지 편지 카드로(기존 모달 로직·마크업은 그대로, 도결 창 안에서만 덧입힘) */
+.dg-child{top:var(--dg-head,0px);border-top:1px solid var(--dg-line)}.dg-child>.fixed{padding-top:14px!important}
+.dg-child>.fixed>div{position:relative;border-radius:3px 10px 10px 3px!important}.dg-child>.fixed>div:before{content:'';position:absolute;inset:6px;border:1px solid #E5DACC;border-radius:1px 6px 6px 1px;pointer-events:none}
+.dg-child>.fixed>div>div:first-child{border-bottom:1px solid var(--dg-line)!important}.dg-child>.fixed>div>div:first-child span.text-xl{display:none}
+.dg-child>.fixed>div>div:first-child h2{font-size:1.1875rem!important;font-weight:600!important}
+.dg-child>.fixed>div>div:first-child button{min-height:0;width:34px;height:34px;border:0!important;background:none!important;font-size:1.375rem;line-height:1;color:var(--dg-muted)!important;flex:none}
+.dg-child [style*="251, 191, 36, 0.07"]{background:#F3EBDD!important;border:0!important;border-left:2px solid var(--dg-ink)!important;border-radius:0!important}.dg-child .text-yellow-500{display:none}
+.dg-child .space-y-2\.5>button>span:first-child{display:none}
+.dg-photo-guide{display:none}
