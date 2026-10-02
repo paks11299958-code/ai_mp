@@ -4,7 +4,8 @@
 
 - 컴포넌트: `frontend/components/persona/SeolaGolfEntry.tsx`
 - 분기: `frontend/components/PersonaEntrySheet.tsx`의 `startsWith('설아')`
-- 자산: `public/seola/intro-{desktop,mobile}-v9.mp4`, `intro-poster-{desktop,mobile}-v9.webp`, `intro-end-{desktop,mobile}-v9.webp`, 로컬 Pretendard 글꼴.
+- 자산: `public/seola/intro-{desktop,mobile}-v10.mp4`(6.7초), `intro-poster-{desktop,mobile}-v9.webp`. v9 영상·`intro-end-*`는 캐시 대비로 남겨 둠(미사용). 글꼴은 사이트 전역 Pretendard.
+- ★v10(2026-10-02 사장 지시): S4 미소 정지가 어색하다는 평가(배경 흐림 경계·숙인 채 웃는 자세) → **공이 홀에 들어간 직후 0.5초 페이드로 첫 장면(어드레스)으로 돌아와 정지**. 끝 정지 이미지 = 포스터.
 - 제작 기록: `/home/paks11299958/design-lab/seola-v2/round5/` 및 `round6/`. 재현: round5/build_s1.py, photo_s1.py, build_cg.py, composite.py; round6 HyperFrames 구성과 final_media.py.
 - 계약 테스트: `frontend/components/persona/SeolaGolfEntry.test.tsx`
 
@@ -92,7 +93,7 @@ v8은 Blender VSE에서 5초·30fps H.264로 미리 렌더한다. 공의 직선 
 - 별도 게임 모달 없이 포스터를 즉시 표시하고 히어로 배경 `<video autoPlay muted playsInline preload="auto">`를 재생한다. 모바일/데스크톱 소스와 포스터·끝 이미지를 각각 제공한다.
 - 카피와3개 CTA는 처음부터 보인다. 모바일 영상 영역은57svh이며390×844 첫 화면에서3개 버튼이 보인다. 데스크톱 카피는 왼쪽, 인물은 오른쪽이다. 태블릿은 데스크톱 소스의 오른쪽 구도를 쓰고 CTA는 아래에 배치한다.
 - 우상단 건너뛰기/영상 종료는 끝 이미지로 전환한다. 다시 보기로 재생할 수 있다. 자동재생 거부·영상 로드 실패는 포스터와 기능 버튼을 유지한다. 소스 선택 중 AbortError는 재생 실패로 오인하지 않는다.
-- prefers-reduced-motion에서는 영상 없이 끝 정지만 표시한다. 닫기/Escape·기존 기능 콜백을 유지한다.
+- prefers-reduced-motion에서는 영상 없이 첫 장면(포스터)만 표시한다. 닫기/Escape·기존 기능 콜백을 유지한다.
 - 아래 CHOOSE YOUR ROUND와 예시 코칭 노트의 내용·동작은 유지한다. 예시 수치가 실제 분석 결과를 뜻하지 않으며 영상은 명시적인 분석 시작 전 처리되지 않는다.
 
 ## 배포 경계

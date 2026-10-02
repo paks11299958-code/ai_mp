@@ -54,25 +54,25 @@ describe('SeolaGolfEntry', () => {
         expect(video.autoplay).toBe(true); expect(video.muted).toBe(true);
         expect(video.hasAttribute('playsinline')).toBe(true);
         expect(video.preload).toBe('auto');
-        expect(document.querySelector('source[src="/seola/intro-mobile-v9.mp4"]')).toBeTruthy();
-        expect(document.querySelector('source[src="/seola/intro-desktop-v9.mp4"]')).toBeTruthy();
+        expect(document.querySelector('source[src="/seola/intro-mobile-v10.mp4"]')).toBeTruthy();
+        expect(document.querySelector('source[src="/seola/intro-desktop-v10.mp4"]')).toBeTruthy();
         expect(document.querySelector('.sg-game')).toBeNull();
         expect(screen.getByRole('button', { name: '설아와 대화하기' })).toBeTruthy();
     });
-    it('건너뛰기와 종료는 마지막 이미지로 바뀌고 다시 보기로 재생한다', () => {
+    it('건너뛰기와 종료는 첫 장면으로 돌아오고 다시 보기로 재생한다', () => {
         renderEntry();
         fireEvent.click(screen.getByRole('button', { name: '건너뛰기' }));
         expect(document.querySelector('.sg-intro-video')).toBeNull();
-        expect(document.querySelector('img[src="/seola/intro-end-desktop-v9.webp"]')).toBeTruthy();
+        expect(document.querySelector('img[src="/seola/intro-poster-desktop-v9.webp"]')).toBeTruthy();
         fireEvent.click(screen.getByRole('button', { name: '다시 보기' }));
         fireEvent.ended(document.querySelector('.sg-intro-video')!);
-        expect(screen.getByRole('img', { name: '퍼팅을 마치고 미소 짓는 설아' })).toBeTruthy();
+        expect(screen.getByRole('img', { name: '정석 어드레스로 퍼팅을 준비하는 설아' })).toBeTruthy();
     });
-    it('reduced-motion이면 영상 없이 끝 정지만 표시한다', () => {
+    it('reduced-motion이면 영상 없이 첫 장면만 표시한다', () => {
         vi.stubGlobal('matchMedia', vi.fn((query: string) => ({ matches: query.includes('reduced-motion'), addEventListener: vi.fn(), removeEventListener: vi.fn() })));
         renderEntry();
         expect(document.querySelector('video')).toBeNull();
-        expect(document.querySelector('img[src="/seola/intro-end-desktop-v9.webp"]')).toBeTruthy();
+        expect(document.querySelector('img[src="/seola/intro-poster-desktop-v9.webp"]')).toBeTruthy();
     });
     it('자동재생 거부 시 포스터와 기능 버튼을 유지한다', async () => {
         vi.spyOn(HTMLMediaElement.prototype, 'play').mockRejectedValue(new Error('blocked'));
