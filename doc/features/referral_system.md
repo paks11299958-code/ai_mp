@@ -440,3 +440,13 @@ ALTER TABLE "User" ADD COLUMN "referralRewarded" BOOLEAN NOT NULL DEFAULT false;
 모바일 Chromium에서 기능 클릭 → 만료 안내 → 무료 회원가입 화면 전환을 확인했다. 이 검증은 새
 게스트나 포인트를 만들지 않았다. 비회원 페이지의 `/api/points/menu-prices` 401 콘솔 오류는 기존
 별도 문제이며 체험 만료 흐름은 통과했다.
+
+## 체험 1,000P "한 기기 영구 1회" + 같은 기기 추천 보상 차단 (2026-10-03, shared-api `932f033`·ai_mp `7ea1085`)
+
+- 원인: 09-26 의 1회 제한이 **쿠키 하나**뿐이라 쿠키 삭제·시크릿 창·Safari 데이터 정리 뒤 1,000P 재발급(사장 "며칠 지나 또 된다").
+- 방식(사장 B안): (브라우저 특성 지문, 네트워크 IPv4 /24·IPv6 /64) **쌍**을 `GuestTrialDevice` 에 영구 기록 → 같은 쌍이면 `guest-register` 409 → 화면은 회원가입.
+  지문만(A안)은 같은 기종 아이폰끼리 다른 사람을 영구 차단해 기각.
+- 프론트 `frontend/lib/deviceFingerprint.ts`: 특성→SHA-256 hex, 저장소에 두지 않음(지워도 같은 값). `X-Device-Fp` 헤더 + guest-register 본문 `fp`. `/auth/me`·guest-register 는 계산을 기다린다.
+- 서버 `lib/deviceTrial.ts`: 원문 미저장(JWT_SECRET 섞은 sha256 32자). `/me` 가 `UserDevice` 기록, `tryGrantReferral` 은 추천인·신규가 같은 쌍이면 보상 안 함(플래그 닫음).
+- 지문 없는 요청(옛 캐시 화면)은 쿠키 검사만. 운영 실측: 1차 201 → 쿠키 비운 2차 409.
+- ★남은 구멍(사장 결정으로 보류): 정식 가입 보너스는 새 이메일이면 반복 수령 가능 — 막으려면 "전화 인증 후 지급".

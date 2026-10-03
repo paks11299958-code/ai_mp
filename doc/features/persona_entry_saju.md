@@ -260,3 +260,17 @@ serif  "Noto Serif KR" — 제목은 명조로
 ## 남은 것
 
 - 다른 페르소나로 확장하려면 `SajuEntry` 를 일반화해야 한다(지금은 도결 전용).
+
+## 전용 채팅 모달 "한지 서간" (2026-10-02~03, `7819892` + `0555d46`)
+
+진입화면 "도결 선생과 대화하기" → `EntryChatModal` 의 도결 프리셋(`DogyeolEntryChatModal.tsx` + `dogyeolChat.css`).
+`lib/entryChatThemes.ts` 에 `DOGYEOL_ID`·`visualPreset:'letter'`·`headerCaption:'道潔 선생의 서재'`(내부 콘셉트명 "한지 서간"은 화면 노출 금지).
+
+- 은비 모달은 `EunbiEntryChatModal.tsx` 로 분리 — **픽셀 동일**(회귀 검사 PNG 바이트 비교).
+- 답 = 한지 편지 카드, 먹선 SVG 메뉴 8개(`public/dogyeol/icons/`), 대화가 있으면 "메뉴 펼치기"로 접힘, 풀이 대기 16초 루프.
+- 실행 경로는 진입창과 **같은 것만** 재사용: 메뉴=`useSajuRunner`(`/quick-menu-result`), 해몽=generate **1회**(activate 0),
+  관상·손금=기존 `FaceReadingModal`/`PalmReadingModal` 로직. 새 API·차감 경로 없음.
+- 사진·상대 정보 창은 도결 머리말 아래로(`--dg-head` 실측) 내려 편지 카드로 덧입힘 — 기존 모달 마크업은 그대로, CSS 만(`.dg-child`).
+- `useSajuRunner` 에 연타 잠금·`onPaid`/`onInsufficient` 콜백, App 에 모달 전송 페르소나 불일치 차단·계정별 초안.
+- 프로필(메인 카드) 이미지 = GCS `personas/<id>/profile-v2.jpg`(원본 ✦ 워터마크 제거본, 롤백=`profile.png`).
+- 제작 근거: `~/design-lab/dogyeol-chat/`(BRIEF_round0~2, research 18장, round1 디자인 9상태, round2 하네스·검수 51건).

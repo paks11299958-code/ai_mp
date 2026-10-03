@@ -731,3 +731,14 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 
 인덱스 `(userId, createdAt)`. 무료/유료 판단·차감·INSERT 는 한 트랜잭션 + `pg_advisory_xact_lock(hashtext('eunbi-card:<userId>'))`.
 
+
+## GuestTrialDevice · UserDevice (2026-10-03 신설, 체험 한 기기 1회 — **raw SQL만**, 운영 DB 실행 완료)
+
+```sql
+CREATE TABLE IF NOT EXISTS "GuestTrialDevice" (fp_hash text NOT NULL, net_hash text NOT NULL, user_id integer,
+  created_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY (fp_hash, net_hash));   -- 영구 보관
+CREATE TABLE IF NOT EXISTS "UserDevice" (user_id integer NOT NULL, fp_hash text NOT NULL, net_hash text NOT NULL,
+  last_seen timestamptz NOT NULL DEFAULT now(), PRIMARY KEY (user_id, fp_hash, net_hash));
+CREATE INDEX IF NOT EXISTS "UserDevice_fp_net_idx" ON "UserDevice" (fp_hash, net_hash);
+```
+- 값은 해시(지문·네트워크 원문 없음). 접근 = shared-api `lib/deviceTrial.ts`(select=`$queryRawUnsafe`, insert=`$executeRawUnsafe`). schema.prisma 미반영(운영 DB≠git schema).
