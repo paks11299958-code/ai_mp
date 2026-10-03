@@ -12,7 +12,7 @@ vi.mock('./sajuHero', async importOriginal => {
 });
 vi.mock('./useSajuRunner', () => ({
     usePersonaMenus: () => ({ id: 'dogyeol', menus: [{ label: '📅 운세', prompt: 'p', resultCard: true }] }),
-    useSavedBirth: () => [null, vi.fn()],
+    useSavedBirth: () => [{ name: '검수', year: '1990', month: '1', day: '1' }, vi.fn()],
     useSajuRunner: () => ({ loading: false, picking: null, result: null, error: null,
         select, pick: vi.fn(), run: vi.fn(), reset: vi.fn() }),
     // 회원이면 창 안에서 바로 풀이(유료 API)로 가는 메뉴가 있다고 가정한다.
@@ -40,7 +40,7 @@ describe('도결 진입화면 — 비로그인 gate', () => {
         expect(select).not.toHaveBeenCalled();
     });
 
-    it('회원(isGuest 없음): onGuestGate 를 넘겨도 종전처럼 창 안 풀이로 간다', () => {
+    it('명부가 있는 회원(isGuest 없음): onGuestGate 를 넘겨도 종전처럼 창 안 풀이로 간다', () => {
         const p = base();
         render(<PersonaEntrySheet guide={sajuGuide} {...p} />);
         fireEvent.click(screen.getAllByRole('button', { name: /시운의 흐름/ })[0]);

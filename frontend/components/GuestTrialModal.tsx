@@ -1,3 +1,4 @@
+import './persona/sajuEntry.css';
 import React, { useState } from 'react';
 import { authApi } from '../services/apiService';
 import { User } from '../types';
@@ -73,7 +74,8 @@ export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuc
         }
     };
 
-    const accent = feature?.accent || '#6D5BD0';
+    const dogyeol = !!notice && !!personaName?.startsWith('도결');
+    const accent = dogyeol ? '#22324A' : feature?.accent || '#6D5BD0';
 
     // 안내 배너 문구 — notice 가 있을 때만 쓴다.
     const who = personaName?.trim() || '';
@@ -100,7 +102,7 @@ export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuc
 
     return (
         // ★notice 가 있으면 진입화면(z-85) 위로 올린다. 없으면 종전 z-60 그대로.
-        <div className={`fixed inset-0 ${notice ? 'z-[95]' : 'z-[60]'} flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm`}
+        <div className={`${dogyeol ? 'dg-guest ' : ''}fixed inset-0 ${notice ? 'z-[95]' : 'z-[60]'} flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm`}
              onClick={onClose}>
             <div className={`w-full max-w-sm rounded-3xl bg-white shadow-2xl ${notice ? 'max-h-[calc(100dvh-32px)] overflow-y-auto' : 'overflow-hidden'}`}
                  onClick={e => e.stopPropagation()}

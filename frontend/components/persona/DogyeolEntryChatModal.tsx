@@ -1,3 +1,5 @@
+import { useDogyeolBirthGate, needsBirth } from './useDogyeolBirthGate';
+import { DogyeolBirthForm } from './DogyeolBirthForm';
 import ReactMarkdown from 'react-markdown';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { EntryChatModalProps } from './EunbiEntryChatModal';
@@ -23,8 +25,9 @@ const writeDraft = (key: string, text: string) => { try { if (text) sessionStora
 
 export const DogyeolEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?: string }> = ({ theme, messages, isTyping, balance, hideCost, onSend, onClose, onNeedCharge, onOpenFullChat, opener, draftOwner }) => {
     const points = usePoints();
-    const { menus } = usePersonaMenus(theme.displayName, theme.personaId);
-    const [birth] = useSavedBirth();
+    const { menus, useBirthInfo } = usePersonaMenus(theme.displayName, theme.personaId);
+    const birthGate = useDogyeolBirthGate();
+    const { birth } = birthGate;
     const draftKey = `dogyeol-draft:${draftOwner || 'anonymous'}:${theme.personaId}`;
     const [draft, setDraft] = useState(() => readDraft(draftKey));
     const [dream, setDream] = useState('');
@@ -47,9 +50,10 @@ export const DogyeolEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?
     const dialog = useRef<HTMLDivElement>(null);
     const input = useRef<HTMLTextAreaElement>(null);
     const flow = useRef<HTMLDivElement>(null);
+    const birthActions = useRef(birthGate); birthActions.current = birthGate;
     const actions = useRef({onClose, inputKind, partnerFor, twoStep, faceResult, palmResult});
     actions.current = {onClose, inputKind, partnerFor, twoStep, faceResult, palmResult};
-    const nested = inputKind === 'face' || inputKind === 'palm' || !!partnerFor || twoStep > 0 || !!faceResult || !!palmResult;
+    const nested = birthGate.open || inputKind === 'face' || inputKind === 'palm' || !!partnerFor || twoStep > 0 || !!faceResult || !!palmResult;
     // 사진·상대 정보 창이 떠도 도결 머리말(초상·이름)은 보이게 — 실제 머리말 높이만큼 창을 내린다.
     // 머리말은 화면 폭(초상 28vw)과 대화 여부(dg-compact)에 따라 높이가 달라 CSS 고정값으로는 어긋난다.
     useLayoutEffect(() => {
@@ -76,7 +80,7 @@ export const DogyeolEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?
             if (e.key === 'Escape') {
                 e.preventDefault(); e.stopImmediatePropagation();
                 const a = actions.current;
-                if (a.inputKind || a.partnerFor || a.twoStep || a.faceResult || a.palmResult) closeInput(); else a.onClose();
+                if (birthActions.current.open) birthActions.current.cancel(); else if (a.inputKind || a.partnerFor || a.twoStep || a.faceResult || a.palmResult) closeInput(); else a.onClose();
             }
             if (e.key !== 'Tab') return;
             const host = dialog.current?.querySelector('.dg-child') || dialog.current;
@@ -133,7 +137,7 @@ export const DogyeolEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?
         if (kind) { setInputKind(kind); return; }
         const menu = sheetMenuFor(menus, key);
         if (!menu) { setNotice('error'); return; }
-        if (menu.subMenu || mayRun()) runner.select(menu);
+        if (menu.subMenu || mayRun()) birthGate.requireBirth(needsBirth(key, menu, useBirthInfo), saved => runner.select(menu, saved));
     };
     const submit = async () => {
         const text = draft.trim();
@@ -187,6 +191,7 @@ export const DogyeolEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?
             </div>
             <div className="dg-live" aria-live="polite">{!pending ? runner.result?.body || messages.filter(m => m.role !== 'user' && !m.isStreaming).slice(-1)[0]?.text : ''}</div>
             {nested && <div className="dg-child" role="dialog" aria-modal="true" aria-label="도결 상담 입력" onMouseDown={e => e.stopPropagation()}>
+                {birthGate.open && <DogyeolBirthForm initial={birth} saving={birthGate.saving} error={birthGate.error} onSave={birthGate.save} onCancel={birthGate.cancel}/>}
                 {(inputKind === 'face' || inputKind === 'palm') && <p className="dg-photo-guide">밝은 곳에서 {inputKind === 'face' ? '얼굴 전체' : '손바닥 전체'}가 또렷하게 나오도록 찍어 주세요.</p>}
                 {inputKind === 'face' && <FaceReadingModal personaId={theme.personaId} onPointsUpdated={updatePoints} onResult={r => { setFaceResult(r); setInputKind(null); }} onClose={() => setInputKind(null)}/>}
                 {inputKind === 'palm' && <PalmReadingModal personaId={theme.personaId} onPointsUpdated={updatePoints} onResult={(result, imageUrl, hand) => { setPalmResult({result, imageUrl, hand}); setInputKind(null); }} onClose={() => setInputKind(null)}/>}

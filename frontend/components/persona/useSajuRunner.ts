@@ -6,6 +6,7 @@ import { personaApi, quickMenuApi, userProfileApi } from '../../services/apiServ
 //   DB `Persona.quickMenuJson` 이 정본이며, 여기 없는 필드는 이 화면이 쓰지 않는다는 뜻이다.
 export interface SajuMenu {
     label: string;
+    useBirthInfo?: boolean;
     prompt?: string;
     resultCard?: boolean;
     placeholder?: string;
@@ -95,23 +96,26 @@ const messageFor = (e: any): string | null => {
 
 /** 저장된 명부를 서버에서 한 번 읽어온다.
  *  ★App.tsx 의 `useQuickMenu` 가 쓰는 것과 **같은 API**다 — 별도 저장소를 만들지 않는다.
- *  실패해도 조용히 null 로 둔다(명부 없이도 풀이는 나온다, 정확도만 떨어진다). */
+ *  실패하면 null 로 두며, 도결의 명부 gate가 필요한 메뉴 실행을 막는다. */
 export const useSavedBirth = (enabled = true): [SajuBirth | null, (b: SajuBirth) => void] => {
     const [birth, setBirth] = useState<SajuBirth | null>(null);
+    const revision = useRef(0);
+    const updateBirth = useCallback((b: SajuBirth) => { revision.current++; setBirth(b); }, []);
     useEffect(() => {
         // 비로그인 진입화면(2026-09-28)에선 부르지 않는다 — 로그인 전용 API 라 401 만 난다.
         if (!enabled) return;
         let alive = true;
+        const started = revision.current;
         userProfileApi.getBirthInfo()
             .then(({ birthInfoJson }: any) => {
-                if (!alive || !birthInfoJson) return;
+                if (!alive || revision.current !== started || !birthInfoJson) return;
                 try { setBirth(typeof birthInfoJson === 'string' ? JSON.parse(birthInfoJson) : birthInfoJson); }
                 catch { /* 형식이 깨졌으면 없는 것으로 둔다 */ }
             })
             .catch(() => { /* 비로그인·네트워크 실패 — 명부 없이 진행 */ });
         return () => { alive = false; };
     }, [enabled]);
-    return [birth, setBirth];
+    return [birth, updateBirth];
 };
 
 /** 페르소나 **이름**으로 id 와 퀵메뉴를 찾아온다.
@@ -121,8 +125,8 @@ export const useSavedBirth = (enabled = true): [SajuBirth | null, (b: SajuBirth)
  *    안 걸리므로 **불일치가 조용히 남지 않는다**.
  *  ★정본은 DB `Persona.quickMenuJson` — 프롬프트를 화면에 하드코딩하지 않는다.
  *    어드민이 메뉴를 고치면 이 화면도 따라간다. */
-export const usePersonaMenus = (personaName: string | undefined, personaId?: string): { id?: string; menus: SajuMenu[] } => {
-    const [found, setFound] = useState<{ id?: string; menus: SajuMenu[] }>({ menus: [] });
+export const usePersonaMenus = (personaName: string | undefined, personaId?: string): { id?: string; menus: SajuMenu[]; useBirthInfo?: boolean } => {
+    const [found, setFound] = useState<{ id?: string; menus: SajuMenu[]; useBirthInfo?: boolean }>({ menus: [] });
     useEffect(() => {
         if (!personaName && !personaId) return;
         let alive = true;
@@ -131,9 +135,9 @@ export const usePersonaMenus = (personaName: string | undefined, personaId?: str
                 if (!alive) return;
                 const p = list.find(x => personaId ? x.id === personaId : x.name === personaName);
                 if (!p) return;
-                let menus: SajuMenu[] = [];
-                try { menus = JSON.parse(p.quickMenuJson || '{}').menus ?? []; } catch { /* 형식 깨짐 */ }
-                setFound({ id: p.id, menus });
+                let menus: SajuMenu[] = []; let useBirthInfo: boolean | undefined;
+                try { const config = JSON.parse(p.quickMenuJson || '{}'); menus = config.menus ?? []; useBirthInfo = config.useBirthInfo; } catch { /* 형식 깨짐 */ }
+                setFound({ id: p.id, menus, useBirthInfo });
             })
             .catch(() => { /* 실패하면 칩이 안 보일 뿐, '대화하기' 버튼은 그대로 동작한다 */ });
         return () => { alive = false; };
@@ -149,11 +153,11 @@ export const useSajuRunner = (personaId: string | undefined, birth: SajuBirth | 
     useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
     /** 프롬프트 하나를 실행해 결과를 창 안에 담는다. */
-    const run = useCallback((title: string, prompt: string) => {
+    const run = useCallback((title: string, prompt: string, savedBirth: SajuBirth | null = birth) => {
         if (!personaId || busy.current) return;
         busy.current = true;
         setState({ picking: null, loading: true, result: null, error: null });
-        quickMenuApi.generate(personaId, withBirth(prompt, birth))
+        quickMenuApi.generate(personaId, withBirth(prompt, savedBirth))
             .then(({ result, paidBalance, bonusBalance }) => {
                 if (paidBalance !== undefined && bonusBalance !== undefined) callbacks.current?.onPaid?.(paidBalance, bonusBalance);
                 if (alive.current) setState({ picking: null, loading: false, result: { title, body: result }, error: null });
@@ -166,11 +170,11 @@ export const useSajuRunner = (personaId: string | undefined, birth: SajuBirth | 
     }, [personaId, birth]);
 
     /** 칩·카드 클릭. 서브메뉴가 있으면 항목 선택을 먼저 띄운다. */
-    const select = useCallback((menu: SajuMenu) => {
+    const select = useCallback((menu: SajuMenu, savedBirth: SajuBirth | null = birth) => {
         if (busy.current) return;
         if (menu.subMenu) { setState({ ...EMPTY, picking: menu }); return; }
-        run(menu.label, menu.prompt ?? '');
-    }, [run]);
+        run(menu.label, menu.prompt ?? '', savedBirth);
+    }, [run, birth]);
 
     /** 서브메뉴 항목 선택 */
     const pick = useCallback((label: string, prompt: string) => run(label, prompt), [run]);
