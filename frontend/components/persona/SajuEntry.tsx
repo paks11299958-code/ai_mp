@@ -14,7 +14,7 @@ import { FaceReadingResultCard } from '../FaceReadingResultCard';
 import { PalmReadingModal } from '../PalmReadingModal';
 import { PalmReadingResultCard } from '../PalmReadingResultCard';
 // 3단계 — 인연 궁합의 상대방 정보도 창 안에서 받는다(채팅 경로와 **같은 모달**).
-import { PartnerInfoModal } from '../PartnerInfoModal';
+import { DogyeolPartnerForm } from './DogyeolPartnerForm';
 import type { FaceReadingResult, PalmReadingResult } from '../../types';
 
 // 도결(道潔) 선생 전용 진입 화면 — "사주 사이트 같은 큰 랜딩".
@@ -330,14 +330,13 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature,
                 </div>
             )}
 
-            {/* ── 3단계: 인연 궁합 — 상대방 정보(2026-09-07) ──────────────
-                ★채팅이 쓰던 `PartnerInfoModal` 을 **그대로** 띄운다. 관상·손금과 같은
-                  방식이며, 새 입력 UI 를 만들면 이름·생년월일·시(時) 3단 흐름을 다시
-                  짜야 하고 두 화면의 문구가 갈린다.
+            {/* ── 3단계: 궁합 — 상대방 정보(2026-09-07, 10-04 한지 양식 `DogyeolPartnerForm`) ──
+                상대 명부는 이번 궁합에만 쓰고 저장하지 않는다. 프롬프트 조립(`withPartner`)은 채팅과 같다.
                 ★★차감은 `/quick-menu-result` 한 번뿐이다 — 채팅 경로의 activate 를
                   흉내내면 **두 번 차감**된다(꿈해몽에서 겪은 함정). */}
             {partnerFor && (
-                <PartnerInfoModal
+                <DogyeolPartnerForm
+                    friendship={partnerFor.label === '나와 친구 궁합'}
                     onComplete={p => {
                         // 내 명부는 붙이지 않는다 — `run()` 의 `withBirth()` 가 붙인다(중복 방지).
                         runner.run(partnerFor.label, withPartner(partnerFor.prompt, p));
@@ -350,9 +349,9 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature,
             {/* 친구 둘 궁합 — 같은 모달을 친구1 → 친구2 로 두 번 받는다.
                 ★`key` 로 단계가 바뀔 때 입력을 초기화한다(안 하면 친구1 값이 그대로 남는다). */}
             {twoStep > 0 && twoFor && (
-                <PartnerInfoModal
+                <DogyeolPartnerForm
                     key={twoStep}
-                    title={twoStep === 1 ? '🤝 첫 번째 친구 정보' : '🤝 두 번째 친구 정보'}
+                    step={twoStep}
                     onComplete={info => {
                         if (twoStep === 1) { setFirstFriend(info); setTwoStep(2); return; }
                         if (firstFriend) runner.run(twoFor.label, withTwoPartners(twoFor.prompt, firstFriend, info));

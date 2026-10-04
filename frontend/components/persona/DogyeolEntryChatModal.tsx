@@ -10,7 +10,7 @@ import { FaceReadingModal } from '../FaceReadingModal';
 import { PalmReadingModal } from '../PalmReadingModal';
 import { FaceReadingResultCard } from '../FaceReadingResultCard';
 import { PalmReadingResultCard } from '../PalmReadingResultCard';
-import { PartnerInfoModal } from '../PartnerInfoModal';
+import { DogyeolPartnerForm } from './DogyeolPartnerForm';
 import type { FaceReadingResult, PalmReadingResult } from '../../services/apiService';
 import './dogyeolChat.css';
 
@@ -84,7 +84,7 @@ export const DogyeolEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?
             }
             if (e.key !== 'Tab') return;
             const host = dialog.current?.querySelector('.dg-child') || dialog.current;
-            const nodes = [...(host?.querySelectorAll<HTMLElement>('button:not(:disabled),textarea:not(:disabled),input:not(:disabled),a[href],[tabindex="0"]') || [])].filter(n => n.getClientRects().length > 0);
+            const nodes = [...(host?.querySelectorAll<HTMLElement>('button:not(:disabled),textarea:not(:disabled),input:not(:disabled),select:not(:disabled),a[href],[tabindex="0"]') || [])].filter(n => n.getClientRects().length > 0);
             if (!nodes.length) return;
             const first = nodes[0], last = nodes[nodes.length - 1];
             if (e.shiftKey && (document.activeElement === first || !host?.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
@@ -110,7 +110,7 @@ export const DogyeolEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?
             wasNested.current = false; return;
         }
         wasNested.current = true;
-        const timer = window.setTimeout(() => dialog.current?.querySelector<HTMLElement>('.dg-child button,.dg-child textarea')?.focus(), 40);
+        const timer = window.setTimeout(() => dialog.current?.querySelector<HTMLElement>('.dg-child input,.dg-child textarea,.dg-child select,.dg-child button')?.focus(), 40);
         return () => clearTimeout(timer);
     }, [nested, twoStep]);
 
@@ -197,8 +197,8 @@ export const DogyeolEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?
                 {inputKind === 'palm' && <PalmReadingModal personaId={theme.personaId} onPointsUpdated={updatePoints} onResult={(result, imageUrl, hand) => { setPalmResult({result, imageUrl, hand}); setInputKind(null); }} onClose={() => setInputKind(null)}/>}
                 {faceResult && <FaceReadingResultCard result={faceResult} personaName={theme.displayName} bgUrl="/dogyeol/hanji-background.webp" onClose={() => setFaceResult(null)}/>}
                 {palmResult && <PalmReadingResultCard {...palmResult} personaName={theme.displayName} onClose={() => setPalmResult(null)}/>}
-                {partnerFor && <PartnerInfoModal onClose={() => setPartnerFor(null)} onComplete={p => { if (mayRun()) { runner.run(partnerFor.label, withPartner(partnerFor.prompt, p)); setPartnerFor(null); } }}/>}
-                {twoFor && twoStep > 0 && <PartnerInfoModal key={twoStep} title={twoStep === 1 ? '첫 번째 친구 정보' : '두 번째 친구 정보'} onClose={() => { setTwoFor(null); setTwoStep(0); setFirstFriend(null); }} onComplete={p => {
+                {partnerFor && <DogyeolPartnerForm friendship={partnerFor.label === '나와 친구 궁합'} onClose={() => setPartnerFor(null)} onComplete={p => { if (mayRun()) { runner.run(partnerFor.label, withPartner(partnerFor.prompt, p)); setPartnerFor(null); } }}/>}
+                {twoFor && twoStep > 0 && <DogyeolPartnerForm key={twoStep} step={twoStep} onClose={() => { setTwoFor(null); setTwoStep(0); setFirstFriend(null); }} onComplete={p => {
                     if (twoStep === 1) { setFirstFriend(p); setTwoStep(2); }
                     else if (firstFriend && mayRun()) { runner.run(twoFor.label, withTwoPartners(twoFor.prompt, firstFriend, p)); setTwoStep(0); setTwoFor(null); setFirstFriend(null); }
                 }}/>}

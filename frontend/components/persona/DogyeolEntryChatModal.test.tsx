@@ -12,7 +12,7 @@ vi.mock('../../contexts/PointsContext',()=>({usePoints:()=>({priceOf:()=>100,sho
 vi.mock('../FaceReadingModal',()=>({FaceReadingModal:(p:any)=>{m.face(p);return <button onClick={p.onClose}>기존 관상 닫기</button>}}));
 vi.mock('../PalmReadingModal',()=>({PalmReadingModal:(p:any)=>{m.palm(p);return <button onClick={p.onClose}>기존 손금 닫기</button>}}));
 vi.mock('../FaceReadingResultCard',()=>({FaceReadingResultCard:()=>null}));vi.mock('../PalmReadingResultCard',()=>({PalmReadingResultCard:()=>null}));
-vi.mock('../PartnerInfoModal',()=>({PartnerInfoModal:(p:any)=><button onClick={()=>p.onComplete({name:p.title?.includes('두 번째')?'친구2':'친구1',year:'2000',month:'1',day:'1'})}>상대 완료</button>}));
+vi.mock('./DogyeolPartnerForm',()=>({DogyeolPartnerForm:(p:any)=><button onClick={()=>p.onComplete({name:p.step === 2?'친구2':'친구1',year:'2000',month:'1',day:'1'})}>상대 완료</button>}));
 const base=()=>({theme:ENTRY_CHAT_THEMES[DOGYEOL_ID],draftOwner:'review-user',messages:[],isTyping:false,balance:1000,onSend:vi.fn(async()=> 'sent' as const),onClose:vi.fn(),onNeedCharge:vi.fn(),onOpenFullChat:vi.fn()});
 const choose=async(label:string)=>{await act(async()=>{});fireEvent.click(screen.getByRole('button',{name:label,exact:true}));};
 const click=async(name:string)=>{await act(async()=>fireEvent.click(screen.getByRole('button',{name,exact:true})));};
