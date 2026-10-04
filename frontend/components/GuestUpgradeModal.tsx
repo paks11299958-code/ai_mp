@@ -96,9 +96,10 @@ export const GuestUpgradeModal: React.FC<GuestUpgradeModalProps> = ({ onSuccess,
         }
     };
 
+    // ★z-[120]: 체험계정의 충전 경로 — PointModal 과 같은 층(chargeLayer.test.ts). 진입화면·보드 뒤에 숨지 않게.
     return (
         <div
-            className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-[120] p-4"
             style={{ background: 'rgba(45,32,23,0.5)' }}
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >

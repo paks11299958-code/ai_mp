@@ -60,8 +60,10 @@ export const PointModal: React.FC<PointModalProps> = ({ currentPoints, userId, o
         }
     };
 
+    // ★z-[120]: 전역 402 이벤트(insufficient-points)는 진입화면(85)·진입 채팅(90~100)·기능 보드(90~95)·
+    //   즐겨찾기(101)가 열린 채로 이 창을 띄운다. 70 이던 시절 그 뒤에 숨었다(2026-10-04). 낮추지 말 것 — chargeLayer.test.ts
     return (
-        <div className="fixed inset-0 z-[70] bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-[120] bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
             <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
