@@ -284,4 +284,4 @@ serif  "Noto Serif KR" — 제목은 명조로
   `DogyeolEntryChatModal` 메뉴도 같은 게이트.
 - `useSajuRunner`: `run/select(…, savedBirth)` 인자 추가(기본값=기존 birth, 하위호환). `useSavedBirth` 는 revision 가드로 늦게 온 GET 이 방금 저장한 명부를 덮지 않는다.
 - 운영 실측: 명부 GET 만 null 로 가로채 클릭 → 풀이 POST 0건·명부 창(진입·채팅). ★Playwright 텍스트 매칭은 진입화면 뒤 메인 기능카드를 먼저 잡으니 `.sj-feat` 로 지정.
-- 남은 것: 궁합 상대 창(`PartnerInfoModal`)은 색만 바뀌어 한지 톤이 약하다.
+- ✅같은 날 `73035e4`: 궁합 3종 상대 입력을 `DogyeolPartnerForm`(DogyeolBirthForm 문구 prop 재사용)으로 교체 — 진입·채팅 모두, 공통 `PartnerInfoModal` 무수정. 상대 정보는 저장하지 않는다. ★'나와 친구 궁합' 제목 분기는 DB 라벨 글자에 묶여 있다.
