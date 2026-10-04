@@ -274,3 +274,14 @@ serif  "Noto Serif KR" — 제목은 명조로
 - `useSajuRunner` 에 연타 잠금·`onPaid`/`onInsufficient` 콜백, App 에 모달 전송 페르소나 불일치 차단·계정별 초안.
 - 프로필(메인 카드) 이미지 = GCS `personas/<id>/profile-v2.jpg`(원본 ✦ 워터마크 제거본, 롤백=`profile.png`).
 - 제작 근거: `~/design-lab/dogyeol-chat/`(BRIEF_round0~2, research 18장, round1 디자인 9상태, round2 하네스·검수 51건).
+
+## 2026-10-04 — 서책 펼침형 한지 리디자인 + 명부 먼저 (ai_mp `9aafa8f`)
+
+- 배치: 호랑이·향 연기 히어로(`sajuHero.ts`) 유지, 위 칩 8개 + 아래 "무엇을 볼 수 있나" 8개 **중복 제거** → 4묶음 "차례" 01~08(`.sj-feat`).
+- 🔴**명부 먼저**: 명부가 없으면 `withBirth()` 가 생년월일 없이 풀이·차감하던 순서 버그 수정.
+  `useDogyeolBirthGate.ts` 의 `needsBirth(key, menu)` — 꿈·관상·손금은 false, 그 외는 DB `quickMenuJson.useBirthInfo` 우선.
+  명부 없음 → `DogyeolBirthForm`(한지) → `saveBirthInfo` 성공 후 **새 명부로 1회** 실행. 취소·잘못된 날짜 = 요청 0.
+  `DogyeolEntryChatModal` 메뉴도 같은 게이트.
+- `useSajuRunner`: `run/select(…, savedBirth)` 인자 추가(기본값=기존 birth, 하위호환). `useSavedBirth` 는 revision 가드로 늦게 온 GET 이 방금 저장한 명부를 덮지 않는다.
+- 운영 실측: 명부 GET 만 null 로 가로채 클릭 → 풀이 POST 0건·명부 창(진입·채팅). ★Playwright 텍스트 매칭은 진입화면 뒤 메인 기능카드를 먼저 잡으니 `.sj-feat` 로 지정.
+- 남은 것: 궁합 상대 창(`PartnerInfoModal`)은 색만 바뀌어 한지 톤이 약하다.
