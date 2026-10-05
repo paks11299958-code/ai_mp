@@ -78,6 +78,7 @@ import { StockPublicShareView } from './components/StockPublicShareView';
 import { EmbedChat } from './components/EmbedChat';
 import { ConsultPage } from './components/ConsultPage';
 import { LearnPage } from './components/LearnPage';
+import { collapseGreetingRuns } from './lib/greetingRuns';
 import { LearnIndex } from './components/learn/LearnIndex';
 import { LearnPage2 } from './components/learn/LearnPage2';
 import { LearningLanding } from './components/learning/LearningLanding';
@@ -3257,7 +3258,7 @@ const AppContent: React.FC = () => {
                                             </button>
                                         </div>
                                     )}
-                                    {currentSession.messages.map(msg => (
+                                    {collapseGreetingRuns(currentSession.messages).map(msg => (
                                         <MessageBubble key={msg.id} message={msg} personaName={activePersona?.name || 'AI'} personaImageUrl={activePersona?.imageUrl} newUi={true} />
                                     ))}
                                     <div ref={messagesEndRef} />

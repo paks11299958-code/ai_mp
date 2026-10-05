@@ -3,6 +3,7 @@ import type { Message } from '../../types';
 import type { Emotion } from '../../lib/personaEmotion';
 import type { EntryChatTheme } from '../../lib/entryChatThemes';
 import { CHAT_MESSAGE_COST } from '../../lib/chatCost';
+import { collapseGreetingRuns } from '../../lib/greetingRuns';
 
 export type EntryChatSendResult = 'sent' | 'insufficient' | 'blocked';
 
@@ -132,7 +133,7 @@ export const EunbiEntryChatModal: React.FC<EntryChatModalProps> = ({ theme, mess
                 <button className="ec-close" type="button" onClick={requestClose} aria-label="채팅 모달 닫기">×</button>
             </section>
             <div className="ec-messages" ref={listRef}>
-                {messages.map((m, index) => <div className={`ec-row ${m.role === 'user' ? 'ec-user' : 'ec-eunbi'}`} key={m.id} style={{ '--ec-delay': index < initialCount.current ? `${Math.min(index, 6) * 70}ms` : '0ms' } as React.CSSProperties}>
+                {collapseGreetingRuns(messages).map((m, index) => <div className={`ec-row ${m.role === 'user' ? 'ec-user' : 'ec-eunbi'}`} key={m.id} style={{ '--ec-delay': index < initialCount.current ? `${Math.min(index, 6) * 70}ms` : '0ms' } as React.CSSProperties}>
                     {m.role !== 'user' && <img className="ec-avatar" src={portrait} alt="" />}
                     <div className="ec-bubble">{renderVisualNovelText(m.text)}{m.isStreaming && <span className="ec-cursor" aria-hidden="true">▍</span>}</div>
                 </div>)}

@@ -13,6 +13,7 @@ import { PalmReadingResultCard } from '../PalmReadingResultCard';
 import { DogyeolPartnerForm } from './DogyeolPartnerForm';
 import type { FaceReadingResult, PalmReadingResult } from '../../services/apiService';
 import './dogyeolChat.css';
+import { collapseGreetingRuns } from '../../lib/greetingRuns';
 
 const ITEMS = [
     ['siwoon', '운세', 'fortune'], ['wealth', '재물', 'wealth'], ['yeonn', '인연', 'relationship'], ['rebirth', '전생', 'past-life'],
@@ -168,7 +169,7 @@ export const DogyeolEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?
                 </header>
                 <div className="dg-flow" ref={flow}>
                     {emptyGreeting && <><p className="dg-time">오늘, 도결 선생과 나누는 이야기</p>{letter(<><p>어서 오세요.<br/>마음에 남은 이야기가 있으신가요?</p><p>급히 답을 찾기보다,<br/>차분히 함께 살펴보겠습니다.</p><p className="dg-note">궁금한 주제를 골라 주세요</p></>)}</>}
-                    {messages.map(m => m.role === 'user' ? <div className="dg-user" key={m.id}>{m.text}</div> : <React.Fragment key={m.id}>{letter(<p>{m.text}{m.isStreaming && <span aria-hidden="true">▍</span>}</p>)}</React.Fragment>)}
+                    {collapseGreetingRuns(messages).map(m => m.role === 'user' ? <div className="dg-user" key={m.id}>{m.text}</div> : <React.Fragment key={m.id}>{letter(<p>{m.text}{m.isStreaming && <span aria-hidden="true">▍</span>}</p>)}</React.Fragment>)}
                     {runner.picking && letter(<><h2>{runner.picking.label}</h2>{runner.picking.subMenu?.dialog && <p>{runner.picking.subMenu.dialog}</p>}<div className="dg-picks">{runner.picking.subMenu?.items?.map(it => <button key={it.label} className="dg-secondary" disabled={pending} onClick={() => {
                         if ((it.partnerModal || it.twoPartnerModal) && !mayRun()) return;
                         if (it.twoPartnerModal) { setTwoFor(it); setFirstFriend(null); setTwoStep(1); }
