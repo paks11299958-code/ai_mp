@@ -35,7 +35,7 @@ describe('도결 진입화면 — 비로그인 gate', () => {
     it('비로그인: 풀이 칩을 누르면 유료 API 대신 gate(paid, 키)', () => {
         const p = base();
         render(<PersonaEntrySheet guide={sajuGuide} {...p} isGuest />);
-        fireEvent.click(screen.getAllByRole('button', { name: /시운의 흐름/ })[0]);
+        fireEvent.click(screen.getAllByRole('button', { name: '운세', exact: true })[0]);
         expect(p.onGuestGate).toHaveBeenCalledWith('paid', 'siwoon');
         expect(select).not.toHaveBeenCalled();
     });
@@ -43,7 +43,7 @@ describe('도결 진입화면 — 비로그인 gate', () => {
     it('명부가 있는 회원(isGuest 없음): onGuestGate 를 넘겨도 종전처럼 창 안 풀이로 간다', () => {
         const p = base();
         render(<PersonaEntrySheet guide={sajuGuide} {...p} />);
-        fireEvent.click(screen.getAllByRole('button', { name: /시운의 흐름/ })[0]);
+        fireEvent.click(screen.getAllByRole('button', { name: '운세', exact: true })[0]);
         expect(select).toHaveBeenCalledTimes(1);
         expect(p.onGuestGate).not.toHaveBeenCalled();
     });

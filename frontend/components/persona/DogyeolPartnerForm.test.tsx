@@ -21,7 +21,7 @@ function show(chat:boolean,guest=false){return render(chat?<DogyeolEntryChatModa
 async function open(chat:boolean,kind='인연 궁합') {
     show(chat); await act(async()=>{});
     const friendship=kind!=='인연 궁합';
-    fireEvent.click(screen.getByRole('button',{name:chat?(friendship?'우정':'인연'):(friendship?'우정 궁합':'인연의 결'),exact:true}));
+    fireEvent.click(screen.getByRole('button',{name:friendship?'친구 궁합':'연애·궁합',exact:true}));
     fireEvent.click(screen.getByRole('button',{name:chat?`${kind} · ${kind==='친구 둘 궁합'?'두 사람 정보':'상대 정보'}`:new RegExp(kind)}));
 }
 function fill(name='김하늘',day='12') {

@@ -5,7 +5,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { EntryChatModalProps } from './EunbiEntryChatModal';
 import { CHAT_MESSAGE_COST } from '../../lib/chatCost';
 import { usePoints } from '../../contexts/PointsContext';
-import { usePersonaMenus, useSavedBirth, useSajuRunner, sheetMenuFor, inputKindFor, dreamPlaceholder, withPartner, withTwoPartners, type SajuBirth, type SajuInputKind } from './useSajuRunner';
+import { usePersonaMenus, useSajuRunner, sheetMenuFor, inputKindFor, dreamPlaceholder, withPartner, withTwoPartners, type SajuBirth, type SajuInputKind } from './useSajuRunner';
 import { FaceReadingModal } from '../FaceReadingModal';
 import { PalmReadingModal } from '../PalmReadingModal';
 import { FaceReadingResultCard } from '../FaceReadingResultCard';
@@ -15,11 +15,9 @@ import type { FaceReadingResult, PalmReadingResult } from '../../services/apiSer
 import './dogyeolChat.css';
 import { collapseGreetingRuns } from '../../lib/greetingRuns';
 
-const ITEMS = [
-    ['siwoon', '운세', 'fortune'], ['wealth', '재물', 'wealth'], ['yeonn', '인연', 'relationship'], ['rebirth', '전생', 'past-life'],
-    ['dream', '해몽', 'dream'], ['gwansang', '관상', 'face'], ['palm', '손금', 'palm'], ['friendship', '우정', 'friendship'],
-] as const;
-const Icon = ({ name }: { name: string }) => <img src={`/dogyeol/icons/${name}.svg`} alt="" />;
+import { DOGYEOL_MENU, DOGYEOL_MENU_KEYS } from '../../lib/dogyeolMenu';
+const ITEMS = DOGYEOL_MENU_KEYS.map(key => [key, DOGYEOL_MENU[key].name, key] as const);
+const Icon = ({ name }: { name: keyof typeof DOGYEOL_MENU }) => <img src={DOGYEOL_MENU[name].image} alt="" width={400} height={400} />;
 const SendIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M5 5L21 12L5 19L8 12Z"/><path d="M8 12H19"/></svg>;
 const readDraft = (key: string) => { try { return sessionStorage.getItem(key) || ''; } catch { return ''; } };
 const writeDraft = (key: string, text: string) => { try { if (text) sessionStorage.setItem(key, text); else sessionStorage.removeItem(key); } catch { /* private browser storage may be unavailable */ } };

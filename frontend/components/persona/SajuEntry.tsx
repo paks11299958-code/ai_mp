@@ -3,11 +3,11 @@ import './dogyeolChat.css';
 import { useDogyeolBirthGate, needsBirth } from './useDogyeolBirthGate';
 import { DogyeolBirthForm } from './DogyeolBirthForm';
 import React, { useEffect, useRef, useState } from 'react';
-import { MpnFeatureIcon } from '../MainPageNew';
+import { DOGYEOL_MENU, DOGYEOL_MENU_GROUPS, DOGYEOL_MENU_KEYS } from '../../lib/dogyeolMenu';
 import type { PersonaEntryGuide, GuestGate } from '../PersonaEntrySheet';
 import { guestNoticeForFeature } from '../../lib/guestFeatureGate';
-import { SAJU_TONE, SAJU_HERO_IMAGES, SAJU_HERO_ASPECT, mountSajuHero, mountSajuLoadingSmoke, prefersReducedMotion } from './sajuHero';
-import { usePersonaMenus, useSajuRunner, useSavedBirth, sheetMenuFor, inputKindFor, dreamPlaceholder, withPartner, withTwoPartners, type SajuInputKind, type SajuBirth } from './useSajuRunner';
+import { SAJU_HERO_IMAGES, mountSajuHero, mountSajuLoadingSmoke, prefersReducedMotion } from './sajuHero';
+import { usePersonaMenus, useSajuRunner, sheetMenuFor, inputKindFor, dreamPlaceholder, withPartner, withTwoPartners, type SajuInputKind, type SajuBirth } from './useSajuRunner';
 // 2단계 — 기존 모달·결과 카드를 그대로 재사용한다(새로 만들지 않는다).
 import { FaceReadingModal } from '../FaceReadingModal';
 import { FaceReadingResultCard } from '../FaceReadingResultCard';
@@ -31,7 +31,6 @@ import type { FaceReadingResult, PalmReadingResult } from '../../types';
 //   그린다. 그리는 로직은 전부 sajuHero.ts에 있고 여기서는 canvas를 붙였다 떼기만 한다.
 //   모션 감소 설정이면 **캔버스를 아예 만들지 않고** tiger.png를 정적으로 띄운다.
 
-const T = SAJU_TONE;
 
 // 스타일은 Tailwind가 아니라 이 컴포넌트 전용 CSS로 둔다.
 // 기존 사이트는 밝은 보라·핑크 톤이라 유틸리티 클래스를 쓰면 톤이 섞인다 —
@@ -49,9 +48,6 @@ interface Props {
     onGuestGate?: GuestGate;
 }
 
-const MENU_GROUPS = [{title:'삶의 흐름',keys:['siwoon','wealth']},{title:'사람의 인연',keys:['yeonn','friendship']},{title:'마음의 자취',keys:['dream','rebirth']},{title:'몸에 담긴 결',keys:['gwansang','palm']}];
-const MENU_ORDER = MENU_GROUPS.flatMap(g => g.keys);
-const MENU_ICONS: Record<string,string> = {siwoon:'fortune',wealth:'wealth',yeonn:'relationship',friendship:'friendship',dream:'dream',rebirth:'past-life',gwansang:'face',palm:'palm'};
 
 export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature, onInvite, onGuestGate }) => {
     const heroRef = useRef<HTMLCanvasElement | null>(null);
@@ -247,13 +243,22 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature,
                         <div className="sj-ctas"><button className="sj-cta" onClick={() => onStart(guide.autoRunFeatureKey)}>도결 선생과 대화하기</button></div>
                         {guide.usesBirthInfo && <p className="sj-note">명부가 필요한 풀이는 먼저 정보를 여쭙니다.</p>}
                     </section>
-                    <section className="sj-right" aria-label="상담 차례">
-                        <div className="sj-bookhead"><h3 className="sj-serif">차례</h3><p>마음에 남은 이야기를 골라 주세요</p></div>
-                        {MENU_GROUPS.map(group => {
+                    <section className="sj-right" aria-label="상담 메뉴">
+                        <div className="sj-bookhead"><h3>어떤 이야기가 궁금하세요?</h3><p>그림을 눌러 골라주세요</p></div>
+                        {DOGYEOL_MENU_GROUPS.map(group => {
                             const items = group.keys.map(key => features.find(f => f.key === key)).filter((f): f is NonNullable<typeof f> => !!f);
-                            return items.length > 0 && <section className="sj-group" key={group.title}><h4>{group.title}</h4>{items.map(f => <button key={f.key} className="sj-feat" aria-label={f.name} onClick={() => handleFeature(f.key)}><span className="sj-number">{String(MENU_ORDER.indexOf(f.key)+1).padStart(2,'0')}</span><img src={`/dogyeol/icons/${MENU_ICONS[f.key]}.svg`} alt=""/><span>{f.name}</span><span className="sj-arrow" aria-hidden="true">↗</span></button>)}</section>;
+                            return items.length > 0 && <section className="sj-group" key={group.title}>
+                                <h4>{group.title}</h4><div className="sj-cards">{items.map(f => {
+                                    const display = DOGYEOL_MENU[f.key as keyof typeof DOGYEOL_MENU];
+                                    return <button key={f.key} className="sj-feat" aria-label={display.name} onClick={() => handleFeature(f.key)}>
+                                        <img src={display.image} alt="" width={400} height={400}/>
+                                        <span className="sj-cardtext"><strong>{display.name}</strong><small>{display.description}</small></span>
+                                        <span className="sj-arrow" aria-hidden="true">↗</span>
+                                    </button>;
+                                })}</div>
+                            </section>;
                         })}
-                        {features.filter(f => !MENU_ORDER.includes(f.key)).map(f => <button className="sj-feat" key={f.key} onClick={() => handleFeature(f.key)}>{f.name}</button>)}
+                        {features.filter(f => !DOGYEOL_MENU_KEYS.some(key => key === f.key)).map(f => <button className="sj-feat" key={f.key} onClick={() => handleFeature(f.key)}>{f.name}</button>)}
                     </section>
                 </div>
                 <footer className="sj-links"><button onClick={() => { if (onGuestGate) onGuestGate('paid'); else birthGate.edit(); }}>내 명부 살펴보기</button><button onClick={onInvite}>🎁 친구 초대 +1000P</button></footer>

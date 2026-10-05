@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SajuEntry } from './SajuEntry';
 import { DogyeolEntryChatModal } from './DogyeolEntryChatModal';
 import { ENTRY_CHAT_THEMES, DOGYEOL_ID } from '../../lib/entryChatThemes';
+import { DOGYEOL_MENU } from '../../lib/dogyeolMenu';
 import { needsBirth, validBirth } from './useDogyeolBirthGate';
 const m=vi.hoisted(()=>({get:vi.fn(),save:vi.fn(),generate:vi.fn(),gate:vi.fn()}));
 const menus=[{label:'📅 운세',resultCard:true,prompt:'fortune'},{label:'💰 재물',resultCard:true,prompt:'wealth'},{label:'🕉️ 전생',resultCard:true,prompt:'past'},{label:'🌙 해몽',placeholder:'꿈',prompt:'dream'},{label:'🔮 관상',faceModal:true},{label:'🖐 손금',palmModal:true},{label:'❤️ 인연',resultCard:true,prompt:'love'},{label:'🤝 우정',resultCard:true,prompt:'friend'}];
@@ -14,17 +15,39 @@ vi.mock('./sajuHero',()=>({SAJU_TONE:{},SAJU_HERO_ASPECT:'1216 / 832',SAJU_HERO_
 vi.mock('../FaceReadingModal',()=>({FaceReadingModal:()=> <p>관상 입력</p>}));vi.mock('../PalmReadingModal',()=>({PalmReadingModal:()=> <p>손금 입력</p>}));vi.mock('../FaceReadingResultCard',()=>({FaceReadingResultCard:()=>null}));vi.mock('../PalmReadingResultCard',()=>({PalmReadingResultCard:()=>null}));
 const features=[['siwoon','시운의 흐름'],['wealth','성취와 재물'],['yeonn','인연의 결'],['friendship','우정 궁합'],['dream','꿈해몽'],['rebirth','전생 이야기'],['gwansang','관상학'],['palm','손금 보기']].map(([key,name])=>({key,name,icon:'fortune' as any}));
 function show(chat:boolean,guest=false){return render(chat?<DogyeolEntryChatModal theme={ENTRY_CHAT_THEMES[DOGYEOL_ID]} messages={[]} isTyping={false} balance={1000} onSend={vi.fn()} onClose={vi.fn()} onNeedCharge={vi.fn()} onOpenFullChat={vi.fn()}/>:<SajuEntry guide={{title:'도결 선생',personaName:'도결 선생',desc:'인생 멘토',features}} onClose={vi.fn()} onStart={vi.fn()} onFeature={vi.fn()} onGuestGate={guest?m.gate:undefined}/>);}
-async function clickMenu(chat:boolean,key='wealth'){await act(async()=>{});fireEvent.click(screen.getAllByRole('button',{name:chat?({wealth:'재물',dream:'해몽',gwansang:'관상',palm:'손금'} as any)[key]:features.find(f=>f.key===key)!.name})[0]);}
+async function clickMenu(chat:boolean,key='wealth'){await act(async()=>{});await act(async()=>fireEvent.click(screen.getAllByRole('button',{name:DOGYEOL_MENU[key as keyof typeof DOGYEOL_MENU].name,exact:true})[0]));}
 function fill(day='12'){for(const [label,value] of [['이름','김하늘'],['태어난 해','1990'],['태어난 달','2'],['태어난 날',day]])fireEvent.change(screen.getByLabelText(label),{target:{value}});}
 beforeEach(()=>{vi.clearAllMocks();m.get.mockResolvedValue({birthInfoJson:null});m.save.mockResolvedValue({ok:true});m.generate.mockResolvedValue({result:'완성된 풀이'});Element.prototype.scrollTo=vi.fn();Object.defineProperty(window,'matchMedia',{configurable:true,value:()=>({matches:false})});});
 afterEach(cleanup);
 describe.each([false,true])('명부 먼저 chat=%s',chat=>{
  it('누락 명부는 생성 없이 입력; 저장 전·완료 뒤 연타해도 저장1회 생성1회 새 명부 포함',async()=>{show(chat);await clickMenu(chat);expect(screen.getByText('명부를 적어 주세요')).toBeTruthy();expect(m.generate).not.toHaveBeenCalled();fill();let saved:any;m.save.mockImplementation(()=>new Promise(r=>saved=r));const b=screen.getByRole('button',{name:'저장하고 이어가기'});await act(async()=>{fireEvent.click(b);fireEvent.click(b)});expect(m.save).toHaveBeenCalledTimes(1);expect(m.generate).not.toHaveBeenCalled();await act(async()=>saved({ok:true}));await waitFor(()=>expect(m.generate).toHaveBeenCalledTimes(1));expect(m.generate.mock.calls[0][1]).toContain('이름: 김하늘, 생년월일: 양력 1990년 2월 12일');expect(JSON.parse(m.save.mock.calls[0][0])).toEqual({name:'김하늘',year:'1990',month:'2',day:'12',time:'모름',lunar:false});});
- it('취소는 저장0 생성0',async()=>{show(chat);await clickMenu(chat);fireEvent.click(screen.getByRole('button',{name:'취소하고 돌아가기'}));expect(m.save).not.toHaveBeenCalled();expect(m.generate).not.toHaveBeenCalled();expect(screen.queryByText('명부를 적어 주세요')).toBeNull();});
+ it.each(['siwoon','wealth','yeonn','friendship','rebirth'])('%s 명부 취소는 저장0 생성0',async key=>{show(chat);await clickMenu(chat,key);fireEvent.click(screen.getByRole('button',{name:'취소하고 돌아가기'}));expect(m.save).not.toHaveBeenCalled();expect(m.generate).not.toHaveBeenCalled();expect(screen.queryByText('명부를 적어 주세요')).toBeNull();});
  it('잘못된 날짜는 API0; 저장 실패는 생성0·입력 보존·재시도1',async()=>{show(chat);await clickMenu(chat);fill('30');await act(async()=>fireEvent.click(screen.getByRole('button',{name:'저장하고 이어가기'})));expect(m.save).not.toHaveBeenCalled();fill();m.save.mockRejectedValueOnce(Error('network'));await act(async()=>fireEvent.click(screen.getByRole('button',{name:'저장하고 이어가기'})));expect(m.generate).not.toHaveBeenCalled();expect((screen.getByLabelText('이름') as HTMLInputElement).value).toBe('김하늘');await act(async()=>fireEvent.click(screen.getByRole('button',{name:'저장하고 이어가기'})));expect(m.generate).toHaveBeenCalledTimes(1);});
- it.each(['dream','gwansang','palm'])('%s은 명부 요구 없이 기존 입력',async key=>{show(chat);await clickMenu(chat,key);expect(screen.queryByText('명부를 적어 주세요')).toBeNull();expect(m.save).not.toHaveBeenCalled();expect(m.generate).not.toHaveBeenCalled();});
+ it.each(['dream','gwansang','palm'])('%s은 명부 요구 없이 기존 입력',async key=>{show(chat);await clickMenu(chat,key);expect(screen.queryByText('명부를 적어 주세요')).toBeNull();expect(m.save).not.toHaveBeenCalled();expect(m.generate).not.toHaveBeenCalled();expect(key === 'dream' ? document.querySelector(chat ? '#dg-dream' : '.sj-dreaminput') : screen.getByText(key === 'gwansang' ? '관상 입력' : '손금 입력')).toBeTruthy();});
  it('저장 전에 unmount하면 생성0',async()=>{const v=show(chat);await clickMenu(chat);fill();let saved:any;m.save.mockImplementation(()=>new Promise(r=>saved=r));await act(async()=>fireEvent.click(screen.getByRole('button',{name:'저장하고 이어가기'})));v.unmount();await act(async()=>saved({ok:true}));expect(m.generate).not.toHaveBeenCalled();});
 });
-it('비로그인 gate는 저장/명부 조회/생성 없이 기존 callback',async()=>{show(false,true);await clickMenu(false);expect(m.gate).toHaveBeenCalledTimes(1);expect(m.get).not.toHaveBeenCalled();expect(m.save).not.toHaveBeenCalled();expect(m.generate).not.toHaveBeenCalled();});
+it.each(features)('$key 비로그인 gate는 저장/명부 조회/생성 없이 기존 callback',async f=>{show(false,true);await clickMenu(false,f.key);expect(m.gate).toHaveBeenCalledTimes(1);expect(m.gate.mock.calls[0][1]).toBe(f.key);expect(m.get).not.toHaveBeenCalled();expect(m.save).not.toHaveBeenCalled();expect(m.generate).not.toHaveBeenCalled();});
 it('DB flag 우선 및 꿈/사진 제외, 날짜 검사',()=>{expect(needsBirth('wealth',{label:'x',useBirthInfo:false},true)).toBe(false);expect(needsBirth('wealth',{label:'x'},false)).toBe(false);expect(needsBirth('dream',{label:'x'},true)).toBe(false);expect(validBirth({name:'나',year:'2000',month:'2',day:'29'})).toBe(true);expect(validBirth({name:'나',year:'1999',month:'2',day:'29'})).toBe(false);});
-it('8메뉴1회, 내부 콘셉트 문구 노출0',async()=>{const {container}=show(false);await act(async()=>{});for(const f of features)expect(screen.getAllByRole('button',{name:f.name})).toHaveLength(1);expect(container.textContent).not.toContain('한지 서간');});
+it('8메뉴1회, 내부 콘셉트 문구 노출0',async()=>{const {container}=show(false);await act(async()=>{});for(const f of features)expect(screen.getAllByRole('button',{name:DOGYEOL_MENU[f.key as keyof typeof DOGYEOL_MENU].name,exact:true})).toHaveLength(1);expect(container.textContent).not.toContain('한지 서간');});
+
+// Both surfaces consume the approved display metadata while real menu hooks keep DB routing.
+describe.each([false,true])('Round 4 그림 메뉴 chat=%s',chat=>{
+ it('카드8개·쉬운 이름·그림·중복0, 진입 설명8개',async()=>{
+  const {container}=show(chat);await act(async()=>{});
+  const cards=container.querySelectorAll(chat?'.dg-menuitem':'.sj-feat');expect(cards).toHaveLength(8);
+  for(const [key,display] of Object.entries(DOGYEOL_MENU)){
+   const card=screen.getByRole('button',{name:display.name,exact:true});
+   expect(card.querySelector('img')?.getAttribute('src')).toBe(display.image);
+   expect(container.querySelectorAll('img[src="'+display.image+'"]').length).toBe(chat&&key==='palm'?2:1);
+   if(!chat)expect(card.textContent).toContain(display.description);
+  }
+ });
+ it.each(['siwoon','wealth','yeonn','friendship','rebirth'])('%s 명부가 있으면 정확한 기존 DB 프롬프트로1회',async key=>{
+  m.get.mockResolvedValue({birthInfoJson:{name:'본인',year:'1990',month:'1',day:'2'}});
+  show(chat);await clickMenu(chat,key);await waitFor(()=>expect(m.generate).toHaveBeenCalledTimes(1));
+  const prompts={siwoon:'fortune',wealth:'wealth',yeonn:'love',friendship:'friend',rebirth:'past'};
+  expect(m.generate.mock.calls[0][1]).toContain(prompts[key as keyof typeof prompts]);
+  expect(m.generate.mock.calls[0][1].match(/이름: 본인/g)).toHaveLength(1);
+  expect(m.save).not.toHaveBeenCalled();
+ });
+});
