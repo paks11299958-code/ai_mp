@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { EntryChatModalProps } from './EntryChatModal';
 import { CHAT_MESSAGE_COST } from '../../lib/chatCost';
-import { ArinMenu } from './arinMenu';
+import { ArinMenu, collapseGreetingRuns } from './arinMenu';
 import './arinStudio.css';
 const read = (storage: 'localStorage' | 'sessionStorage', key: string) => { try { return window[storage].getItem(key); } catch { return null; } };
 const write = (storage: 'localStorage' | 'sessionStorage', key: string, value: string) => { try { window[storage].setItem(key, value); } catch { /* private browsing must not block UI */ } };
@@ -43,7 +43,7 @@ export const ArinEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?: s
         <section className="arin-chat-pane"><header className="arin-chat-header"><div><strong id="arin-chat-title">이아린</strong><span>뷰티 · 콘텐츠 파트너</span></div><button type="button" className="arin-close" onClick={onClose} aria-label="채팅 모달 닫기">×</button></header>
             <div className={`arin-flow${noConversation ? ' arin-welcome-flow' : ''}`} ref={flow}>
                 {noConversation && <section className="arin-greeting"><div><img src={theme.fallbackPortrait} alt="아린의 첫 인사" /></div><p>어서 오세요. 아린이에요.<br />어떤 분위기를 원하세요?</p></section>}
-                {messages.length > 0 && <div className="arin-messages">{messages.map(m => m.role === 'user'
+                {messages.length > 0 && <div className="arin-messages">{collapseGreetingRuns(messages).map(m => m.role === 'user'
                     ? <p key={m.id} className="arin-bubble arin-user">{m.text}</p>
                     // ★아린 답변은 마크다운(**굵게**·목록)을 쓴다(운영 실측 11건 중 9건) — 원문 그대로 찍으면 ** 가 보인다. 이미지는 그리지 않는다.
                     : <div key={m.id} className="arin-bubble arin-assistant arin-md"><ReactMarkdown components={{ img: () => null }}>{m.text}</ReactMarkdown>{m.isStreaming && <span aria-label="답변 중"> ▍</span>}</div>)}</div>}

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ArinPromoEntry } from './ArinPromoEntry';
 import { EntryChatModal } from './EntryChatModal';
 import { ARIN_ID, ENTRY_CHAT_THEMES, entryStartDestination } from '../../lib/entryChatThemes';
-import { ARIN_GROUPS, rememberReturn } from './arinMenu';
+import { ARIN_GROUPS, collapseGreetingRuns, rememberReturn } from './arinMenu';
 const keys=ARIN_GROUPS.flatMap(g=>g.items.map(i=>i.key));
 const base=()=>({theme:ENTRY_CHAT_THEMES[ARIN_ID],messages:[] as any[],isTyping:false,balance:120,draftOwner:'test',onSend:vi.fn(async()=> 'sent' as const),onClose:vi.fn(),onNeedCharge:vi.fn(),onOpenFullChat:vi.fn(),onFeature:vi.fn()});
 beforeEach(()=>{localStorage.clear();sessionStorage.clear();Element.prototype.scrollTo=vi.fn();});
@@ -30,4 +30,22 @@ it('아린 답변의 **굵게**·목록을 기호 없이 그린다', () => {
     expect(screen.getByText('핵심').tagName).toBe('STRONG');
     expect(document.body.textContent).not.toContain('**');
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
+});
+
+// ★과거 누적 인사는 연속 구간마다 마지막 하나만 보인다(2026-10-05 사장 승인 — 데이터는 그대로)
+it('연속된 인사는 마지막 하나만, 대화 사이 인사·답변은 그대로 보인다', () => {
+    const msgs = [
+        { id: 'g1', role: 'assistant', text: '다시 뵙게 되어 반갑네요.', timestamp: 0 },
+        { id: 'g2', role: 'assistant', text: '다시 찾아주셔서 반가워요.', timestamp: 0 },
+        { id: 'u1', role: 'user', text: '홍보 문구', timestamp: 0 },
+        { id: 'a1', role: 'model', text: '좋아요', timestamp: 0 },
+        { id: 'g3', role: 'assistant', text: '돌아오셨네요.', timestamp: 0 },
+        { id: 'g4', role: 'assistant', text: '오랜만이에요.', timestamp: 0 },
+    ] as any[];
+    expect(collapseGreetingRuns(msgs).map(m => m.id)).toEqual(['g2', 'u1', 'a1', 'g4']);
+    render(<EntryChatModal {...base()} messages={msgs} />);
+    expect(screen.queryByText('다시 뵙게 되어 반갑네요.')).toBeNull();
+    expect(screen.queryByText('돌아오셨네요.')).toBeNull();
+    expect(screen.getByText('다시 찾아주셔서 반가워요.')).toBeTruthy();
+    expect(screen.getByText('오랜만이에요.')).toBeTruthy();
 });
