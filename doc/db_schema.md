@@ -742,3 +742,16 @@ CREATE TABLE IF NOT EXISTS "UserDevice" (user_id integer NOT NULL, fp_hash text 
 CREATE INDEX IF NOT EXISTS "UserDevice_fp_net_idx" ON "UserDevice" (fp_hash, net_hash);
 ```
 - 값은 해시(지문·네트워크 원문 없음). 접근 = shared-api `lib/deviceTrial.ts`(select=`$queryRawUnsafe`, insert=`$executeRawUnsafe`). schema.prisma 미반영(운영 DB≠git schema).
+
+
+## UserConsent (2026-10-05 신설, 약관 동의 기록 — **raw SQL만**, 운영 DB 실행 완료)
+
+```sql
+CREATE TABLE IF NOT EXISTS "UserConsent" (id serial PRIMARY KEY, user_id int NOT NULL,
+  kind text NOT NULL CHECK (kind IN ('terms','privacy','age14')), version text NOT NULL,
+  channel text NOT NULL CHECK (channel IN ('register','upgrade','kakao')), agreed_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX IF NOT EXISTS "UserConsent_user_id_idx" ON "UserConsent" (user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS "UserConsent_user_kind_version_idx" ON "UserConsent" (user_id, kind, version);
+```
+- 원본 DDL = shared-api `scripts/sql/2026-10-05-user-consent.sql`. 접근 = `lib/consent.ts`(필수 3종 한 문장 INSERT, `ON CONFLICT DO NOTHING`).
+- 버전 = `CONSENT_VERSION`('2026-10-05'). **약관 본문을 바꾸면 버전을 올린다.** schema.prisma 미반영.

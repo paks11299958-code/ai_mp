@@ -91,6 +91,12 @@ KAKAO_CLIENT_SECRET   클라이언트 시크릿
 
 ---
 
+## 신규 카카오 가입 동의 (2026-10-05, shared-api `255c214`)
+
+- 카카오 OAuth 신규 가입은 가입 화면의 필수 동의를 거치지 않는다 → `/me` 응답 `needsConsent` 가 true 면 **동의 시트**(`KakaoConsentSheet.tsx`, 필수 3종) → `POST /api/aimp/auth/consent`(인증 필수·provider kakao 본인만) → `"UserConsent"` 기록(channel kakao). 저장 실패=503, 시트에서 재시도.
+- `needsConsent` = provider kakao && createdAt ≥ `AUTH_CONSENT_START_AT` && 현 버전 동의 3종 미기록. 🔴서버1 .env `AUTH_CONSENT_START_AT=2026-10-05T13:06:24Z` **바꾸지 말 것**(값이 없거나 잘못되면 시트 생략 — 기존 회원 오탐 방지).
+- 버튼 문구는 카카오 디자인 가이드대로 "카카오 로그인", 가입 화면은 버튼 밖에 "처음 이용하시면 카카오 계정으로 가입이 진행돼요".
+
 ## 주의사항
 
 - 카카오 콜백 쿠키 `SameSite=Lax` (Strict면 리다이렉트 시 쿠키 누락)
