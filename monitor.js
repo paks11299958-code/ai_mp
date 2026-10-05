@@ -659,9 +659,13 @@ async function checkResources() {
                 // 로그인 버튼(드로어 안) 클릭 → 로그인 화면(authPage) 진입
                 await page.getByRole('button', { name: '로그인' }).first().click({ force: true, timeout: TIMEOUT_MS });
 
-                // 이메일 입력창 대기 후 입력
-                await page.waitForSelector('input[placeholder*="example@email.com"]', { timeout: 10_000 });
-                await page.fill('input[placeholder*="example@email.com"]', MONITOR_EMAIL);
+                // 아이디 입력창 대기 후 입력.
+                // ★안내 문구(placeholder)로 찾지 말 것 — 2026-10-05 로그인 화면 개편에서 "example@email.com" →
+                //   "이메일 / 휴대전화" 로 바뀌어 사이트는 정상인데 로그인 점검만 실패(헛알림)했다.
+                //   autocomplete="username" 은 비밀번호 관리자 표준 속성이라 문구가 바뀌어도 유지된다.
+                const idInput = 'input[autocomplete="username"]';
+                await page.waitForSelector(idInput, { timeout: 10_000 });
+                await page.fill(idInput, MONITOR_EMAIL);
 
                 // 비밀번호 입력
                 await page.fill('input[type="password"]', MONITOR_PASSWORD);
