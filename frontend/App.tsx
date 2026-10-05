@@ -34,7 +34,7 @@ import { usePersonaEmotion } from './hooks/usePersonaEmotion';
 import { CHAT_MESSAGE_COST } from './lib/chatCost';
 import { EntryChatModal, type EntryChatSendResult } from './components/persona/EntryChatModal';
 import { rememberReturn } from './components/persona/arinMenu';
-import { ARIN_ID, entryStartDestination, getEntryChatTheme } from './lib/entryChatThemes';
+import { entryChatHasFeatureMenu, entryStartDestination, getEntryChatTheme } from './lib/entryChatThemes';
 import { BoardPanel } from './components/BoardPanel';
 import { PartnerBoardPanel } from './components/PartnerBoardPanel';
 import { UserProfileModal } from './components/UserProfileModal';
@@ -390,7 +390,7 @@ const AppContent: React.FC = () => {
 
     const [swingUploading, setSwingUploading] = useState(false);
     const [swingStep, setSwingStep] = useState<'idle' | 'uploading' | 'analyzing' | 'saving'>('idle');
-    const [swingResult, setSwingResult] = useState<{ id: number; analysis: SwingAnalysis; createdAt: string } | null>(null);
+    const [swingResult, setSwingResult] = useState<{ id: number; title?: string | null; analysis: SwingAnalysis; createdAt: string } | null>(null);
 
     // 퀵메뉴 / 생년월일 폼 상태 (useQuickMenu로 이동 — 상태만)
     const {
@@ -1237,7 +1237,7 @@ const AppContent: React.FC = () => {
         }
     };
 
-    const handleSwingSubmit = async ({ title, gender, skillLevel, file }: { title: string; gender: string; skillLevel: string; file: File }) => {
+    const handleSwingSubmit = async ({ title, gender, skillLevel, file }: { title: string | null; gender: string; skillLevel: string; file: File }) => {
         if (!activePersonaId || !user) return;
         setShowSwingInput(false);
         setSwingUploading(true);
@@ -1258,7 +1258,7 @@ const AppContent: React.FC = () => {
                 text: `스윙 분석 완료! 종합 점수: **${result.analysis.overallScore}점**\n${result.analysis.overallComment}`,
                 isStreaming: false,
             });
-            setSwingResult(result);
+            setSwingResult({ ...result, title });
             setShowSwingBoard(true);
         } catch (error: any) {
             updateMessageInSession(activePersonaId, pendingMsgId, {
@@ -1671,7 +1671,7 @@ const AppContent: React.FC = () => {
             balance={userPaidPoints + userBonusPoints}
             hideCost={user?.role === 'ADMIN' || user?.role === 'MANAGE' || user?.role === 'MANAGER'}
             opener={entryChatOpenerRef.current}
-            onFeature={entryChatPersonaId === ARIN_ID ? (key) => {
+            onFeature={entryChatHasFeatureMenu(entryChatTheme) ? (key) => {
                 setEntryChatPersonaId(null);
                 setDeepLinkGuide(null);
                 setEntryReturnGuide(null);
@@ -2189,7 +2189,7 @@ const AppContent: React.FC = () => {
                     ★같은 폴더의 다른 기능 18개는 이미 양쪽에 렌더돼 있었고 골프 3개만 빠져 있었다.
                     (golf-course 는 09-08 에 추가하며 제대로 넣었다.) */}
                 {showSwingInput && (
-                    <ErrorBoundary label="스윙 업로드 화면 오류" onClose={() => setShowSwingInput(false)}>
+                    <ErrorBoundary label="스윙 업로드 화면 오류" onClose={closeBoardAndReturn(() => setShowSwingInput(false))}>
                         <SwingInputModal
                             onClose={closeBoardAndReturn(() => setShowSwingInput(false))}
                             onSubmit={handleSwingSubmit}
@@ -2777,7 +2777,7 @@ const AppContent: React.FC = () => {
 
             {showSwingInput && (
                 <SwingInputModal
-                    onClose={() => setShowSwingInput(false)}
+                    onClose={closeBoardAndReturn(() => setShowSwingInput(false))}
                     onSubmit={handleSwingSubmit}
                     isUploading={swingUploading}
                 />
@@ -2785,7 +2785,7 @@ const AppContent: React.FC = () => {
 
             {showSwingBoard && (
                 <SwingAnalysisBoard
-                    onClose={() => { setShowSwingBoard(false); setSwingResult(null); }}
+                    onClose={closeBoardAndReturn(() => { setShowSwingBoard(false); setSwingResult(null); })}
                     personaId={activePersonaId}
                     initialResult={swingResult}
                 />

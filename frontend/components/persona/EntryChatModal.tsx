@@ -1,5 +1,6 @@
 import React from 'react';
 import { EunbiEntryChatModal, type EntryChatModalProps as BaseEntryChatModalProps } from './EunbiEntryChatModal';
+import { SeolaEntryChatModal } from './SeolaEntryChatModal';
 import { ArinEntryChatModal } from './ArinEntryChatModal';
 import { DogyeolEntryChatModal } from './DogyeolEntryChatModal';
 export type { EntryChatSendResult } from './EunbiEntryChatModal';
@@ -9,7 +10,9 @@ export interface EntryChatModalProps extends BaseEntryChatModalProps { onFeature
 
 /** Visual presets share the existing onSend contract; Eunbi retains its exact renderer. */
 export const EntryChatModal: React.FC<EntryChatModalProps & { draftOwner?: string }> = props =>
-    props.theme.visualPreset === 'studio'
+    props.theme.visualPreset === 'golf'
+        ? <SeolaEntryChatModal {...props} />
+        : props.theme.visualPreset === 'studio'
         ? <ArinEntryChatModal {...props} />
         : props.theme.visualPreset === 'letter'
         ? <DogyeolEntryChatModal {...props} />

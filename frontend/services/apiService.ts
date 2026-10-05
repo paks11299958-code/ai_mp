@@ -467,7 +467,7 @@ export const swingAnalysisApi = {
     getSignedUrl: (mimeType: string, filename: string) =>
         post<{ signedUrl: string; publicUrl: string }>('/swing-analysis/signed-url', { mimeType, filename }),
 
-    analyze: async (videoUrl: string, personaId: string, mimeType: string, fileName: string, title?: string, gender?: string, skillLevel?: string): Promise<{ id: number; analysis: SwingAnalysis; createdAt: string }> => {
+    analyze: async (videoUrl: string, personaId: string, mimeType: string, fileName: string, title?: string | null, gender?: string, skillLevel?: string): Promise<{ id: number; analysis: SwingAnalysis; createdAt: string }> => {
         const cfUrl = import.meta.env.VITE_GOLF_CF_URL as string | undefined;
         const body = { videoUrl, personaId, mimeType, fileName, title, gender, skillLevel };
         if (cfUrl) {
