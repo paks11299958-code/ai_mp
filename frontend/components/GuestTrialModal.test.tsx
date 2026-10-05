@@ -20,7 +20,7 @@ describe('GuestTrialModal 체험 1회 제한', () => {
 
         expect(screen.getByRole('heading', { name: '체험이 만료되었습니다' })).toBeTruthy();
         expect(screen.queryByText(/1,000P 무료 지급/)).toBeNull();
-        fireEvent.click(screen.getByRole('button', { name: '무료 회원가입' }));
+        fireEvent.click(screen.getByRole('button', { name: '회원가입하기' }));
         expect(p.onRegister).toHaveBeenCalledTimes(1);
         expect(guestRegister).not.toHaveBeenCalled();
     });
@@ -30,7 +30,7 @@ describe('GuestTrialModal 체험 1회 제한', () => {
         guestRegister.mockRejectedValue({ body: { code: 'GUEST_TRIAL_USED' } });
         render(<GuestTrialModal {...p} />);
 
-        fireEvent.click(screen.getByRole('button', { name: '1,000P 받고 바로 체험하기' }));
+        fireEvent.click(screen.getByRole('button', { name: '1,000P 받고 체험하기' }));
         expect(await screen.findByRole('heading', { name: '체험이 만료되었습니다' })).toBeTruthy();
         await waitFor(() => expect(p.onExpired).toHaveBeenCalledTimes(1));
         expect(p.onSuccess).not.toHaveBeenCalled();
@@ -40,11 +40,11 @@ describe('GuestTrialModal 체험 1회 제한', () => {
 describe('GuestTrialModal 진입화면 안내(notice)', () => {
     beforeEach(() => vi.clearAllMocks());
 
-    it('notice 가 없으면 종전처럼 z-60 이고 회원가입 버튼·안내 배너가 없다(회귀)', () => {
+    it('notice 가 없으면 종전처럼 z-60 이고 회원가입 선택과 기존 층을 유지하며 안내 배너가 없다', () => {
         const { container } = render(<GuestTrialModal {...props()} />);
         expect(container.firstElementChild?.className).toContain('z-[60]');
         expect(screen.queryByTestId('guest-notice')).toBeNull();
-        expect(screen.queryByRole('button', { name: '무료 회원가입' })).toBeNull();
+        expect(screen.getByRole('button', { name: '회원가입하기' })).toBeTruthy();
         expect(screen.getByRole('heading', { name: 'AI 놀이터 체험하기' })).toBeTruthy();
     });
 
@@ -54,11 +54,11 @@ describe('GuestTrialModal 진입화면 안내(notice)', () => {
         expect(container.firstElementChild?.className).toContain('z-[95]');
         expect(screen.getByText('💎 유료 서비스예요')).toBeTruthy();
         expect(screen.getByText(/헤어 체인지는 포인트로 이용하는 기능이에요/)).toBeTruthy();
-        fireEvent.click(screen.getByRole('button', { name: '무료 회원가입' }));
+        fireEvent.click(screen.getByRole('button', { name: '회원가입하기' }));
         expect(p.onRegister).toHaveBeenCalledTimes(1);
         // 체험·로그인 경로도 유지
-        expect(screen.getByRole('button', { name: '1,000P 받고 바로 체험하기' })).toBeTruthy();
-        expect(screen.getByRole('button', { name: '이미 회원이신가요? 로그인' })).toBeTruthy();
+        expect(screen.getByRole('button', { name: '1,000P 받고 체험하기' })).toBeTruthy();
+        expect(screen.getByRole('button', { name: '이미 회원이신가요? 로그인하기' })).toBeTruthy();
     });
 
     it('free: 무료 안내 + 회원가입 버튼', () => {
@@ -66,7 +66,7 @@ describe('GuestTrialModal 진입화면 안내(notice)', () => {
         render(<GuestTrialModal {...p} notice="free" feature={{ name: '닮은꼴 찾기' }} />);
         expect(screen.getByText('✨ 무료로 이용할 수 있어요')).toBeTruthy();
         expect(screen.queryByText('💎 유료 서비스예요')).toBeNull();
-        fireEvent.click(screen.getByRole('button', { name: '무료 회원가입' }));
+        fireEvent.click(screen.getByRole('button', { name: '회원가입하기' }));
         expect(p.onRegister).toHaveBeenCalledTimes(1);
     });
 
@@ -82,8 +82,8 @@ describe('GuestTrialModal 진입화면 안내(notice)', () => {
     it('notice + 체험 만료면 회원가입 버튼이 주 버튼 하나만 나온다', () => {
         const p = props();
         render(<GuestTrialModal {...p} notice="paid" expired />);
-        expect(screen.getAllByRole('button', { name: '무료 회원가입' })).toHaveLength(1);
-        fireEvent.click(screen.getByRole('button', { name: '무료 회원가입' }));
+        expect(screen.getAllByRole('button', { name: '회원가입하기' })).toHaveLength(1);
+        fireEvent.click(screen.getByRole('button', { name: '회원가입하기' }));
         expect(p.onRegister).toHaveBeenCalledTimes(1);
     });
 });

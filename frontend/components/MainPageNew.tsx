@@ -7,6 +7,7 @@
  *   Rail(84px) | Stage(300px) | Chat(flex-1)
  */
 
+import { GuestAuthHeader } from './GuestAuthHeader';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { LogOut, Settings, Megaphone, UserCircle, Search, Bell, X, Menu } from 'lucide-react';
 import { Persona, Category } from '../types';
@@ -60,6 +61,7 @@ interface MainPageNewProps {
     onPartnerBoardClick?: () => void;
     onProfileClick?: () => void;
     onLoginClick?: () => void;
+    onRegisterClick?: () => void;
     onChargeClick?: () => void;
     categories?: Category[];
     onGoHome?: () => void;
@@ -680,6 +682,7 @@ const PersonaSelectPanel: React.FC<{
     unreadAnnouncementCount?: number;
     onProfileClick?: () => void;
     onLoginClick?: () => void;
+    onRegisterClick?: () => void;
     onChargeClick?: () => void;
     onPartnerBoardClick?: () => void;
     recentPersonas?: Persona[];
@@ -693,7 +696,7 @@ const PersonaSelectPanel: React.FC<{
     heroCards?: HeroCard[];
     spotlightOrder?: string[];
     newFeaturesOrder?: string[];
-}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onLoginClick, onChargeClick, onPartnerBoardClick, recentPersonas = [], recentFeatureKeys = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona, onShareFeature, heroCards = [], spotlightOrder, newFeaturesOrder }) => {
+}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onLoginClick, onRegisterClick, onChargeClick, onPartnerBoardClick, recentPersonas = [], recentFeatureKeys = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona, onShareFeature, heroCards = [], spotlightOrder, newFeaturesOrder }) => {
     const { user, onLogout } = useAuthContext();
     const { paidPoints, bonusPoints } = usePoints();
     const totalPoints = (paidPoints ?? 0) + (bonusPoints ?? 0);
@@ -1216,6 +1219,7 @@ const PersonaSelectPanel: React.FC<{
                                 <LogOut size={15} /> 로그아웃
                             </button>
                         ) : (
+                            <>
                             <button onClick={() => { setMobileMenuOpen(false); onLoginClick?.(); }} style={{
                                 marginTop: 'auto', padding: '13px 20px', background: 'none', border: 'none',
                                 textAlign: 'left', fontSize: 14, fontWeight: 600, color: T.accent, cursor: 'pointer',
@@ -1224,6 +1228,9 @@ const PersonaSelectPanel: React.FC<{
                             }}>
                                 <UserCircle size={15} /> 로그인
                             </button>
+                            <button onClick={() => { setMobileMenuOpen(false); (onRegisterClick ?? onLoginClick)?.(); }} style={{ padding: '13px 20px', background: T.accent, border: 'none', textAlign: 'left', fontSize: 14, fontWeight: 600, color: '#fff', cursor: 'pointer', minHeight: 44 }}>
+                                회원가입
+                            </button></>
                         )}
                     </div>
                 </>
@@ -1314,6 +1321,7 @@ const PersonaSelectPanel: React.FC<{
                 background: 'rgba(251,248,243,0.85)',
                 backdropFilter: 'blur(10px)',
             }}>
+                {user ? (
                 <div style={{ textAlign: 'left', position: 'relative' }}>
                     <button onClick={() => onGoHome?.()} title="첫 화면으로" aria-label="AI 놀이터 홈으로" style={{
                         background: 'none', border: 'none', cursor: 'pointer',
@@ -1358,6 +1366,7 @@ const PersonaSelectPanel: React.FC<{
                         <Menu size={22} color={T.ink} />
                     </button>
                 </div>
+                ) : <GuestAuthHeader onLogin={onLoginClick} onRegister={onRegisterClick ?? onLoginClick} onMenu={() => setMobileMenuOpen(true)} onHome={onGoHome} />}
             </div>
 
             {/* 헤더 콘텐츠 — 개인화 인사 + 지금주목 등 섹션(이제 전체와 함께 스크롤) */}
@@ -1944,6 +1953,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
     onPartnerBoardClick,
     onProfileClick,
     onLoginClick,
+    onRegisterClick,
     onChargeClick,
     categories = [],
     onGoHome,
@@ -2047,6 +2057,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 unreadAnnouncementCount={unreadAnnouncementCount}
                 onProfileClick={onProfileClick}
                 onLoginClick={onLoginClick}
+                onRegisterClick={onRegisterClick}
                 onChargeClick={onChargeClick}
                 onPartnerBoardClick={onPartnerBoardClick}
                 recentPersonas={recentPersonas}

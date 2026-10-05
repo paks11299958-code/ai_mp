@@ -44,7 +44,9 @@ export function useAuth() {
         return 'main';
     });
 
-    const goTo = (next: Screen) => setScreen(next);
+    const [authPageMode, setAuthPageMode] = useState<'login' | 'register'>('login');
+    const goTo = (next: Screen) => { if (next === 'authPage') setAuthPageMode('login'); setScreen(next); };
+    const openAuthPage = (mode: 'login' | 'register') => { setAuthPageMode(mode); setScreen('authPage'); };
 
     // 카카오 로그인 콜백 처리
     useEffect(() => {
@@ -107,7 +109,7 @@ export function useAuth() {
         user, setUser,
         isAuthChecking,
         showAuthModal, setShowAuthModal,
-        screen, goTo,
+        screen, goTo, authPageMode, openAuthPage,
         handleAuthSuccess,
         resetAuth,
     };

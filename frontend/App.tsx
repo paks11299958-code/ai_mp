@@ -4,6 +4,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import { usePayment } from './hooks/usePayment';
 import { useBoardToggles } from './hooks/useBoardToggles';
 import { useAnnouncements } from './hooks/useAnnouncements';
+import { KakaoConsentSheet } from './components/KakaoConsentSheet';
+import './components/auth-v2.css';
 import { useAuth } from './hooks/useAuth';
 import { useFavorites, useFavoritePersonas } from './hooks/useFavorites';
 import { useQuickMenu } from './hooks/useQuickMenu';
@@ -134,7 +136,7 @@ const AppContent: React.FC = () => {
         user, setUser,
         isAuthChecking,
         showAuthModal, setShowAuthModal,
-        screen, goTo,
+        screen, goTo, authPageMode, openAuthPage,
         handleAuthSuccess,
         resetAuth,
     } = useAuth();
@@ -1483,19 +1485,10 @@ const AppContent: React.FC = () => {
     if (resetToken) {
         return (
             <>
-                <LandingPageNew
-                    personas={visiblePersonas}
-                    heroCards={heroCards}
-                    spotlightOrder={spotlightOrder}
-                    newFeaturesOrder={newFeaturesOrder}
-                    isLoading={isPersonasLoading}
-                    onStart={() => {}}
-                    onLoginClick={() => {}}
-                    categories={categories}
-                />
+                <div data-testid="auth-reset-background" style={{ minHeight: '100dvh', background: '#FBF8F3', padding: 24, color: '#7552A0', fontWeight: 700 }}>AI 놀이터</div>
                 <ResetPasswordModal
                     token={resetToken}
-                    onClose={() => setResetToken(null)}
+                    onClose={() => { setResetToken(null); openAuthPage('login'); }}
                 />
             </>
         );
@@ -1731,6 +1724,10 @@ const AppContent: React.FC = () => {
 
     // 로그인 전용 화면 — 로그인/비로그인 무관하게 screen==='authPage'면 항상 노출
     // (탑메뉴 로그인 토글 → goTo('authPage'). 상태 불일치로 안 뜨던 문제 방지차 최상위로).
+    if (user?.needsConsent) {
+        return <KakaoConsentSheet onConfirmed={() => setUser(prev => prev ? { ...prev, needsConsent: false } : prev)} onLogout={handleLogout} />;
+    }
+
     if (screen === 'authPage') {
         // ErrorBoundary 추가(2026-08-08) — 로그인·회원가입은 **신규 회원이 처음 만나는 화면**이라
         // 여기서 죽으면 가입 자체가 불가능해진다. 다른 기능 화면 23곳은 이미 감싸져 있었다.
@@ -1739,7 +1736,7 @@ const AppContent: React.FC = () => {
                 <AuthModal
                     onSuccess={handleAuthSuccessWithWelcome}
                     onBack={() => goTo('main')}
-                    defaultMode="login"
+                    defaultMode={authPageMode}
                     fullScreen
                 />
             </ErrorBoundary>
@@ -1804,7 +1801,8 @@ const AppContent: React.FC = () => {
                             onAnnouncementClick={() => setShowAnnouncementModal(true)}
                             unreadAnnouncementCount={unreadAnnouncementCount}
                             onProfileClick={requireLogin}
-                            onLoginClick={() => goTo('authPage')}
+                            onLoginClick={() => openAuthPage('login')}
+                            onRegisterClick={() => openAuthPage('register')}
                             onChargeClick={() => { setInsufficientInfo(null); setShowPointModal(true); }}
                             categories={categories}
                             onGoHome={() => { window.location.href = '/'; }}

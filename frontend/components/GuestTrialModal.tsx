@@ -168,23 +168,23 @@ export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuc
                         className="w-full py-3.5 rounded-2xl text-white font-bold text-[15px] transition active:scale-[0.98] disabled:opacity-60"
                         style={{ background: accent }}
                     >
-                        {trialExpired ? '무료 회원가입' : loading ? '체험 준비 중…' : '1,000P 받고 바로 체험하기'}
+                        {trialExpired ? '회원가입하기' : loading ? '체험 준비 중…' : '1,000P 받고 체험하기'}
                     </button>
                     {/* ★notice 가 있으면 회원가입을 **항상** 보인다(만료면 위 주 버튼이 이미 가입이라 생략). */}
-                    {notice && !trialExpired && (
+                    {!trialExpired && (
                         <button
                             onClick={onRegister}
                             className="w-full py-3 rounded-2xl font-bold text-[14px] border transition active:scale-[0.98]"
                             style={{ color: accent, borderColor: accent, background: '#fff' }}
                         >
-                            무료 회원가입
+                            회원가입하기
                         </button>
                     )}
                     <button
                         onClick={onLogin}
                         className="w-full py-2.5 text-[13px] text-gray-500 hover:text-gray-700 transition"
                     >
-                        이미 회원이신가요? 로그인
+                        이미 회원이신가요? 로그인하기
                     </button>
                 </div>
             </div>

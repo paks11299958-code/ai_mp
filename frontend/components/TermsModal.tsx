@@ -9,7 +9,7 @@ export const TermsModal: React.FC<Props> = ({ initialTab = 'terms', onClose }) =
     const [tab, setTab] = useState<'terms' | 'privacy'>(initialTab);
 
     return (
-        <div style={{
+        <div role="dialog" aria-modal="true" aria-label="약관 내용" onKeyDown={e => { if (e.key === 'Escape') onClose(); }} style={{
             position: 'fixed', inset: 0, zIndex: 9999,
             background: 'rgba(0,0,0,0.7)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -33,7 +33,7 @@ export const TermsModal: React.FC<Props> = ({ initialTab = 'terms', onClose }) =
                     flexShrink: 0,
                 }}>
                     <div style={{ display: 'flex', gap: 8 }}>
-                        <button
+                        <button type="button"
                             onClick={() => setTab('terms')}
                             style={{
                                 padding: '6px 16px', borderRadius: 20, border: 'none', cursor: 'pointer',
@@ -45,7 +45,7 @@ export const TermsModal: React.FC<Props> = ({ initialTab = 'terms', onClose }) =
                         >
                             이용약관
                         </button>
-                        <button
+                        <button type="button"
                             onClick={() => setTab('privacy')}
                             style={{
                                 padding: '6px 16px', borderRadius: 20, border: 'none', cursor: 'pointer',
@@ -58,7 +58,9 @@ export const TermsModal: React.FC<Props> = ({ initialTab = 'terms', onClose }) =
                             개인정보처리방침
                         </button>
                     </div>
-                    <button
+                    <button type="button"
+                        aria-label="닫기"
+                        autoFocus
                         onClick={onClose}
                         style={{
                             background: 'none', border: 'none', cursor: 'pointer',
@@ -98,7 +100,7 @@ const TermsContent: React.FC = () => (
         </p>
 
         <Section title="제1조 (목적)">
-            <p>본 약관은 입소문(이하 "회사")가 운영하는 AI 페르소나 채팅 서비스(이하 "서비스")의 이용 조건 및 절차, 회사와 이용자의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
+            <p>본 약관은 입소문(이하 "회사")가 운영하는 AI 놀이터 서비스(이하 "서비스")의 이용 조건 및 절차, 회사와 이용자의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
         </Section>
 
         <Section title="제2조 (정의)">

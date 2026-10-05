@@ -93,7 +93,10 @@ export interface ChatSessionState {
     isSummarizing?: boolean;
 }
 
+export interface ConsentInput { terms: boolean; privacy: boolean; age14: boolean; }
+
 export interface User {
+    needsConsent?: boolean;
     id: number;
     email?: string;
     phone?: string;
