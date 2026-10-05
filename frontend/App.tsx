@@ -31,7 +31,8 @@ import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { usePersonaEmotion } from './hooks/usePersonaEmotion';
 import { CHAT_MESSAGE_COST } from './lib/chatCost';
 import { EntryChatModal, type EntryChatSendResult } from './components/persona/EntryChatModal';
-import { entryStartDestination, getEntryChatTheme } from './lib/entryChatThemes';
+import { rememberReturn } from './components/persona/arinMenu';
+import { ARIN_ID, entryStartDestination, getEntryChatTheme } from './lib/entryChatThemes';
 import { BoardPanel } from './components/BoardPanel';
 import { PartnerBoardPanel } from './components/PartnerBoardPanel';
 import { UserProfileModal } from './components/UserProfileModal';
@@ -491,6 +492,7 @@ const AppContent: React.FC = () => {
      *  (2026-09-06 사장 지적 "진입페이지로 안 가고 채팅으로 간다").
      *  ★시트를 열어둔 채 보드를 띄울 수는 없다 — 시트가 z-85, 보드는 z-50~70 이라 가려진다.
      *    그래서 "닫았다가 되돌아온다"로 푼다. 랜딩을 거치지 않은 실행이면 null 이라 종전과 같다. */
+    const [entryReturnChatId, setEntryReturnChatId] = useState<string | null>(null);
     const [entryReturnGuide, setEntryReturnGuide] = useState<PersonaEntryGuide | null>(null);
 
     /** 보드를 닫는다 — 진입 랜딩에서 열었던 것이면 그 랜딩으로 **되돌아간다**.
@@ -498,6 +500,11 @@ const AppContent: React.FC = () => {
      *    종전과 완전히 같게 동작한다. 기존 흐름을 건드리지 않는 것이 이 함수의 전제다. */
     const closeBoardAndReturn = (close: () => void) => () => {
         close();
+        if (entryReturnChatId) {
+            setEntryChatPersonaId(entryReturnChatId);
+            setEntryReturnChatId(null);
+            return;
+        }
         if (entryReturnGuide) {
             setDeepLinkGuide(entryReturnGuide);
             setEntryReturnGuide(null);
@@ -1615,6 +1622,7 @@ const AppContent: React.FC = () => {
             //   ★시트는 닫는다 — 시트가 z-85, 보드는 z-50~70 이라 열어두면 **보드가 뒤에 가린다**.
             //     (되돌아오기는 보드의 onClose 에서 다시 열어주는 후속 과제로 둔다)
             onFeature={(key) => {
+                setEntryReturnChatId(null);
                 const qm = FEATURE_QUICK_MENU_LABEL[key];
                 // 보드형만 되돌아올 자리를 기억한다 — 퀵메뉴형은 채팅으로 가므로 돌아올 곳이 없다.
                 setEntryReturnGuide(qm ? null : deepLinkGuide);
@@ -1657,6 +1665,7 @@ const AppContent: React.FC = () => {
     const entryChatTheme = getEntryChatTheme(entryChatPersonaId ?? undefined);
     const entryChatModal = entryChatTheme && entryChatPersonaId ? (
         <EntryChatModal
+            key={`${entryChatPersonaId}:${user?.id ?? "anonymous"}`}
             theme={entryChatTheme}
             draftOwner={String(user?.id ?? 'anonymous')}
             messages={sessions[entryChatPersonaId]?.messages ?? []}
@@ -1668,6 +1677,16 @@ const AppContent: React.FC = () => {
             balance={userPaidPoints + userBonusPoints}
             hideCost={user?.role === 'ADMIN' || user?.role === 'MANAGE' || user?.role === 'MANAGER'}
             opener={entryChatOpenerRef.current}
+            onFeature={entryChatPersonaId === ARIN_ID ? (key) => {
+                setEntryChatPersonaId(null);
+                setDeepLinkGuide(null);
+                setEntryReturnGuide(null);
+                if (key === 'reverse-prompt') {
+                    setEntryReturnChatId(null);
+                    rememberReturn(entryChatPersonaId);
+                } else setEntryReturnChatId(entryChatPersonaId);
+                FEATURE_ACTIONS[key]?.();
+            } : undefined}
             onSend={handleSendMessage}
             onClose={() => setEntryChatPersonaId(null)}
             onNeedCharge={() => {
@@ -2134,7 +2153,7 @@ const AppContent: React.FC = () => {
                     <UsedItemBoard onClose={closeBoardAndReturn(() => setShowUsedItem(false))} />
                 )}
                 {showLuxuryBoard && (
-                    <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
+                    <LuxuryBoard onClose={closeBoardAndReturn(() => setShowLuxuryBoard(false))} />
                 )}
                 {showInsuranceBoard && (
                     <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} />
@@ -2375,7 +2394,7 @@ const AppContent: React.FC = () => {
                 <UsedItemBoard onClose={closeBoardAndReturn(() => setShowUsedItem(false))} />
             )}
             {showLuxuryBoard && (
-                <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
+                <LuxuryBoard onClose={closeBoardAndReturn(() => setShowLuxuryBoard(false))} />
             )}
             {showInsuranceBoard && (
                 <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} />

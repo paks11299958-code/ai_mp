@@ -96,7 +96,7 @@ describe('랜딩에서 열리는 보드는 전부 복귀 배선이 걸려 있다
         'TodayNewsBoard',                                        // 서아
         // 이아린(2026-09-07) — 랜딩을 만들면서 함께 배선했다. 빠지면 서아와 똑같이
         // "보드를 닫으면 랜딩이 아니라 메인으로 떨어지는" 증상이 난다.
-        'MarketingBoard', 'ShortsMakerBoard', 'UsedItemBoard', 'HotKeywordBoard',
+        'MarketingBoard', 'ShortsMakerBoard', 'UsedItemBoard', 'HotKeywordBoard', 'LuxuryBoard',
     ];
 
     /** `<Board ... />` 한 덩어리를 통째로 뽑는다.
@@ -206,13 +206,14 @@ describe('페이지 이동형 기능도 랜딩으로 돌아온다', () => {
     //   그래서 sessionStorage 에 돌아올 자리를 남기고 저쪽 헤더가 그걸 쓴다.
     //   ★양쪽 키가 어긋나면 **에러 없이** 그냥 메인으로 떨어진다 → 짝을 테스트로 고정한다.
     const KEY = 'rp:backTo';
-    const arin = readFileSync(resolve(process.cwd(), 'components/persona/ArinPromoEntry.tsx'), 'utf8');
+    const arin = readFileSync(resolve(process.cwd(), 'components/persona/arinMenu.tsx'), 'utf8');
     const rp   = readFileSync(resolve(process.cwd(), 'components/reverse-prompt/ReversePromptMain.tsx'), 'utf8');
 
     it('아린 랜딩은 나가기 전에 돌아올 자리를 남긴다', () => {
         expect(arin).toContain(`sessionStorage.setItem('${KEY}'`);
         // 저장 호출이 onFeature 보다 **먼저** 있어야 한다(이동 후엔 이 코드가 안 돈다).
-        expect(arin).toMatch(/rememberReturn\(personaId\);\s*onFeature\('reverse-prompt'\)/);
+        const entry = readFileSync(resolve(process.cwd(), 'components/persona/ArinPromoEntry.tsx'), 'utf8');
+        expect(entry).toMatch(/rememberReturn\(guide.personaId \|\| ARIN_ID\); onFeature\(key\)/);
     });
 
     it('★복귀 URL 은 personaId 로 직접 만든다 (location.search 를 쓰면 안 된다)', () => {

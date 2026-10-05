@@ -64,7 +64,7 @@ export const PointModal: React.FC<PointModalProps> = ({ currentPoints, userId, o
     // ★충전 창 층 — lib/chargeLayer.ts(body portal + z-9000). 무조건 가장 위. chargeLayer.test.ts
     return toChargeLayer(
         <div className="fixed inset-0 z-[9000] bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
-            <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+            <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm max-h-[calc(100dvh-2rem)] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
                         <Coins size={20} className="text-yellow-400" />
@@ -118,16 +118,16 @@ export const PointModal: React.FC<PointModalProps> = ({ currentPoints, userId, o
                             onClick={() => handlePurchase(pkg)}
                         >
                             {pkg.bonus && (
-                                <span className="absolute top-3 right-3 text-[10px] font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-500/30 rounded-full px-2 py-0.5">
+                                <span className="mb-2 ml-auto block w-fit text-[10px] leading-tight font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-500/30 rounded-full px-2 py-0.5">
                                     {pkg.bonus}
                                 </span>
                             )}
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div>
                                     <div className="text-sm font-semibold text-gray-300 group-hover:text-white mb-0.5">{pkg.name}</div>
-                                    <div className="text-yellow-400 font-bold text-xl">{pkg.points.toLocaleString()}<span className="text-sm font-normal ml-0.5">pt</span></div>
+                                    <div className="text-yellow-400 font-bold text-xl whitespace-nowrap">{pkg.points.toLocaleString()}<span className="text-sm font-normal ml-0.5">pt</span></div>
                                 </div>
-                                <div className="text-right">
+                                <div className="text-right ml-auto whitespace-nowrap">
                                     <div className="text-white font-bold text-base">{pkg.price.toLocaleString()}<span className="text-xs text-gray-400 ml-0.5">원</span></div>
                                     <div className="text-xs text-gray-500">{(pkg.price / pkg.points).toFixed(1)}원/pt</div>
                                 </div>

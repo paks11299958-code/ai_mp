@@ -113,3 +113,14 @@
 은비 → 아린(사장 승인). "중고 판매글" 바로 아래 `luxury` 행(💎 되팔기 전에 사진으로 정품 먼저 확인).
 되팔기 전 정품 확인 → 판매글로 이어지는 짝이라 메인 목록에 둔다. 커밋 `2f1d141` + DB `Persona.features`(아린 used 뒤 luxury, 은비 []).
 이관 당시 사용 실적 8건·5명, 5/28 이후 0건(은비 밑에 숨어 있었음).
+
+
+## 2026-10-04 — 결과물 이미지 진입과 아린 studio 채팅
+
+2안 승인: 기존 소환 무대·업종 SVG·진행 칩을 결과물 이미지 6카드로 교체. 만들기(홍보글·쇼츠), 팔기(판매글·명품확인), 찾기(뜨는키워드·사진프롬프트). public/arin/menu/*.webp는 400px·40KB 이하, 아린 사진은 기존 arin-bust.webp. 친구 초대와 비로그인 App 콜백 유지.
+
+entryChatThemes의 아린 studio 프리셋 → ArinEntryChatModal. 메뉴 손잡이 하나를 입력창 위에 두고 첫 대화0건은 펼침, 이후 사용자별 localStorage 마지막 상태를 유지. 초안은 sessionStorage에 보관. onSend는 기존 handleSendMessage, 충전은 기존 body portal z-9000, 은비·도결 모달·가격·API·DB는 무수정.
+
+App의 onFeature가 기존 FEATURE_ACTIONS로 실행하고 보드 닫기에서 출발한 아린 채팅으로 복귀. LuxuryBoard main/chat 두 곳도 closeBoardAndReturn 연결. reverse-prompt는 rp:backTo 저장 후 기존 페이지로 이동하며 뒤로는 아린 진입으로 복귀. 과거 연속 assistant 메시지는 신뢰할 인사 식별자가 없어 삭제하거나 임의로 접지 않음.
+
+검수와 영수증은 ~/design-lab/arin-entry/round1 및 RECEIPT_round1.md에 분리. 이번 브랜치는 로컬 검수 완료 후 총괄·사장 확인을 기다리며 push·배포 금지.
