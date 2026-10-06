@@ -292,6 +292,12 @@ export const ChaerinClinicEntry: React.FC<Props> = ({ guide, onClose, onStart, o
         if (screen === 'table' && !catalog && !catalogErr) loadCatalog();
     }, [screen, catalog, catalogErr, loadCatalog]);
 
+    // ✕ — 첫 화면이면 진입 시트를 닫고, 하위 화면(동의·사진·가격표·리포트)이면 채린 첫 화면으로(2026-10-06 사장 지적
+    //   "창 닫기 누르면 진입화면이 나와야지"). 분석 중(scan)에는 뒤로와 같이 머문다 — 결과·차감이 꼬이지 않게.
+    const closeOrHome = useCallback(() => {
+        if (screen === 'entry') onClose();
+        else if (screen !== 'scan') go('entry');
+    }, [screen, go, onClose]);
     const back = useCallback(() => {
         const up = PARENT[screen];
         if (up === null) onClose();
@@ -558,7 +564,7 @@ export const ChaerinClinicEntry: React.FC<Props> = ({ guide, onClose, onStart, o
                     <div className="cc-gallery-brand">
                         CHAERIN / BEAUTY NOTES<small>내 피부에 맞는 게 정답</small>
                     </div>
-                    <button type="button" className="cc-close" onClick={onClose} aria-label="닫기">
+                    <button type="button" className="cc-close" onClick={closeOrHome} aria-label={screen === 'entry' ? '닫기' : '처음으로'}>
                         ×
                     </button>
                 </header>

@@ -159,6 +159,20 @@ describe('ChaerinClinicEntry', () => {
         expect(document.querySelectorAll('.cb-picture-card')).toHaveLength(6);
     });
 
+    // ★2026-10-06 사장 지적: 하위 화면의 ✕ 가 진입 시트를 통째로 닫았다 → 채린 첫 화면으로
+    it('하위 화면(동의·가격표)의 ✕ 는 닫지 않고 첫 화면으로 돌아간다', async () => {
+        const props = renderEntry();
+        await waitFor(() => expect(btn(/성형 견적/).textContent).toContain('300P'));
+        fireEvent.click(btn(/성형 견적/));
+        expect(screen.getByText('시작 전에 확인해 주세요')).toBeTruthy();
+        fireEvent.click(screen.getByRole('button', { name: '처음으로' }));
+        expect(document.querySelectorAll('.cb-picture-card')).toHaveLength(6);
+        fireEvent.click(btn(/평균 가격/));
+        fireEvent.click(screen.getByRole('button', { name: '처음으로' }));
+        expect(document.querySelectorAll('.cb-picture-card')).toHaveLength(6);
+        expect(props.onClose).not.toHaveBeenCalled();
+    });
+
     it('입구 Escape와 닫기는 onClose를 호출한다', () => {
         const props = renderEntry();
         fireEvent.keyDown(window, { key: 'Escape' });
