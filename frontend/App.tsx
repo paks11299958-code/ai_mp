@@ -537,8 +537,11 @@ const AppContent: React.FC = () => {
         ebook: () => setShowEbookBoard(true),
         hair: () => setShowHairBoard(true),
         // 성형 견적(2026-09-28) — 보드가 아니라 윤채린 진입화면 안 흐름이다. 페르소나 딥링크로 진입화면을 띄우고
-        // ChaerinClinicEntry 가 sessionStorage 'cc-open' 을 읽어 성형 메뉴부터 연다(App 상태 추가 없음).
-        'beauty-estimate': () => { try { sessionStorage.setItem('cc-open', 'clinic'); } catch { /* 무시 */ } setPendingDeepLink({ kind: 'persona', id: 'cmqgne6wz0000j3beoix3h9zc' }); },
+        // ChaerinClinicEntry 가 sessionStorage 'cc-screen' 을 읽어 견적 동의 화면으로 연결한다(App 상태 추가 없음).
+        'beauty-estimate': () => {
+            try { sessionStorage.setItem('cc-screen', 'estimate'); } catch { /* 무시 */ }
+            setPendingDeepLink({ kind: 'persona', id: 'cmqgne6wz0000j3beoix3h9zc' });
+        },
         outfit: () => setShowOutfitBoard(true),
         lookalike: () => setShowLookalikeModal(true),
         agetransform: () => setShowAgeBoard(true),
@@ -1672,6 +1675,18 @@ const AppContent: React.FC = () => {
             hideCost={user?.role === 'ADMIN' || user?.role === 'MANAGE' || user?.role === 'MANAGER'}
             opener={entryChatOpenerRef.current}
             onFeature={entryChatHasFeatureMenu(entryChatTheme) ? (key) => {
+                if (entryChatTheme.visualPreset === 'beauty' && (key === 'beauty-estimate' || key === 'beauty-table')) {
+                    const persona = personas.find(item => item.id === entryChatPersonaId);
+                    if (!persona) return;
+                    setEntryChatPersonaId(null);
+                    setEntryReturnChatId(null);
+                    setEntryReturnGuide(null);
+                    showPersonaGuide(persona);
+                    setDeepLinkGuide(previous => previous ? {
+                        ...previous, chaerinScreen: key === 'beauty-table' ? 'table' : 'estimate',
+                    } : previous);
+                    return;
+                }
                 setEntryChatPersonaId(null);
                 setDeepLinkGuide(null);
                 setEntryReturnGuide(null);

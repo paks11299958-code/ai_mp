@@ -20,14 +20,24 @@ const REPORT = {
     charm: '눈매가 또렷하고 인상이 부드러워요.',
     landmarks: { eyeL: [0.4, 0.4], eyeR: [0.6, 0.4], nose: [0.5, 0.5], mouth: [0.5, 0.6], chin: [0.5, 0.7] },
     parts: [
-        { part: 'eye', name: '눈', feature: '홑꺼풀이고 눈매가 가로로 긴 편이에요.', items: [
-            { id: 'eye-burial', name: '쌍꺼풀 매몰법', min: 50, max: 100, suggested: true },
-            { id: 'eye-incision', name: '쌍꺼풀 절개법', min: 100, max: 150, suggested: false },
-        ] },
-        { part: 'nose', name: '코', feature: '콧대가 낮은 편이에요.', items: [
-            { id: 'nose-bridge', name: '콧대(보형물)', min: 94, max: 220, suggested: true },
-            { id: 'nose-tip', name: '코끝(자가연골 포함)', min: 100, max: 300, suggested: false },
-        ] },
+        {
+            part: 'eye',
+            name: '눈',
+            feature: '홑꺼풀이고 눈매가 가로로 긴 편이에요.',
+            items: [
+                { id: 'eye-burial', name: '쌍꺼풀 매몰법', min: 50, max: 100, suggested: true },
+                { id: 'eye-incision', name: '쌍꺼풀 절개법', min: 100, max: 150, suggested: false },
+            ],
+        },
+        {
+            part: 'nose',
+            name: '코',
+            feature: '콧대가 낮은 편이에요.',
+            items: [
+                { id: 'nose-bridge', name: '콧대(보형물)', min: 94, max: 220, suggested: true },
+                { id: 'nose-tip', name: '코끝(자가연골 포함)', min: 100, max: 300, suggested: false },
+            ],
+        },
     ],
     suggestedTotal: { min: 144, max: 320 },
     pointsCharged: 300,
@@ -35,7 +45,13 @@ const REPORT = {
 };
 const CATALOG = {
     asOf: '2026-09',
-    parts: [{ part: 'eye', name: '눈', items: [{ id: 'eye-burial', name: '쌍꺼풀 매몰법', min: 50, max: 100, singleSource: true }] }],
+    parts: [
+        {
+            part: 'eye',
+            name: '눈',
+            items: [{ id: 'eye-burial', name: '쌍꺼풀 매몰법', min: 50, max: 100, singleSource: true }],
+        },
+    ],
     sources: ['isclinic 2026 가이드'],
 };
 
@@ -44,21 +60,37 @@ let postImpl: () => Promise<Response>;
 let prices: Record<string, number>;
 const posts = () => fetchMock.mock.calls.filter(([, init]) => (init as RequestInit | undefined)?.method === 'POST');
 
-const setReduced = (on: boolean) => vi.stubGlobal('matchMedia', (q: string) => ({
-    matches: on && q.includes('reduce'), media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {},
-}));
+const setReduced = (on: boolean) =>
+    vi.stubGlobal('matchMedia', (q: string) => ({
+        matches: on && q.includes('reduce'),
+        media: q,
+        addEventListener() {},
+        removeEventListener() {},
+        addListener() {},
+        removeListener() {},
+    }));
 
 const makeGift = (over: Partial<EntryGiftContext> = {}): EntryGiftContext => ({
-    personaId: 'p-chaerin', xp: 0, points: 1240, onGifted: vi.fn(), onNeedCharge: vi.fn(), onPointsChanged: vi.fn(), ...over,
+    personaId: 'p-chaerin',
+    xp: 0,
+    points: 1240,
+    onGifted: vi.fn(),
+    onNeedCharge: vi.fn(),
+    onPointsChanged: vi.fn(),
+    ...over,
 });
 
 const renderEntry = (over: Partial<React.ComponentProps<typeof ChaerinClinicEntry>> = {}) => {
     const props = {
         guide: { title: '윤채린', desc: '', personaName: '윤채린' },
-        onClose: vi.fn(), onStart: vi.fn(), onFeature: vi.fn(), gift: makeGift(), onGuestGate: undefined,
+        onClose: vi.fn(),
+        onStart: vi.fn(),
+        onFeature: vi.fn(),
+        gift: makeGift(),
+        onGuestGate: undefined,
         ...over,
     };
-    render(<ChaerinClinicEntry {...props as any} />);
+    render(<ChaerinClinicEntry {...(props as any)} />);
     return props as any;
 };
 
@@ -66,12 +98,13 @@ const btn = (name: RegExp | string) => screen.getByRole('button', { name });
 
 /** 입구 → 성형 → 견적 → 동의 → 사진·부위 화면까지. */
 const toPick = async () => {
-    fireEvent.click(btn(/성형 — 병원으로 들어가기/));
-    fireEvent.click(btn(/내 성형 견적 뽑아보기/));
+    fireEvent.click(btn(/성형 견적/));
     for (const c of screen.getAllByRole('checkbox')) fireEvent.click(c);
     fireEvent.click(btn('동의하고 시작하기'));
     const file = new File(['x'], 'me.jpg', { type: 'image/jpeg' });
-    await act(async () => { fireEvent.change(screen.getByLabelText('정면 사진 고르기'), { target: { files: [file] } }); });
+    await act(async () => {
+        fireEvent.change(screen.getByLabelText('정면 사진 고르기'), { target: { files: [file] } });
+    });
     await screen.findByAltText('올린 사진 미리보기');
 };
 const analyzeBtn = () => btn(/^분석/);
@@ -88,110 +121,59 @@ describe('ChaerinClinicEntry', () => {
             return json(404, { error: 'nope' });
         });
         vi.stubGlobal('fetch', fetchMock);
-        vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 1600, height: 2000, close: vi.fn() })));
+        vi.stubGlobal(
+            'createImageBitmap',
+            vi.fn(async () => ({ width: 1600, height: 2000, close: vi.fn() })),
+        );
         vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({ drawImage: vi.fn() } as any);
         vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/jpeg;base64,QUJDRA==');
         (URL as any).createObjectURL = vi.fn(() => 'blob:preview');
         (URL as any).revokeObjectURL = vi.fn();
     });
-    afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); vi.useRealTimers(); });
-
-    const door = (name: RegExp) => screen.getByRole('button', { name }) as HTMLButtonElement;
-    const flipOf = (el: HTMLElement) => el.closest('.cc-flip') as HTMLElement;
-
-    it('문을 누르면 그 자리에서 뒤집혀 열린다 — 뒷면 메뉴 접근 가능, 옆 문은 숨김, 앞면은 포커스 제외', () => {
-        renderEntry();
-        const clinic = door(/성형 — 병원으로 들어가기/);
-        expect(clinic.getAttribute('aria-expanded')).toBe('false');
-        expect(screen.queryByRole('region', { name: '성형 메뉴' })).toBeNull();   // 닫힌 뒷면은 그리지 않는다
-
-        fireEvent.click(clinic);
-        expect(clinic.getAttribute('aria-expanded')).toBe('true');
-        expect(flipOf(clinic).className).toContain('cc-open');
-        // 여전히 입구 화면(별도 화면으로 넘어가지 않는다)
-        expect(screen.getByRole('region', { name: '채린 뷰티 클리닉 입구' })).toBeTruthy();
-        const menu = screen.getByRole('region', { name: '성형 메뉴' });
-        expect(menu.hasAttribute('inert')).toBe(false);
-        for (const n of [/내 성형 견적 뽑아보기/, /부위별 평균 가격표/, /채린에게 물어보기/]) expect(btn(n)).toBeTruthy();
-        // 앞면은 뒤집힌 동안 포커스 제외
-        expect(clinic.hasAttribute('inert')).toBe(true);
-        expect(clinic.tabIndex).toBe(-1);
-        // 옆 문은 숨김·비활성
-        expect(screen.queryByRole('button', { name: /스튜디오 — 사진 변신 기능 보기/ })).toBeNull();
-        const studioFlip = document.querySelector('[data-door="studio"]') as HTMLElement;
-        expect(studioFlip.className).toContain('cc-gone');
-        expect(studioFlip.hasAttribute('inert')).toBe(true);
-        // 열리면 돌아가기로 포커스
-        expect(document.activeElement).toBe(btn('← 돌아가기'));
+    afterEach(() => {
+        vi.unstubAllGlobals();
+        vi.restoreAllMocks();
+        vi.useRealTimers();
     });
 
-    it('돌아가기·Escape 로 닫히고, 닫힌 입구에서 Escape 만 onClose', () => {
-        const p = renderEntry();
-        fireEvent.click(door(/성형 — 병원으로 들어가기/));
-        fireEvent.keyDown(window, { key: 'Escape' });
-        expect(p.onClose).not.toHaveBeenCalled();
-        expect(door(/성형 — 병원으로 들어가기/).getAttribute('aria-expanded')).toBe('false');
-        expect(screen.queryByRole('region', { name: '성형 메뉴' })).toBeNull();
-        expect(document.activeElement).toBe(door(/성형 — 병원으로 들어가기/));
-
-        fireEvent.click(door(/스튜디오 — 사진 변신 기능 보기/));
-        expect(screen.getByRole('region', { name: '스튜디오 메뉴' })).toBeTruthy();
-        expect(screen.queryByRole('button', { name: /성형 — 병원으로 들어가기/ })).toBeNull();
-        fireEvent.click(btn('← 돌아가기'));
-        expect(door(/스튜디오 — 사진 변신 기능 보기/).getAttribute('aria-expanded')).toBe('false');
-        expect(door(/성형 — 병원으로 들어가기/)).toBeTruthy();
-        fireEvent.keyDown(window, { key: 'Escape' });
-        expect(p.onClose).toHaveBeenCalledTimes(1);
-
-        fireEvent.click(btn('닫기'));
-        expect(p.onClose).toHaveBeenCalledTimes(2);
+    it('첫 화면은 중복 없는 그림 카드 6개와 대화 CTA, 문 요소 0개다', () => {
+        renderEntry();
+        const cards = document.querySelectorAll('.cb-picture-card');
+        expect(cards).toHaveLength(6);
+        expect(new Set([...cards].map((card) => card.getAttribute('data-feature'))).size).toBe(6);
+        expect(btn(/대화하기/)).toBeTruthy();
+        expect(document.querySelectorAll('[data-door],.cc-doors,.cc-flip')).toHaveLength(0);
+        expect(screen.getByText(/AI 뷰티 컨설턴트 · 의료인 아님/, { selector: 'small' })).toBeTruthy();
     });
 
-    it('가격표·동의 화면에서 뒤로 → 입구 + 성형 문 열린 상태', async () => {
+    it('가격표·동의 화면에서 뒤로 또는 Escape는 전체 그림 메뉴로 복귀한다', async () => {
         renderEntry();
-        fireEvent.click(door(/성형 — 병원으로 들어가기/));
-        fireEvent.click(btn(/부위별 평균 가격표/));
-        expect(screen.getByRole('region', { name: '부위별 평균 가격표' })).toBeTruthy();
+        fireEvent.click(btn(/평균 가격/));
         await screen.findByText('쌍꺼풀 매몰법 *');
-        fireEvent.click(btn('← 성형 메뉴로'));
-        expect(screen.getByRole('region', { name: '채린 뷰티 클리닉 입구' })).toBeTruthy();
-        expect(door(/성형 — 병원으로 들어가기/).getAttribute('aria-expanded')).toBe('true');
-        expect(screen.getByRole('region', { name: '성형 메뉴' })).toBeTruthy();
-
-        // 동의 화면 → Escape 도 같은 규칙
-        fireEvent.click(btn(/내 성형 견적 뽑아보기/));
+        fireEvent.click(btn('← 처음으로'));
+        expect(document.querySelectorAll('.cb-picture-card')).toHaveLength(6);
+        await waitFor(() => expect(btn(/성형 견적/).textContent).toContain('300P'));
+        fireEvent.click(btn(/성형 견적/));
         expect(screen.getByText('시작 전에 확인해 주세요')).toBeTruthy();
         fireEvent.keyDown(window, { key: 'Escape' });
-        expect(door(/성형 — 병원으로 들어가기/).getAttribute('aria-expanded')).toBe('true');
-        expect(btn(/내 성형 견적 뽑아보기/)).toBeTruthy();
+        expect(document.querySelectorAll('.cb-picture-card')).toHaveLength(6);
     });
 
-    it('모션 켜짐: 뒤집는 동안 중복 클릭·Escape 무시, 끝나면 인라인 크기 정리', async () => {
-        setReduced(false);
-        vi.useFakeTimers();
-        const p = renderEntry();
-        const clinic = door(/성형 — 병원으로 들어가기/);
-        fireEvent.click(clinic);
-        const flip = flipOf(clinic);
-        expect(flip.className).toContain('cc-open');
-        fireEvent.keyDown(window, { key: 'Escape' });   // 뒤집는 중 — 무시
-        expect(clinic.getAttribute('aria-expanded')).toBe('true');
-        expect(p.onClose).not.toHaveBeenCalled();
-        await act(async () => { await vi.advanceTimersByTimeAsync(800); });
-        expect(flip.style.width).toBe('');
-        expect(flip.style.transform).toBe('');
-        // 닫는 동안엔 뒷면을 계속 그리되 조작 불가, 끝나면 뒷면 제거
-        fireEvent.click(btn('← 돌아가기'));
-        const closing = document.getElementById('cc-back-clinic')!;
-        expect(closing.hasAttribute('inert')).toBe(true);
-        await act(async () => { await vi.advanceTimersByTimeAsync(800); });
-        expect(document.getElementById('cc-back-clinic')).toBeNull();
+    it('입구 Escape와 닫기는 onClose를 호출한다', () => {
+        const props = renderEntry();
+        fireEvent.keyDown(window, { key: 'Escape' });
+        fireEvent.click(btn('닫기'));
+        expect(props.onClose).toHaveBeenCalledTimes(2);
     });
 
     it('스튜디오 4종이 App.tsx 와 같은 기능키를 넘긴다', () => {
         const p = renderEntry();
-        fireEvent.click(btn(/스튜디오 — 사진 변신 기능 보기/));
-        const cases: [RegExp, string][] = [[/헤어 체인지/, 'hair'], [/프로필 화보/, 'outfit'], [/시간여행/, 'agetransform'], [/닮은꼴 찾기/, 'lookalike']];
+        const cases: [RegExp, string][] = [
+            [/헤어 체인지/, 'hair'],
+            [/프로필 화보/, 'outfit'],
+            [/시간여행/, 'agetransform'],
+            [/닮은꼴/, 'lookalike'],
+        ];
         for (const [label, key] of cases) {
             p.onFeature.mockClear();
             fireEvent.click(btn(label));
@@ -199,41 +181,38 @@ describe('ChaerinClinicEntry', () => {
         }
         expect(btn(/헤어 체인지/).textContent).toContain('200P');
         expect(btn(/시간여행/).textContent).toContain('100P');
-        expect(btn(/닮은꼴 찾기/).textContent).toContain('무료');
+        expect(btn(/닮은꼴/).textContent).toContain('무료');
     });
 
-    it('채린에게 물어보기 → onStart(채팅)', () => {
+    it('대화하기 → onStart(채팅)', () => {
         const p = renderEntry();
-        fireEvent.click(btn(/성형 — 병원으로 들어가기/));
-        fireEvent.click(btn(/채린에게 물어보기/));
+        fireEvent.click(btn(/대화하기/));
         expect(p.onStart).toHaveBeenCalledWith();
         expect(p.onFeature).not.toHaveBeenCalled();
     });
 
     it('견적 버튼에 menu-prices 단가를 표시한다', async () => {
         renderEntry();
-        fireEvent.click(btn(/성형 — 병원으로 들어가기/));
-        await waitFor(() => expect(btn(/내 성형 견적 뽑아보기/).textContent).toContain('300P'));
+        await waitFor(() => expect(btn(/성형 견적/).textContent).toContain('300P'));
     });
 
     it('단가 행이 없으면 "준비 중" 배지 + 안내만, 동의 화면으로 가지 않는다', async () => {
         prices = {};
         renderEntry();
-        fireEvent.click(btn(/성형 — 병원으로 들어가기/));
-        await waitFor(() => expect(btn(/내 성형 견적 뽑아보기/).textContent).toContain('준비 중'));
-        fireEvent.click(btn(/내 성형 견적 뽑아보기/));
+        await waitFor(() => expect(btn(/성형 견적/).textContent).toContain('준비 중'));
+        fireEvent.click(btn(/성형 견적/));
         expect(screen.getByText(/준비 중인 기능이에요/)).toBeTruthy();
         expect(screen.queryByText('시작 전에 확인해 주세요')).toBeNull();
     });
 
     it('동의 3개 전엔 시작 비활성, 부위 0개면 분석 비활성', async () => {
         renderEntry();
-        fireEvent.click(btn(/성형 — 병원으로 들어가기/));
-        fireEvent.click(btn(/내 성형 견적 뽑아보기/));
+        fireEvent.click(btn(/성형 견적/));
         const boxes = screen.getAllByRole('checkbox');
         expect(boxes).toHaveLength(3);
         const start = btn('동의하고 시작하기') as HTMLButtonElement;
-        fireEvent.click(boxes[0]); fireEvent.click(boxes[1]);
+        fireEvent.click(boxes[0]);
+        fireEvent.click(boxes[1]);
         expect(start.disabled).toBe(true);
         fireEvent.click(boxes[2]);
         expect(start.disabled).toBe(false);
@@ -242,7 +221,9 @@ describe('ChaerinClinicEntry', () => {
         // 사진 전·부위 0개 → 비활성
         expect((analyzeBtn() as HTMLButtonElement).disabled).toBe(true);
         const file = new File(['x'], 'me.jpg', { type: 'image/jpeg' });
-        await act(async () => { fireEvent.change(screen.getByLabelText('정면 사진 고르기'), { target: { files: [file] } }); });
+        await act(async () => {
+            fireEvent.change(screen.getByLabelText('정면 사진 고르기'), { target: { files: [file] } });
+        });
         await screen.findByAltText('올린 사진 미리보기');
         expect((analyzeBtn() as HTMLButtonElement).disabled).toBe(true);
         fireEvent.click(btn('눈'));
@@ -255,19 +236,30 @@ describe('ChaerinClinicEntry', () => {
 
     it('분석: 연타해도 POST 1회, 본문 규약, 리포트 합계=suggested 합, 체크 변경 시 재계산, 잔액 갱신', async () => {
         let resolvePost!: (r: Response) => void;
-        postImpl = () => new Promise<Response>(r => { resolvePost = r; });
+        postImpl = () =>
+            new Promise<Response>((r) => {
+                resolvePost = r;
+            });
         const p = renderEntry();
         await toPick();
         fireEvent.click(btn('눈'));
         fireEvent.click(btn('코'));
         const a = analyzeBtn();
-        fireEvent.click(a); fireEvent.click(a);
+        fireEvent.click(a);
+        fireEvent.click(a);
         expect(posts()).toHaveLength(1);
         const body = JSON.parse(String((posts()[0][1] as RequestInit).body));
-        expect(body).toEqual({ imageBase64: 'QUJDRA==', mimeType: 'image/jpeg', parts: ['eye', 'nose'], adultConfirmed: true });
+        expect(body).toEqual({
+            imageBase64: 'QUJDRA==',
+            mimeType: 'image/jpeg',
+            parts: ['eye', 'nose'],
+            adultConfirmed: true,
+        });
         expect(screen.getByRole('region', { name: '얼굴 분석 중' })).toBeTruthy();
 
-        await act(async () => { resolvePost(new Response(JSON.stringify(REPORT), { status: 200 })); });
+        await act(async () => {
+            resolvePost(new Response(JSON.stringify(REPORT), { status: 200 }));
+        });
         await screen.findByRole('region', { name: '견적 리포트' });
         expect(screen.getByTestId('cc-total').textContent).toBe('예상 총액 144만 ~ 320만 원');
         expect(screen.getByText(/눈매가 또렷하고/)).toBeTruthy();
@@ -279,8 +271,8 @@ describe('ChaerinClinicEntry', () => {
         expect(screen.getByTestId('cc-total').textContent).toBe('예상 총액 194만 ~ 520만 원');
         expect(posts()).toHaveLength(1);
 
-        // 다시 해보기 → 사진 단계, 채린에게 물어보기 → onStart
-        fireEvent.click(btn('채린에게 물어보기'));
+        // 다시 해보기 → 사진 단계, 대화하기 → onStart
+        fireEvent.click(btn('대화하기'));
         expect(p.onStart).toHaveBeenCalled();
         fireEvent.click(btn('다시 해보기'));
         expect(screen.getByRole('region', { name: '사진과 관심 부위' })).toBeTruthy();
@@ -289,24 +281,33 @@ describe('ChaerinClinicEntry', () => {
     it('스캔 화면은 응답이 빨라도 최소 4.5초 머문다(모션 켜짐)', async () => {
         setReduced(false);
         renderEntry();
-        // 모션이 켜져 있으면 문 연출 뒤에 넘어간다
+        // 스캔 최소 시간은 모션 설정에 따라 유지한다
         vi.useFakeTimers({ shouldAdvanceTime: true });
-        fireEvent.click(btn(/성형 — 병원으로 들어가기/));
-        await act(async () => { await vi.advanceTimersByTimeAsync(1200); });
-        fireEvent.click(btn(/내 성형 견적 뽑아보기/));
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1200);
+        });
+        fireEvent.click(btn(/성형 견적/));
         for (const c of screen.getAllByRole('checkbox')) fireEvent.click(c);
         fireEvent.click(btn('동의하고 시작하기'));
         const file = new File(['x'], 'me.jpg', { type: 'image/jpeg' });
-        await act(async () => { fireEvent.change(screen.getByLabelText('정면 사진 고르기'), { target: { files: [file] } }); });
+        await act(async () => {
+            fireEvent.change(screen.getByLabelText('정면 사진 고르기'), { target: { files: [file] } });
+        });
         await screen.findByAltText('올린 사진 미리보기');
         fireEvent.click(btn('눈'));
         vi.useFakeTimers();
         fireEvent.click(analyzeBtn());
-        await act(async () => { await vi.advanceTimersByTimeAsync(100); });
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(100);
+        });
         expect(screen.queryByRole('region', { name: '견적 리포트' })).toBeNull();
-        await act(async () => { await vi.advanceTimersByTimeAsync(MIN_SCAN_MS - 1000); });
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(MIN_SCAN_MS - 1000);
+        });
         expect(screen.queryByRole('region', { name: '견적 리포트' })).toBeNull();
-        await act(async () => { await vi.advanceTimersByTimeAsync(1200); });
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1200);
+        });
         expect(screen.getByRole('region', { name: '견적 리포트' })).toBeTruthy();
     });
 
@@ -321,7 +322,12 @@ describe('ChaerinClinicEntry', () => {
     });
 
     it('422 → 서버 message 를 보여주고 사진 단계로(차감 없음 안내)', async () => {
-        postImpl = () => json(422, { error: 'UNCLEAR_IMAGE', message: '얼굴이 또렷하게 보이지 않아요. 밝은 곳에서 정면을 바라본 사진으로 다시 올려 주세요.', pointsCharged: 0 });
+        postImpl = () =>
+            json(422, {
+                error: 'UNCLEAR_IMAGE',
+                message: '얼굴이 또렷하게 보이지 않아요. 밝은 곳에서 정면을 바라본 사진으로 다시 올려 주세요.',
+                pointsCharged: 0,
+            });
         renderEntry();
         await toPick();
         fireEvent.click(btn('눈'));
@@ -333,7 +339,8 @@ describe('ChaerinClinicEntry', () => {
     });
 
     it('422 MINOR_SUSPECTED 도 서버 문구 그대로', async () => {
-        postImpl = () => json(422, { error: 'MINOR_SUSPECTED', message: '이 기능은 성인만 이용할 수 있어요.', pointsCharged: 0 });
+        postImpl = () =>
+            json(422, { error: 'MINOR_SUSPECTED', message: '이 기능은 성인만 이용할 수 있어요.', pointsCharged: 0 });
         renderEntry();
         await toPick();
         fireEvent.click(btn('입·입술'));
@@ -362,21 +369,20 @@ describe('ChaerinClinicEntry', () => {
     it('비로그인: 견적 → guestGate(paid, beauty-estimate), 서버 호출 0 · 가격표는 열람 가능', async () => {
         const gate = vi.fn();
         renderEntry({ gift: undefined, onGuestGate: gate });
-        fireEvent.click(btn(/성형 — 병원으로 들어가기/));
-        fireEvent.click(btn(/내 성형 견적 뽑아보기/));
+        fireEvent.click(btn(/성형 견적/));
         expect(gate).toHaveBeenCalledWith('paid', 'beauty-estimate');
         expect(screen.queryByText('시작 전에 확인해 주세요')).toBeNull();
         expect(posts()).toHaveLength(0);
         expect(fetchMock.mock.calls.some(([u]) => u === '/api/points/menu-prices')).toBe(false);
 
-        fireEvent.click(btn(/부위별 평균 가격표/));
+        fireEvent.click(btn(/평균 가격/));
         expect(await screen.findByText('쌍꺼풀 매몰법 *')).toBeTruthy();
         expect(screen.getByText('50~100만')).toBeTruthy();
         expect(fetchMock).toHaveBeenCalledWith('/api/beauty-estimate/catalog');
     });
 
     it('사진 base64 를 콘솔·localStorage 에 남기지 않는다', async () => {
-        const logs = ['log', 'info', 'warn', 'error', 'debug'].map(k => vi.spyOn(console, k as 'log'));
+        const logs = ['log', 'info', 'warn', 'error', 'debug'].map((k) => vi.spyOn(console, k as 'log'));
         const setItem = vi.spyOn(Storage.prototype, 'setItem');
         renderEntry();
         await toPick();
@@ -388,7 +394,15 @@ describe('ChaerinClinicEntry', () => {
     });
 
     it('언마운트 시 미리보기 objectURL 을 해제한다', async () => {
-        const r = render(<ChaerinClinicEntry guide={{ title: '윤채린', desc: '' }} onClose={vi.fn()} onStart={vi.fn()} onFeature={vi.fn()} gift={makeGift()} />);
+        const r = render(
+            <ChaerinClinicEntry
+                guide={{ title: '윤채린', desc: '' }}
+                onClose={vi.fn()}
+                onStart={vi.fn()}
+                onFeature={vi.fn()}
+                gift={makeGift()}
+            />,
+        );
         await toPick();
         expect(URL.revokeObjectURL).not.toHaveBeenCalled();
         r.unmount();
@@ -398,48 +412,90 @@ describe('ChaerinClinicEntry', () => {
 
 describe('PersonaEntrySheet 분기', () => {
     const base = { onClose: () => {}, onStart: () => {}, onFeature: () => {}, onInvite: () => {} };
-    beforeEach(() => { vi.stubGlobal('fetch', vi.fn(() => json(200, { prices: {} }))); });
+    beforeEach(() => {
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(() => json(200, { prices: {} })),
+        );
+    });
     afterEach(() => vi.unstubAllGlobals());
 
     it('윤채린이면 뷰티 클리닉 화면이 뜬다', () => {
         render(<PersonaEntrySheet guide={{ title: '윤채린', desc: '' }} {...base} />);
-        expect(screen.getByText('CHAERIN BEAUTY CLINIC & STUDIO')).toBeTruthy();
+        expect(screen.getByText('CHAERIN / BEAUTY NOTES')).toBeTruthy();
     });
 
     it('비로그인 시트면 guestGate 가 견적 버튼까지 전달된다', () => {
-        setReduced(true);   // 문 연출 없이 바로 넘어가게
+        setReduced(true); // 문 연출 없이 바로 넘어가게
         const gate = vi.fn();
         render(<PersonaEntrySheet guide={{ title: '윤채린', desc: '' }} {...base} isGuest onGuestGate={gate} />);
-        fireEvent.click(screen.getByRole('button', { name: /성형 — 병원으로 들어가기/ }));
-        fireEvent.click(screen.getByRole('button', { name: /내 성형 견적 뽑아보기/ }));
+        fireEvent.click(screen.getByRole('button', { name: /성형 견적/ }));
         expect(gate).toHaveBeenCalledWith('paid', 'beauty-estimate');
     });
 
     it('회원 시트면 gift 가 전달돼 견적 동의 화면으로 들어간다', () => {
         setReduced(true);
         const gate = vi.fn();
-        render(<PersonaEntrySheet guide={{ title: '윤채린', desc: '' }} {...base} onGuestGate={gate} gift={makeGift()} />);
-        fireEvent.click(screen.getByRole('button', { name: /성형 — 병원으로 들어가기/ }));
-        fireEvent.click(screen.getByRole('button', { name: /내 성형 견적 뽑아보기/ }));
+        render(
+            <PersonaEntrySheet guide={{ title: '윤채린', desc: '' }} {...base} onGuestGate={gate} gift={makeGift()} />,
+        );
+        fireEvent.click(screen.getByRole('button', { name: /성형 견적/ }));
         expect(gate).not.toHaveBeenCalled();
         expect(screen.getByText('시작 전에 확인해 주세요')).toBeTruthy();
     });
 
     it('★다른 페르소나의 기존 화면을 뺏지 않는다', () => {
         render(<PersonaEntrySheet guide={{ title: '윤채원', desc: '' }} {...base} />);
-        expect(screen.queryByText('CHAERIN BEAUTY CLINIC & STUDIO')).toBeNull();
+        expect(screen.queryByText('CHAERIN / BEAUTY NOTES')).toBeNull();
     });
 });
 
-describe('ChaerinClinicEntry — 메인 성형 견적 카드 진입', () => {
-    it("sessionStorage 'cc-open'=clinic 이면 성형 문이 열린 채로 시작하고 표식을 지운다", async () => {
-        sessionStorage.setItem('cc-open', 'clinic');
-        const { render: r, screen: s } = await import('@testing-library/react');
-        const { ChaerinClinicEntry } = await import('./ChaerinClinicEntry');
-        r(<ChaerinClinicEntry guide={{ title: '윤채린', desc: '' }} onClose={() => {}} onStart={() => {}} onFeature={() => {}} onInvite={() => {}} />);
-        expect(s.getByRole('button', { name: /내 성형 견적 뽑아보기/ })).toBeTruthy();
-        expect(s.getByRole('button', { name: /성형 — 병원으로 들어가기/ }).getAttribute('aria-expanded')).toBe('true');
-        expect(s.getByRole('region', { name: '채린 뷰티 클리닉 입구' })).toBeTruthy();
-        expect(sessionStorage.getItem('cc-open')).toBeNull();
+describe('ChaerinClinicEntry — 채팅 및 메인에서 하위 화면 진입', () => {
+    beforeEach(() => {
+        sessionStorage.clear();
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(() => json(200, { prices: { 'beauty-estimate': 320 } })),
+        );
+    });
+    afterEach(() => {
+        vi.unstubAllGlobals();
+        sessionStorage.clear();
+    });
+
+    it('메인 견적 링크는 일회용 표식을 소비하고 동일 동의 화면으로 간다', async () => {
+        sessionStorage.setItem('cc-screen', 'estimate');
+        renderEntry();
+        await screen.findByText('시작 전에 확인해 주세요');
+        expect(sessionStorage.getItem('cc-screen')).toBeNull();
+    });
+
+    it('채팅의 견적 메뉴는 기존 동의 화면으로 간다', async () => {
+        renderEntry({ guide: { title: '윤채린', desc: '', chaerinScreen: 'estimate' } });
+        await screen.findByText('시작 전에 확인해 주세요');
+    });
+
+    it('이미 열린 진입 시트에서 같은 채팅 메뉴를 반복 선택해도 해당 화면으로 이동한다', async () => {
+        const props = { guide: { title: '윤채린', desc: '' }, gift: makeGift(),
+            onClose: vi.fn(), onStart: vi.fn(), onFeature: vi.fn() };
+        const { rerender } = render(<ChaerinClinicEntry {...props} />);
+        await waitFor(() => expect(btn(/성형 견적/).textContent).toContain('320P'));
+        rerender(<ChaerinClinicEntry {...props} guide={{ ...props.guide, chaerinScreen: 'estimate' }} />);
+        await screen.findByText('시작 전에 확인해 주세요');
+        fireEvent.click(btn('← 처음으로'));
+        expect(document.querySelectorAll('.cb-picture-card')).toHaveLength(6);
+        rerender(<ChaerinClinicEntry {...props} guide={{ ...props.guide, chaerinScreen: 'estimate' }} />);
+        await screen.findByText('시작 전에 확인해 주세요');
+    });
+
+    it('비로그인 하위 진입도 기존 유료 게이트를 통과한다', () => {
+        const gate = vi.fn();
+        renderEntry({
+            gift: undefined,
+            onGuestGate: gate,
+            guide: { title: '윤채린', desc: '', chaerinScreen: 'estimate' },
+        });
+        expect(gate).toHaveBeenCalledWith('paid', 'beauty-estimate');
+        expect(screen.queryByText('시작 전에 확인해 주세요')).toBeNull();
     });
 });

@@ -137,3 +137,18 @@ style-webtoon/style-hair/menu-age`)도 전부 파일명 고정 참조다. 내용
 - 🔴**법 검토**: 사진으로 "필요한 수술"을 말하면 원격 진단·무면허 의료행위 소지 → 보이는 특징 + 흔히 상담하는 시술 + 공개 가격만. 12월부터 "AI 가짜 전문가" 추천 광고 금지 → **흰 가운 채린 폐기**, 의료인 아님 표시.
 - 🔴**AI 얼굴 좌표 금지**: flash(thinking 0)의 좌표·얼굴 박스가 입·턱에서 10~20% 어긋나 사진 위 선이 얼굴 밖으로 나갔다 → 좌표 요청 제거, 추상 도식 연출.
 - 운영 실측(테스트 계정): 얼굴 없는 사진 → 422·차감 0 / 가상 인물 → 200·**300P 1회 차감**·리포트·체크 변경 시 총액 274~690 → 224~590. 비로그인 → 유료 안내, 요청 0.
+
+
+## v3 — 화이트 뷰티 갤러리 (2026-10-06, 로컬 구현·검수)
+
+- 승인안: design-lab/chaerin-v3 Round 0의 2안 + 1안 진한 브라운 대화 버튼.
+- 첫 화면의 문/뒤집기/층별 불빛을 제거하고 대화 CTA와 성형 정보 2개·스튜디오 4개 그림 카드를 직접 보여준다.
+- 그림은 얼굴·글자 없는 화이트 정물 7장. `public/chaerin/menu/*-v3.webp`, 720px, 장당 40KB 이하. 기존 니트 채린 portrait 유지.
+- 제목만 기존 Nanum Myeongjo, 메뉴·본문·폼은 전역 Pretendard. 새 글꼴·인물 생성 없음.
+- `ChaerinEntryChatModal`의 beauty preset은 기존 App `handleSendMessage`·10P 계약·ReactMarkdown·greetingRuns를 재사용한다.
+- 기능 메뉴는 한 곳. 견적/가격표는 `PersonaEntryGuide.chaerinScreen`으로 기존 진입 시트의 동의/가격표를 연다.
+- 스튜디오 4키는 기존 FEATURE_ACTIONS와 `entryReturnChatId` 복귀 경로를 그대로 쓴다. 초안은 회원·페르소나별 sessionStorage에 보존한다.
+- 견적 consent→pick→scan→report, 서버 가격·오류·성공 후 차감·사진 미저장 계약은 v2와 동일하다.
+- 의료인 아님·공개 가격 참고 범위·진단/처방 아님 고지 유지. 새 얼굴·흰 가운 없음.
+- main/chat 양쪽 App 분기와 포인트 부족 z-9000, 비회원 게이트는 로컬 API 모킹으로 검수한다.
+- 이 단계는 push/배포·운영 API 실행을 포함하지 않는다. 최종 증거·커밋은 `~/design-lab/chaerin-v3/RECEIPT_round1.md` 참조.
