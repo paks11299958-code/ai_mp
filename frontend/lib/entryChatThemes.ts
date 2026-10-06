@@ -6,9 +6,11 @@ export interface EntryChatTheme {
     displayName: string;
     fallbackPortrait: string;
     accent: string;
-    visualPreset?: 'letter' | 'studio' | 'golf' | 'beauty';
+    visualPreset?: 'letter' | 'studio' | 'golf' | 'beauty' | 'desk';
     headerCaption?: string;
 }
+
+export const CHAEWON_ID = 'cmois970w0000xsvie6aag2f5';
 
 export const ARIN_ID = 'cmon1gg3z000104k2p802tp44';
 
@@ -16,9 +18,16 @@ export const DOGYEOL_ID = 'cmopfkd4o000004la2q5p3nle';
 
 export const SEOLA_ID = 'custom-1777217377681';
 export const entryChatHasFeatureMenu = (theme?: EntryChatTheme) =>
-    theme?.visualPreset === 'studio' || theme?.visualPreset === 'golf' || theme?.visualPreset === 'beauty';
+    theme?.visualPreset === 'desk' || theme?.visualPreset === 'studio' || theme?.visualPreset === 'golf' || theme?.visualPreset === 'beauty';
 
 export const ENTRY_CHAT_THEMES: Record<string, EntryChatTheme> = {
+    [CHAEWON_ID]: {
+        personaId: CHAEWON_ID,
+        displayName: '윤채원',
+        fallbackPortrait: '',
+        accent: '#8eddd6',
+        visualPreset: 'desk',
+    },
     [CHAERIN_ID]: {
         personaId: CHAERIN_ID,
         displayName: '윤채린',

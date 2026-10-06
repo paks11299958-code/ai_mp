@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { ChaewonMenu } from './ChaewonMenu';
+import './chaewonDesk.css';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { PersonaEntryGuide } from '../PersonaEntrySheet';
 
 // 윤채원(수석 애널리스트) 전용 진입 화면 — "트레이딩 데스크".
@@ -239,64 +241,10 @@ export const buildChart = (rows: OHLC[]): ChartModel => {
 };
 
 const CSS = `
-/* ★배경은 더 눌러 카드가 확실히 뜨게 한다 — 카드만 밝히면 격차가 안 벌어진다(2026-09-08). */
-.cd-root{position:fixed;inset:0;z-index:85;overflow-y:auto;overflow-x:hidden;
-  background:#0e161f;color:#eef2f8;
-  font-family:'Pretendard',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
-.cd-wrap{max-width:520px;margin:0 auto;min-height:100%;
-  background:linear-gradient(180deg,#0e161f,#121d29);padding-bottom:28px}
-.cd-mono{font-variant-numeric:tabular-nums;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
-.cd-up{color:#ff6b74}.cd-down{color:#6aa9ff}.cd-flat{color:#9fb0c6}
-
-.cd-hd{display:flex;align-items:center;gap:10px;padding:16px 18px 12px}
-.cd-logo{width:34px;height:34px;border-radius:9px;background:#2b3d54;
-  display:flex;align-items:center;justify-content:center;font-size:16px}
-.cd-t{font-size:15px;font-weight:800;letter-spacing:-.01em}
-.cd-r{font-size:10.5px;font-weight:600;color:#9fb0c6;margin-left:5px}
-.cd-s{font-size:11px;color:#9fb0c6}
-.cd-x{margin-left:auto;width:32px;height:32px;border-radius:50%;cursor:pointer;
-  border:1px solid #33475f;background:transparent;color:#9fb0c6;font-size:14px}
-
-/* 카드는 앱 배경에서 '떠 있어야' 한다. 명도차가 1.03~1.13밖에 안 돼 배경과 같은 면으로
-   읽혔다(2026-09-08). ★카드만 밝혀선 격차가 안 벌어져 배경까지 함께 눌렀다 →
-   앱배경↔카드 1.55, 배경↔테두리 3.13. */
-.cd-board{margin:0 14px;border:1px solid #4a678c;border-radius:14px;overflow:hidden;
-  background:linear-gradient(180deg,#28394f,#223145);
-  box-shadow:0 1px 0 rgba(255,255,255,.07) inset,0 8px 22px rgba(0,0,0,.45)}
-.cd-bl{padding:12px 14px 10px}
-/* ★baseline 정렬은 값(24px)과 등락률(12.5px)의 글꼴 밑선이 달라 13px 어긋나 보였다
-   — 사장님이 "등락률이 떨어져 나갔다"고 보신 원인(2026-09-08). center로 묶는다. */
-.cd-row{display:flex;align-items:center;gap:8px;padding:7px 0}
-.cd-row+.cd-row{border-top:1px dashed #3a5170}
-.cd-rn{font-size:12px;color:#9fb0c6;min-width:58px}
-/* 세 지표의 크기 격차를 좁힌다 — 24 vs 15.5는 위계가 아니라 단절이었다. */
-.cd-rv{font-size:18px;font-weight:700;letter-spacing:-.02em}
-.cd-rv.cd-up{text-shadow:0 0 14px rgba(255,107,116,.45)}
-.cd-rc{font-size:12px;font-weight:700;margin-left:auto;white-space:nowrap}
-/* ★주인공 행 — 코스피. 한 단계만 위로(18→22). 등락률도 함께 키워 한 줄로 읽히게 한다. */
-.cd-hero{padding:9px 0}
-.cd-hero .cd-rn{font-size:12px;color:#c3d0e0;font-weight:700}
-.cd-hero .cd-rv{font-size:22px;font-weight:800;letter-spacing:-.025em}
-.cd-hero .cd-rc{font-size:13px}
-.cd-cap{font-size:9.5px;color:#9fb0c6;margin-top:1px}
-.cd-gerr{display:flex;align-items:center;justify-content:center;height:96px;
-  font-size:11px;color:#9fb0c6;text-align:center}
-
-/* 일봉 차트 — 전광판 아래 전체 폭. HTS 차트를 기준으로 잡았다. */
-.cd-chart{border-top:1px solid #4a678c;padding:10px 10px 8px;background:#1b2a3c}
-.cd-ch{display:flex;align-items:baseline;gap:7px;margin:0 4px 6px}
-.cd-cht{font-size:12px;font-weight:800;letter-spacing:-.01em}
-.cd-chs{font-size:10px;color:#9fb0c6}
-.cd-chl{margin-left:auto;font-size:9.5px;color:#9fb0c6;display:flex;align-items:center;gap:4px}
-.cd-ma5{width:11px;height:2px;background:#f0b23c;border-radius:1px;display:inline-block}
-.cd-svg{width:100%;height:auto;display:block}
-/* ★축·라벨은 7px/6.6px이라 대비와 무관하게 물리적으로 읽기 힘들었다(2026-09-08).
-   viewBox 300 기준이라 실제 렌더 크기는 이보다 더 작게 보인다. */
 .cd-axt{fill:#a8bacf;font-size:8.6px;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
 .cd-now{fill:#fff;font-size:8.4px;font-weight:700;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
 .cd-pk{font-size:8px;font-weight:700;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
 .cd-pkup{fill:#ff8a91}.cd-pkdn{fill:#8ec0ff}
-.cd-note{font-size:10px;color:#9fb0c6;line-height:1.5;margin-top:2px}
 /* 캔들 하나가 '띡' 하고 찍히는 순간 — 짧게 튀어나온다. transform-box 가 없으면
    SVG 안에서 transform-origin 이 뷰박스 원점 기준이라 엉뚱한 데서 커진다. */
 .cd-cd{transform-box:fill-box;transform-origin:center}
@@ -316,69 +264,6 @@ const CSS = `
 @keyframes cd-slide{to{transform:translateX(-50%)}}
 @keyframes cd-blink{0%,100%{opacity:1}50%{opacity:.25}}
 
-/* 티커는 헤더 바로 아래. 전광판이 주인공이므로 톤을 한 단계 눌러 둔다. */
-.cd-tape{margin:2px 14px 10px;border:1px solid #2f4460;border-radius:10px;
-  background:#16222f;overflow:hidden;padding:6px 0}
-.cd-tape-in{display:flex;gap:26px;width:max-content;padding-left:14px}
-.cd-ti{font-size:11px;white-space:nowrap}
-.cd-stamp{padding:8px 18px 0;font-size:10.5px;color:#9fb0c6}
-
-.cd-sec{padding:22px 18px 0}
-.cd-sh{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
-.cd-st{font-size:15px;font-weight:800}
-.cd-sm{font-size:10px;letter-spacing:.12em;color:#e2c79f;margin-left:auto}
-.cd-live{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#ff6b74;font-weight:700}
-.cd-live i{width:6px;height:6px;border-radius:50%;background:#ff6b74}
-.cd-tabs{display:flex;gap:6px;margin-bottom:10px}
-.cd-tab{font-size:11.5px;font-weight:700;padding:6px 11px;border-radius:999px;cursor:pointer;
-  border:1px solid #33475f;background:transparent;color:#9fb0c6;font-family:inherit}
-.cd-tab.on{background:#eef2f8;color:#16202e;border-color:#eef2f8}
-.cd-nw{display:flex;gap:10px;padding:11px 0;border-top:1px solid #33475f}
-.cd-nw:first-of-type{border-top:0}
-.cd-nn{flex:0 0 20px;font-size:12px;font-weight:800;color:#e2c79f}
-.cd-nt{font-size:13px;line-height:1.5}
-
-.cd-pp{border:1px solid #33475f;border-radius:12px;background:#223043;padding:14px}
-.cd-ptop{display:flex;align-items:flex-end;gap:10px}
-.cd-pl{font-size:11px;color:#9fb0c6}
-.cd-pv{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
-.cd-pr{font-size:12px;font-weight:700;margin-left:auto;text-align:right}
-.cd-psub{margin-top:9px;padding-top:9px;border-top:1px solid #33475f;
-  font-size:11.5px;color:#9fb0c6;line-height:1.6}
-.cd-psub b{color:#eef2f8}
-.cd-pnote{margin-top:7px;font-size:10.5px;color:#9fb0c6}
-
-.cd-menu{padding:16px 14px 0;display:flex;flex-direction:column;gap:8px}
-.cd-mi{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
-  padding:13px 14px;border-radius:12px;border:1px solid #33475f;background:#223043;
-  color:inherit;font:inherit;transition:border-color .15s ease,transform .12s ease}
-.cd-mi:hover{border-color:#4a6a8c;transform:translateY(-1px)}
-.cd-mi:active{transform:scale(.99)}
-.cd-mic{flex:0 0 34px;height:34px;border-radius:9px;background:#2b3d54;
-  display:flex;align-items:center;justify-content:center;font-size:15px}
-.cd-mt{font-size:14px;font-weight:700}
-.cd-md{font-size:11.5px;color:#9fb0c6;margin-top:2px}
-.cd-mg{margin-left:auto;color:#9fb0c6;font-size:13px}
-
-.cd-pk{border:1px solid #33475f;border-radius:12px;background:#223043;padding:13px 14px;margin-top:9px}
-.cd-ph{display:flex;align-items:center;gap:8px}
-.cd-pm{font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:999px;background:#2b3d54;color:#9fb0c6}
-.cd-pn{font-size:15px;font-weight:800}
-.cd-pb{margin-left:auto;text-align:right}
-.cd-pg{font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:999px;background:#1f4a3c;color:#4fd1a5}
-.cd-ps{font-size:12px;font-weight:800;margin-top:3px}
-.cd-tb{width:100%;border-collapse:collapse;margin-top:10px;font-size:11.5px}
-.cd-tb th,.cd-tb td{border:1px solid #33475f;padding:6px 8px;text-align:left;vertical-align:top}
-.cd-tb th{background:#26364a;color:#9fb0c6;font-weight:700;width:76px}
-
-.cd-dis{margin:20px 14px 0;padding:12px 14px;border-radius:12px;background:#1a2634;border:1px solid #33475f}
-.cd-dt{font-size:10px;letter-spacing:.1em;color:#e2c79f;font-weight:800;margin-bottom:5px}
-.cd-db{font-size:11.5px;line-height:1.6;color:#9fb0c6}
-.cd-db b{color:#eef2f8}
-.cd-cta{margin:16px 14px 0;padding:15px;border-radius:12px;border:0;cursor:pointer;width:calc(100% - 28px);
-  font:inherit;font-size:14.5px;font-weight:700;color:#16202e;
-  background:linear-gradient(135deg,#e2c79f,#c9a678)}
-.cd-err{margin:10px 14px 0;font-size:11px;color:#9fb0c6}
 `;
 
 interface Props {
@@ -401,10 +286,15 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
     const [candles, setCandles] = useState<OHLC[] | null>(null);
     /** 지금까지 찍힌 캔들 수. 1초에 두 개(500ms 간격)씩 늘어나다 전부 찍히면 멈춘다. */
     const [shown, setShown] = useState(0);
+    const picksRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (guide.chaewonSection === 'picks') picksRef.current?.scrollIntoView({ block: 'start' });
+    }, [guide.chaewonSection, picks, cues]);
 
     const fail = (what: string) => setFailed(f => (f.includes(what) ? f : [...f, what]));
 
-    // ★네 API 모두 기존 것이다(무료·읽기 전용). 하나가 실패해도 나머지는 그린다.
+    // ★다섯 API 모두 기존 것이다(무료·읽기 전용). 하나가 실패해도 나머지는 그린다.
     useEffect(() => {
         let alive = true;
         const get = (u: string) => fetch(u).then(r => r.json());
@@ -424,7 +314,7 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
 
     // Esc로 닫기 — 전체를 덮는 화면이라 출구가 하나뿐이면 갇힌 느낌이 든다.
     useEffect(() => {
-        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !e.defaultPrevented && !document.querySelector('.cd-root[inert]')) onClose(); };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [onClose]);
@@ -475,7 +365,7 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                     <div className="cd-logo">📊</div>
                     <div>
                         <div className="cd-t">윤채원<span className="cd-r">수석 애널리스트</span></div>
-                        <div className="cd-s">데이터로 읽는 시장 · 자신보다 데이터를 믿어라</div>
+                        <div className="cd-s">데이터로 읽는 시장</div>
                     </div>
                     <button className="cd-x" onClick={onClose} aria-label="닫기">✕</button>
                 </div>
@@ -497,9 +387,9 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                 <div className="cd-board">
                     <div className="cd-bl">
                         {rows.length === 0
-                            ? <div className="cd-cap">{failed.includes('시세') ? '시세를 불러오지 못했습니다' : '불러오는 중…'}</div>
+                            ? <div className="cd-cap">{failed.includes('시세') ? '시세를 불러오지 못했습니다' : markets ? '시세 미제공' : '불러오는 중…'}</div>
                             : rows.map(r => (
-                                <React.Fragment key={r.name}>
+                                <div className="cd-quote" key={r.name}>
                                     {/* ★코스피가 이 화면의 주인공이다. 셋 다 같은 크기면 주인공이 없다.
                                         순서가 아니라 **이름**으로 고른다(API 순서는 보장되지 않는다). */}
                                     <div className={`cd-row${r.name === '코스피' ? ' cd-hero' : ''}`}>
@@ -510,7 +400,7 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                                         </span>
                                     </div>
                                     {r.cap && <div className="cd-cap">{r.cap}</div>}
-                                </React.Fragment>
+                                </div>
                             ))}
                     </div>
 
@@ -518,7 +408,7 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                     <div className="cd-chart">
                         <div className="cd-ch">
                             <span className="cd-cht">코스피 일봉</span>
-                            <span className="cd-chs">최근 {bars.length || 10}거래일 · 종가 기준</span>
+                            <span className="cd-chs">{bars.length ? `최근 ${bars.length}거래일` : '일봉 미제공'} · 종가 기준</span>
                             <span className="cd-chl"><i className="cd-ma5" />5일선</span>
                         </div>
                         {candles && bars.length === 0 ? (
@@ -606,128 +496,110 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                     </div>
                 </div>
 
-                <div className="cd-stamp">{dateLabel ? `실시간 시세 · ${dateLabel} 기준` : '시장 데이터를 불러오는 중입니다'}</div>
-
-                {/* 증권 탑뉴스 — 무료 제목만(본문은 유료 50P). 탭 전환에 추가 호출이 없다. */}
-                <div className="cd-sec">
-                    <div className="cd-sh">
-                        <div className="cd-st">증권 탑뉴스</div>
-                        <span className="cd-live"><i />LIVE</span>
-                        <div className="cd-sm">MARKET NEWS</div>
-                    </div>
-                    <div className="cd-tabs" role="tablist">
-                        {NEWS_TABS.map(t => (
-                            <button key={t.key} role="tab" aria-selected={tab === t.key}
-                                    className={`cd-tab${tab === t.key ? ' on' : ''}`}
-                                    onClick={() => setTab(t.key)}>{t.label}</button>
-                        ))}
-                    </div>
-                    {news.length > 0
-                        ? news.map((c, i) => (
-                            <div className="cd-nw" key={i}>
-                                <div className="cd-nn cd-mono">{i + 1}</div>
-                                <div className="cd-nt">{c.title}</div>
-                            </div>))
-                        : <div className="cd-db">{cues ? '이 분야는 오늘 준비된 소식이 없습니다.' : '불러오는 중…'}</div>}
+                <div className="cd-stamp">
+                    {dateLabel ? `실시간 시세 · ${dateLabel} 기준`
+                        : markets ? '시세 기준일 미제공'
+                        : failed.includes('시세') ? '시세 조회 실패' : '시장 데이터를 불러오는 중입니다'}
                 </div>
 
-                {/* 가상매매 — ★페이퍼(가상) 계좌다. 손실이어도 그대로 낸다(숨기면 더 위험).
-                  *
-                  * ★자리(2026-09-07 사장 지시 "위치도 중요한 거 같은데"): 이 화면은
-                  *   회원의 질문에 **순서대로** 답한다 —
-                  *     ①여기 살아있나(전광판·뉴스) → ②믿을 만한가(**가상매매**)
-                  *     → ③뭘 보고 있나(관심 종목) → ④내 것도 봐주나(메뉴).
-                  *   ★한 번 관심 종목 **뒤**로 보냈다가 되돌렸다. "예측 다음에 결과"라는
-                  *     서사는 그럴듯했지만, 관심 종목 카드가 표까지 달려 길어서 그 아래는
-                  *     스크롤 끝이었다 — **안 보이는 자리에 둔 신뢰의 근거는 없는 것과 같다.**
-                  *
-                  * 🔴★★**보유 종목명은 내지 않는다**(사장 지시). 수익률·손익은 지나간
-                  *   성과지만 보유 종목은 **지금의 포지션**이라, 페이퍼 계좌라도 회원에겐
-                  *   매수 신호로 읽힌다 — 실계좌를 가리는 이유와 똑같다. 개수까지만 낸다. */}
-                <div className="cd-sec">
-                    <div className="cd-sh">
-                        <div className="cd-st">가상매매 성적</div>
-                        <div className="cd-sm">PAPER TRADING</div>
+                <section className="cd-actions" aria-label="채원에게 부탁하기">
+                    <h2>무엇을 도와드릴까요?</h2>
+                    <ChaewonMenu
+                        onStock={() => onFeature('stock')}
+                        onPicks={() => { picksRef.current?.scrollIntoView({ block: 'start' }); picksRef.current?.focus({ preventScroll: true }); }}
+                        onChat={() => onStart()}
+                    />
+                </section>
+                <div className="cd-divider">읽을거리·정보</div>
+                <div className="cd-information">
+                    {/* 증권 탑뉴스 — 무료 제목만(본문은 유료 50P). 탭 전환에 추가 호출이 없다. */}
+                    <div className="cd-sec">
+                        <div className="cd-sh">
+                            <div className="cd-st">증권 탑뉴스</div>
+                            <span className="cd-live"><i />LIVE</span>
+                            <div className="cd-sm">MARKET NEWS</div>
+                        </div>
+                        <div className="cd-tabs" role="tablist">
+                            {NEWS_TABS.map(t => (
+                                <button key={t.key} role="tab" aria-selected={tab === t.key}
+                                        className={`cd-tab${tab === t.key ? ' on' : ''}`}
+                                        onClick={() => setTab(t.key)}>{t.label}</button>
+                            ))}
+                        </div>
+                        {news.length > 0
+                            ? news.map((c, i) => (
+                                <div className="cd-nw" key={i}>
+                                    <div className="cd-nn cd-mono">{i + 1}</div>
+                                    <div className="cd-nt">{c.title}</div>
+                                </div>))
+                            : <div className="cd-db">
+                                {failed.includes('뉴스') ? '뉴스를 불러오지 못했습니다.' : cues ? '이 분야는 오늘 준비된 소식이 없습니다.' : '불러오는 중…'}
+                              </div>}
                     </div>
-                    {!paper ? <div className="cd-db">불러오는 중…</div>
-                        : !paper.available ? <div className="cd-db">가상매매 기록이 아직 없습니다.</div>
-                        : (() => {
-                            const pct = num(paper.returnPct ?? null), pnl = num(paper.pnl ?? null);
-                            return (
-                                <div className="cd-pp">
-                                    <div className="cd-ptop">
-                                        <div>
-                                            <div className="cd-pl">누적 수익률</div>
-                                            <div className={`cd-pv cd-mono cd-${cls(pct)}`}>
-                                                {pct === null ? '—' : `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`}
+
+                    {/* 관심 종목 */}
+                    <div className="cd-sec cd-picks" ref={picksRef} tabIndex={-1}>
+                        <div className="cd-sh">
+                            <div className="cd-st">오늘의 AI 관심 종목</div>
+                            <div className="cd-sm">WATCHLIST</div>
+                        </div>
+                        {!picks ? <div className="cd-db">{failed.includes('관심 종목') ? '관심 종목을 불러오지 못했습니다.' : '불러오는 중…'}</div>
+                            : picks.length === 0 ? <div className="cd-db">오늘의 기록이 아직 없습니다.</div>
+                            : picks.map(p => {
+                                const rs = pickRows(p.summary), s = num(p.score);
+                                return (
+                                    <div className="cd-pick" key={p.market + p.name}>
+                                        <div className="cd-ph">
+                                            <span className="cd-pm">{p.market}</span>
+                                            <span className="cd-pn">{p.name}</span>
+                                            <span className="cd-pb">
+                                                <span className="cd-pg">{grade(s)}</span>
+                                                <div className="cd-ps cd-mono">{s === null ? '—' : `${s}점`}</div>
+                                            </span>
+                                        </div>
+                                        {rs.length > 0
+                                            ? <table className="cd-tb"><tbody>
+                                                {rs.map(([k, v]) => <tr key={k}><th>{k}</th><td>{v}</td></tr>)}
+                                              </tbody></table>
+                                            : <div className="cd-db" style={{ marginTop: 8 }}>요약이 아직 준비되지 않았습니다.</div>}
+                                    </div>
+                                );
+                            })}
+                    </div>
+
+                    <div className="cd-sec">
+                        <div className="cd-sh">
+                            <div className="cd-st">가상매매 성적</div>
+                            <div className="cd-sm">PAPER TRADING</div>
+                        </div>
+                        {!paper ? <div className="cd-db">{failed.includes('가상매매') ? '가상매매를 불러오지 못했습니다.' : '불러오는 중…'}</div>
+                            : !paper.available ? <div className="cd-db">가상매매 기록이 아직 없습니다.</div>
+                            : (() => {
+                                const pct = num(paper.returnPct ?? null), pnl = num(paper.pnl ?? null);
+                                return (
+                                    <div className="cd-pp">
+                                        <div className="cd-ptop">
+                                            <div>
+                                                <div className="cd-pl">누적 수익률</div>
+                                                <div className={`cd-pv cd-mono cd-${cls(pct)}`}>
+                                                    {pct === null ? '—' : `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`}
+                                                </div>
+                                            </div>
+                                            <div className={`cd-pr cd-mono cd-${cls(pct)}`}>
+                                                {mark(pct)} {pnl === null ? '—' : `${fmt(pnl)}원`}
                                             </div>
                                         </div>
-                                        <div className={`cd-pr cd-mono cd-${cls(pct)}`}>
-                                            {mark(pct)} {pnl === null ? '—' : `${fmt(pnl)}원`}
+                                        <div className="cd-psub">
+                                            가상 자본 <b>{fmt(num(paper.seed ?? null))}원</b>
+                                            {paper.strategy && <> · 전략 <b>{paper.strategy}</b></>}
+                                            {!!paper.holdingCount && <> · 보유 <b>{paper.holdingCount}종목</b></>}
                                         </div>
+                                        <div className="cd-pnote">실제 주문이 아닌 <b>모의 거래</b> 기록입니다. 과거 성과가 미래를 보장하지 않습니다.</div>
                                     </div>
-                                    <div className="cd-psub">
-                                        가상 자본 <b>{fmt(num(paper.seed ?? null))}원</b>
-                                        {paper.strategy && <> · 전략 <b>{paper.strategy}</b></>}
-                                        {!!paper.holdingCount && <> · 보유 <b>{paper.holdingCount}종목</b></>}
-                                    </div>
-                                    <div className="cd-pnote">실제 주문이 아닌 <b>모의 거래</b> 기록입니다. 과거 성과가 미래를 보장하지 않습니다.</div>
-                                </div>
-                            );
-                        })()}
-                </div>
-
-                {/* 관심 종목 */}
-                <div className="cd-sec">
-                    <div className="cd-sh">
-                        <div className="cd-st">오늘의 AI 관심 종목</div>
-                        <div className="cd-sm">WATCHLIST</div>
+                                );
+                            })()}
                     </div>
-                    {!picks ? <div className="cd-db">불러오는 중…</div>
-                        : picks.length === 0 ? <div className="cd-db">오늘의 기록이 아직 없습니다.</div>
-                        : picks.map(p => {
-                            const rs = pickRows(p.summary), s = num(p.score);
-                            return (
-                                <div className="cd-pk" key={p.market + p.name}>
-                                    <div className="cd-ph">
-                                        <span className="cd-pm">{p.market}</span>
-                                        <span className="cd-pn">{p.name}</span>
-                                        <span className="cd-pb">
-                                            <span className="cd-pg">{grade(s)}</span>
-                                            <div className="cd-ps cd-mono">{s === null ? '—' : `${s}점`}</div>
-                                        </span>
-                                    </div>
-                                    {rs.length > 0
-                                        ? <table className="cd-tb"><tbody>
-                                            {rs.map(([k, v]) => <tr key={k}><th>{k}</th><td>{v}</td></tr>)}
-                                          </tbody></table>
-                                        : <div className="cd-db" style={{ marginTop: 8 }}>요약이 아직 준비되지 않았습니다.</div>}
-                                </div>
-                            );
-                        })}
-                </div>
 
-                {/* 메뉴 — ★featureKey 는 App.tsx FEATURE_ACTIONS 와 같아야 한다.
-                  *   ★자리: **설득 다음**이다. 위쪽(뉴스 바로 뒤)에 뒀더니 회원이 스크롤을
-                  *   시작하자마자 300pt 결제를 만났다 — 윤채원이 뭘 하는 사람인지 보기도
-                  *   전에 권하는 순서였다. */}
-                <div className="cd-menu">
-                    <button className="cd-mi" onClick={() => onFeature('stock')}>
-                        <div className="cd-mic">🔬</div>
-                        <div>
-                            <div className="cd-mt">내 종목 분석</div>
-                            <div className="cd-md">종목을 직접 넣어 3중 AI 정밀분석 · 내 보고서 보관함</div>
-                        </div>
-                        <span className="cd-mg">→</span>
-                    </button>
-                    <button className="cd-mi" onClick={() => onStart()}>
-                        <div className="cd-mic">💬</div>
-                        <div>
-                            <div className="cd-mt">윤채원과 대화하기</div>
-                            <div className="cd-md">보고서를 놓고 궁금한 점을 물어보세요</div>
-                        </div>
-                        <span className="cd-mg">→</span>
-                    </button>
                 </div>
 
                 <button className="cd-cta" onClick={onInvite}>🎁 친구 초대하고 1,000P 받기</button>

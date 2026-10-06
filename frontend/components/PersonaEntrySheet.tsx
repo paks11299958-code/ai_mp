@@ -59,6 +59,8 @@ export interface PersonaEntryGuide {
     autoRunFeatureKey?: string;
     /** 페르소나 카드·링크로 왔을 때의 페르소나 id(showPersonaGuide). 은비 선물하기가 쓴다(2026-09-28). */
     personaId?: string;
+    /** 채원 채팅 메뉴에서 관심 종목 구역으로 이동한다. */
+    chaewonSection?: 'picks';
     /** 채린 채팅에서 견적/가격표 진입 시트로 이동할 때만 사용한다. */
     chaerinScreen?: 'estimate' | 'table';
 }

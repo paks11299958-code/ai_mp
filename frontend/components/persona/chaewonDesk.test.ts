@@ -14,6 +14,7 @@ import { buildCandles, buildChart, clampX, pickRows, type OHLC } from './Chaewon
 const read = (p: string) => readFileSync(resolve(__dirname, p), 'utf8');
 const SRC = read('ChaewonDeskEntry.tsx');
 const SHEET = read('../PersonaEntrySheet.tsx');
+const STYLE = read('chaewonDesk.css');
 
 describe('진입 배선', () => {
     it('윤채원 접두사로 갈아 끼운다', () => {
@@ -117,8 +118,8 @@ describe('한국 증시 색 관례 — 상승 빨강, 하락 파랑', () => {
     });
 
     it('빨강이 up, 파랑이 down 에 붙어 있다', () => {
-        expect(SRC).toContain('.cd-up{color:#ff6b74}');
-        expect(SRC).toContain('.cd-down{color:#6aa9ff}');
+        expect(STYLE).toMatch(/\.cd-up\s*\{\s*color:#ff6b74/);
+        expect(STYLE).toMatch(/\.cd-down\s*\{\s*color:#6aa9ff/);
     });
 });
 
@@ -460,27 +461,13 @@ describe('가상매매 표시', () => {
         expect(SRC).toContain('종목</b></>');          // 개수 표기는 남는다
     });
 
-    it('★★화면 순서 — 살아있나 → 믿을만한가 → 뭘보나 → 내것도', () => {
-        // 2026-09-07 사장 "위치도 중요한 거 같은데".
-        // 회원의 질문 순서대로 답한다. 특히 **메뉴(결제)가 설득보다 앞에 오면 안 된다.**
-        const at = (s: string) => { const i = SRC.indexOf(s); expect(i, `${s} 없음`).toBeGreaterThan(0); return i; };
-        const 뉴스 = at('증권 탑뉴스');
-        const 가상매매 = at('가상매매 성적');
-        const 관심종목 = at('오늘의 AI 관심 종목');
-        const 메뉴 = at('내 종목 분석');
-        const 면책 = at('PLEASE READ');
-
-        expect(가상매매, '가상매매는 뉴스 뒤').toBeGreaterThan(뉴스);
-        expect(관심종목, '관심 종목은 가상매매 뒤').toBeGreaterThan(가상매매);
-        expect(메뉴, '★메뉴(결제)는 설득 뒤에 온다').toBeGreaterThan(관심종목);
-        expect(면책, '면책은 맨 아래').toBeGreaterThan(메뉴);
+    it('1안은 메뉴 → 뉴스 → 관심 종목 → 가상매매 순서다', () => {
+        expect(SRC.indexOf('<ChaewonMenu')).toBeLessThan(SRC.indexOf('증권 탑뉴스 —'));
+        expect(SRC.indexOf('증권 탑뉴스 —')).toBeLessThan(SRC.indexOf('오늘의 AI 관심 종목'));
+        expect(SRC.indexOf('오늘의 AI 관심 종목')).toBeLessThan(SRC.indexOf('가상매매 성적'));
+        expect(SRC.indexOf('가상매매 성적')).toBeLessThan(SRC.indexOf('PLEASE READ'));
     });
 
-    it('★가상매매를 관심 종목 뒤로 내리지 않는다', () => {
-        // 한 번 그렇게 했다가 되돌렸다 — 관심 종목 카드가 표까지 달려 길어서
-        // 그 아래는 스크롤 끝이다. 안 보이는 자리에 둔 신뢰의 근거는 없는 것과 같다.
-        expect(SRC.indexOf('가상매매 성적')).toBeLessThan(SRC.indexOf('오늘의 AI 관심 종목'));
-    });
 });
 
 describe('뉴스 탭 — 주식과 직결된 것만', () => {
@@ -495,7 +482,7 @@ describe('뉴스 탭 — 주식과 직결된 것만', () => {
     it('탭을 눌러도 다시 부르지 않는다', () => {
         // setTab 만 하고 fetch 는 마운트 때 한 번뿐이어야 한다.
         const effects = SRC.match(/useEffect\(/g) ?? [];
-        expect(effects.length).toBeLessThanOrEqual(3);   // 데이터·Esc·그래프
+        expect(effects.length).toBeLessThanOrEqual(4);   // 데이터·Esc·그래프·섹션 복귀
         expect(SRC).not.toMatch(/useEffect\([^)]*\[\s*tab\s*\]/);
     });
 });

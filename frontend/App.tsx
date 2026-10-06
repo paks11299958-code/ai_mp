@@ -1675,6 +1675,16 @@ const AppContent: React.FC = () => {
             hideCost={user?.role === 'ADMIN' || user?.role === 'MANAGE' || user?.role === 'MANAGER'}
             opener={entryChatOpenerRef.current}
             onFeature={entryChatHasFeatureMenu(entryChatTheme) ? (key) => {
+                if (entryChatTheme.visualPreset === 'desk' && key === 'stock-picks') {
+                    const persona = personas.find(item => item.id === entryChatPersonaId);
+                    if (!persona) return;
+                    setEntryChatPersonaId(null);
+                    setEntryReturnChatId(null);
+                    setEntryReturnGuide(null);
+                    showPersonaGuide(persona);
+                    setDeepLinkGuide(previous => previous ? { ...previous, chaewonSection: 'picks' } : previous);
+                    return;
+                }
                 if (entryChatTheme.visualPreset === 'beauty' && (key === 'beauty-estimate' || key === 'beauty-table')) {
                     const persona = personas.find(item => item.id === entryChatPersonaId);
                     if (!persona) return;
@@ -2147,7 +2157,15 @@ const AppContent: React.FC = () => {
                     )
                 )}
                 {showStockAnalysis && (
-                    <StockAnalysisBoard onClose={() => setShowStockAnalysis(false)} onConsult={(pid, stockName) => { setActivePersonaId(pid); addMessageToSession(pid, { id: `learn-${Date.now()}`, role: 'model', text: `${stockName} 학습이 완료되었습니다. 이제 ${stockName}에 대해 보고서 내용을 바탕으로 상담드릴 수 있습니다. 궁금한 점을 물어보세요!` }); }} />
+                    <StockAnalysisBoard
+                        onClose={closeBoardAndReturn(() => setShowStockAnalysis(false))}
+                        onConsult={(pid, stockName) => {
+                        setActivePersonaId(pid);
+                            addMessageToSession(pid, {
+                                id: `learn-${Date.now()}`, role: 'model',
+                                text: `${stockName} 학습이 완료되었습니다. 이제 ${stockName}에 대해 보고서 내용을 바탕으로 상담드릴 수 있습니다. 궁금한 점을 물어보세요!`
+                            });
+                        }} />
                 )}
                 {/* 🔎 AI 관심 종목 — main·chat 양쪽에 렌더한다(한쪽만 넣으면 그 화면에서만 열린다). */}
                 {showStockPicks && (
@@ -2391,7 +2409,15 @@ const AppContent: React.FC = () => {
                 <UserProfileModal user={user} onClose={() => setShowUserProfile(false)} onUserUpdate={updated => setUser(prev => prev ? { ...prev, ...updated } : prev)} onAccountDeleted={() => { setShowUserProfile(false); handleLogout(); }} onInviteClick={() => { setShowUserProfile(false); setShowInviteModal(true); }} />
             )}
             {showStockAnalysis && (
-                <StockAnalysisBoard onClose={() => setShowStockAnalysis(false)} onConsult={(pid, stockName) => { setActivePersonaId(pid); addMessageToSession(pid, { id: `learn-${Date.now()}`, role: 'model', text: `${stockName} 학습이 완료되었습니다. 이제 ${stockName}에 대해 보고서 내용을 바탕으로 상담드릴 수 있습니다. 궁금한 점을 물어보세요!` }); }} />
+                <StockAnalysisBoard
+                    onClose={closeBoardAndReturn(() => setShowStockAnalysis(false))}
+                    onConsult={(pid, stockName) => {
+                        setActivePersonaId(pid);
+                        addMessageToSession(pid, {
+                            id: `learn-${Date.now()}`, role: 'model',
+                            text: `${stockName} 학습이 완료되었습니다. 이제 ${stockName}에 대해 보고서 내용을 바탕으로 상담드릴 수 있습니다. 궁금한 점을 물어보세요!`
+                        });
+                    }} />
             )}
             {/* 🔎 AI 관심 종목 — main·chat 양쪽에 렌더한다(한쪽만 넣으면 그 화면에서만 열린다). */}
             {showStockPicks && (
