@@ -2,7 +2,7 @@ import './sajuEntry.css';
 import './dogyeolChat.css';
 import { useDogyeolBirthGate, needsBirth } from './useDogyeolBirthGate';
 import { DogyeolBirthForm } from './DogyeolBirthForm';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { DOGYEOL_MENU, DOGYEOL_MENU_GROUPS, DOGYEOL_MENU_KEYS } from '../../lib/dogyeolMenu';
 import type { PersonaEntryGuide, GuestGate } from '../PersonaEntrySheet';
 import { guestNoticeForFeature } from '../../lib/guestFeatureGate';
@@ -123,20 +123,27 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature,
     //     개별 모달에 stopPropagation 을 붙이는 대신 닫기 판단을 한곳에서 막는다.
     const modalUp = birthGate.open || !!(inputKind || partnerFor || twoStep > 0 || faceResult || palmResult);
 
+    // ✕·Esc·배경 클릭 — 풀이 패널(고르기·결과·오류)이 열려 있으면 진입화면을 닫지 않고 차례 메뉴로 돌아간다
+    //   (2026-10-06 사장 지적 "창 닫기 누르면 진입화면이 나와야지"). 풀이 중에는 runner.reset 이 무시돼 그대로 머문다.
+    const closeOrBack = useCallback(() => {
+        if (panelOpen) runner.reset();
+        else onClose();
+    }, [panelOpen, runner, onClose]);
+
     // Esc로 닫기 — 전체를 덮는 화면이라 출구가 하나(✕)뿐이면 갇힌 느낌이 든다.
     // ★모달이 위에 있으면 진입화면까지 닫지 않는다 — 모달은 자기 취소 버튼으로 닫는다.
     useEffect(() => {
-        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !modalUp) onClose(); };
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !modalUp) closeOrBack(); };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [onClose, modalUp]);
+    }, [closeOrBack, modalUp]);
 
     // ★DB(FEATURES_GRID)에서 온 것만 쓴다. 없는 기능을 지어내지 않는다.
     const features = guide.features ?? [];
 
     return (
         // 배경 클릭 = 닫기. 내용은 max-width로 묶여 있어 넓은 화면의 양옆이 배경이 된다.
-        <div className="sj-root" onClick={() => { if (!modalUp) onClose(); }}>
+        <div className="sj-root" onClick={() => { if (!modalUp) closeOrBack(); }}>
 
             <div
                 className="sj-sheet"
@@ -145,7 +152,7 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature,
                 aria-modal="true"
                 aria-label={`${guide.title} 소개`}
             >
-                <button className="sj-close" onClick={onClose} aria-label="닫기">✕</button>
+                <button className="sj-close" onClick={closeOrBack} aria-label={panelOpen ? '차례로 돌아가기' : '닫기'}>✕</button>
 
                 <header className="sj-header">道潔 선생의 서재</header>
                 <div className="sj-top">

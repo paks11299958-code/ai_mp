@@ -13,12 +13,14 @@ vi.mock('./sajuHero', async importOriginal => {
     };
 });
 
+const runnerState = vi.hoisted(() => ({ result: null as null | { title: string; body: string }, reset: (() => {}) as () => void }));
+
 vi.mock('./useSajuRunner', () => ({
     usePersonaMenus: () => ({ personaId: 'dogyeol', menus: [] }),
     useSavedBirth: () => [null, vi.fn()],
     useSajuRunner: () => ({
-        loading: false, picking: null, result: null, error: null,
-        select: vi.fn(), pick: vi.fn(), run: vi.fn(), reset: vi.fn(),
+        loading: false, picking: null, result: runnerState.result, error: null,
+        select: vi.fn(), pick: vi.fn(), run: vi.fn(), reset: runnerState.reset,
     }),
     sheetMenuFor: () => null,
     inputKindFor: () => null,
@@ -48,5 +50,28 @@ describe('SajuEntry 기본 CTA', () => {
 
         fireEvent.click(screen.getByRole('button', { name: '🎁 친구 초대 +1000P' }));
         expect(onInvite).toHaveBeenCalledOnce();
+    });
+});
+
+// ★2026-10-06 사장 지적: 풀이 결과가 떠 있을 때 ✕ 가 진입화면을 통째로 닫았다 → 차례 메뉴로 돌아가야 한다
+describe('SajuEntry ✕ 와 풀이 패널', () => {
+    const renderWith = (onClose = vi.fn()) => {
+        render(<SajuEntry guide={{ title: '도결(道潔) 선생', desc: '' }} onClose={onClose} onStart={vi.fn()} onFeature={vi.fn()} onInvite={vi.fn()} />);
+        return onClose;
+    };
+    it('결과 패널이 열려 있으면 ✕·Esc 는 진입화면을 닫지 않고 패널만 닫는다', () => {
+        const reset = vi.fn();
+        runnerState.result = { title: '오늘의 운세', body: '본문' }; runnerState.reset = reset;
+        const onClose = renderWith();
+        fireEvent.click(screen.getByRole('button', { name: '차례로 돌아가기' }));
+        fireEvent.keyDown(window, { key: 'Escape' });
+        expect(reset).toHaveBeenCalledTimes(2);
+        expect(onClose).not.toHaveBeenCalled();
+        runnerState.result = null; runnerState.reset = () => {};
+    });
+    it('패널이 없으면 ✕ 는 진입화면을 닫는다', () => {
+        const onClose = renderWith();
+        fireEvent.click(screen.getByRole('button', { name: '닫기' }));
+        expect(onClose).toHaveBeenCalledOnce();
     });
 });
