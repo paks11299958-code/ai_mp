@@ -2160,7 +2160,7 @@ const AppContent: React.FC = () => {
                     <StockAnalysisBoard
                         onClose={closeBoardAndReturn(() => setShowStockAnalysis(false))}
                         onConsult={(pid, stockName) => {
-                        setActivePersonaId(pid);
+                            setActivePersonaId(pid);
                             addMessageToSession(pid, {
                                 id: `learn-${Date.now()}`, role: 'model',
                                 text: `${stockName} 학습이 완료되었습니다. 이제 ${stockName}에 대해 보고서 내용을 바탕으로 상담드릴 수 있습니다. 궁금한 점을 물어보세요!`
