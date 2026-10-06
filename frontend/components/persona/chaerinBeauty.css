@@ -653,3 +653,75 @@
         transition: none !important;
     }
 }
+
+/* 2026-10-06 사장 지적 ① "대화하기는 반반 정도, 이미지가 너무 작다" ② "성형 정보·스튜디오 메뉴가 눈에 잘 안 띈다"
+   — 진입 첫 화면에만 적용(채팅 메뉴는 그대로). */
+.cc-chat-cta {
+    min-height: 7.5rem;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+}
+.cc-chat-cta img {
+    width: 50%;
+    height: 7.5rem;
+    flex: none;
+}
+.cc-chat-cta > span:nth-child(2) {
+    padding: 0 0.5rem 0 1rem;
+}
+.cc-chat-cta strong {
+    font-size: 1.05rem;
+}
+.cc-chat-cta > span:last-child {
+    padding-right: 0.875rem;
+}
+.cc-root .cb-menu-group {
+    margin-top: 1rem;
+    padding: 0.875rem 0.75rem 0.875rem;
+    border-radius: 6px;
+    background: #f6ebe6;
+    border: 1px solid #ead6cd;
+}
+.cc-root .cb-group-1 {
+    background: #f1ece3;
+    border-color: #e2d7c6;
+}
+.cc-root .cb-section-head {
+    margin: 0 0 0.75rem;
+    padding-bottom: 0;
+    border-bottom: 0;
+    align-items: center;
+}
+.cc-root .cb-section-head h2 {
+    font-size: 1.12rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+.cc-root .cb-section-head > span {
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    background: var(--cb-brown);
+    color: white;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+}
+.cc-root .cb-group-1 .cb-section-head > span {
+    background: #6f6352;
+}
+@media (max-width: 700px) {
+    .cc-chat-cta {
+        min-height: 7rem;
+        padding: 0;
+    }
+    .cc-chat-cta img {
+        width: 50%;
+        height: 7rem;
+    }
+    .cc-chat-cta strong {
+        font-size: 1rem;
+    }
+    .cc-root .cb-menu-group + .cb-menu-group {
+        margin-top: 0.875rem;
+    }
+}
