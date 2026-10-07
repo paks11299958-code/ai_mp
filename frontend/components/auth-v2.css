@@ -63,3 +63,31 @@
 .auth-v2.guest-home-header>.auth-brand{font-size:1.125rem;background:none;padding:0;margin:0;white-space:nowrap}
 .auth-v2.guest-home-header nav{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-left:auto}
 .auth-v2.guest-home-header .auth-primary,.auth-v2.guest-home-header .auth-secondary{width:auto;font-size:.875rem;padding:.5rem .75rem;margin:0;min-height:44px}
+/* 메인 비로그인 머리말은 사이트(라이트)와 같은 색을 쓴다 — 폰이 다크 모드여도 다크 팔레트를 받지 않는다(2026-10-07). */
+.auth-v2.guest-home-header{--auth-primary:#7552a0;--auth-soft:#f1ebf8;--auth-ink:#30283d;color-scheme:light}
+.auth-v2.guest-home-header>.auth-brand{color:#7552a0}
+.auth-v2.guest-home-header .auth-primary,.auth-v2.guest-home-header .auth-secondary{
+  min-height:40px;padding:.45rem 1rem;border-radius:999px;font-size:.875rem;font-weight:700;line-height:1.2;
+  letter-spacing:-.01em;transition:transform .15s,box-shadow .15s}
+.auth-v2.guest-home-header .auth-secondary{background:#fff;color:#6b4c96;border:1px solid #d9cceb}
+.auth-v2.guest-home-header .auth-primary{background:linear-gradient(135deg,#8f6cc4,#6b4c96);color:#fff;border:0;
+  box-shadow:0 4px 12px rgba(117,82,160,.28)}
+.auth-v2.guest-home-header .auth-primary:active,.auth-v2.guest-home-header .auth-secondary:active{transform:scale(.97)}
+.auth-v2.guest-home-header .auth-link{color:#6b4c96;background:none;border:0;font-size:1.25rem;min-width:40px;min-height:40px}
+/* 햄버거 메뉴 맨 위 비로그인 카드 — 머리말과 같은 알약 버튼 */
+.guest-drawer-auth{margin:0 16px 10px;padding:16px;border-radius:16px;background:#f4eefa;border:1px solid #e6dcf2}
+.guest-drawer-title{margin:0;font-size:15px;font-weight:800;color:#30283d}
+.guest-drawer-sub{margin:2px 0 12px;font-size:12.5px;color:#716878}
+.guest-drawer-actions{display:flex;gap:8px}
+.guest-pill{flex:1;min-height:42px;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;transition:transform .15s}
+.guest-pill:active{transform:scale(.97)}
+.guest-pill-line{background:#fff;color:#6b4c96;border:1px solid #d9cceb}
+.guest-pill-fill{background:linear-gradient(135deg,#8f6cc4,#6b4c96);color:#fff;border:0;box-shadow:0 4px 12px rgba(117,82,160,.28)}
+/* 좁은 폰에서도 로고·버튼이 한 줄에 — 두 줄로 내려가지 않게 */
+.auth-v2.guest-home-header,.auth-v2.guest-home-header nav{flex-wrap:nowrap}
+@media(max-width:380px){
+  .auth-v2.guest-home-header>.auth-brand{font-size:1rem}
+  .auth-v2.guest-home-header nav{gap:.375rem}
+  .auth-v2.guest-home-header .auth-primary,.auth-v2.guest-home-header .auth-secondary{padding:.4rem .75rem;font-size:.8125rem}
+  .auth-v2.guest-home-header .auth-link{min-width:32px}
+}

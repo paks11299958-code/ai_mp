@@ -9,7 +9,7 @@
 
 import { GuestAuthHeader } from './GuestAuthHeader';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { LogOut, Settings, Megaphone, UserCircle, Search, Bell, X, Menu } from 'lucide-react';
+import { LogOut, Settings, Megaphone, Search, Bell, X, Menu } from 'lucide-react';
 import { Persona, Category } from '../types';
 import { HeroCard, personaApi } from '../services/apiService';
 import { Icon } from './Icons';
@@ -1185,6 +1185,24 @@ const PersonaSelectPanel: React.FC<{
                             </div>
                         )}
 
+                        {/* 비로그인 — 로그인·회원가입을 맨 위에, 머리말과 같은 알약 버튼으로(2026-10-07) */}
+                        {!user && (
+                            <div className="guest-drawer-auth">
+                                <p className="guest-drawer-title">AI 놀이터 시작하기</p>
+                                <p className="guest-drawer-sub">가입하면 1,000P를 무료로 드려요</p>
+                                <div className="guest-drawer-actions">
+                                    <button type="button" className="guest-pill guest-pill-line"
+                                        onClick={() => { setMobileMenuOpen(false); onLoginClick?.(); }}>
+                                        로그인
+                                    </button>
+                                    <button type="button" className="guest-pill guest-pill-fill"
+                                        onClick={() => { setMobileMenuOpen(false); (onRegisterClick ?? onLoginClick)?.(); }}>
+                                        회원가입
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {/* 메뉴 아이템 */}
                         {[
                             { label: '🏠 첫 화면', onClick: onGoHome },
@@ -1208,7 +1226,7 @@ const PersonaSelectPanel: React.FC<{
                             </button>
                         ))}
 
-                        {/* 로그인/로그아웃 토글 — 햄버거 하단 고정 */}
+                        {/* 로그아웃 — 햄버거 하단 고정(비로그인 로그인·회원가입은 맨 위 카드) */}
                         {user ? (
                             <button onClick={() => { setMobileMenuOpen(false); onLogout(); }} style={{
                                 marginTop: 'auto', padding: '13px 20px', background: 'none', border: 'none',
@@ -1218,20 +1236,7 @@ const PersonaSelectPanel: React.FC<{
                             }}>
                                 <LogOut size={15} /> 로그아웃
                             </button>
-                        ) : (
-                            <>
-                            <button onClick={() => { setMobileMenuOpen(false); onLoginClick?.(); }} style={{
-                                marginTop: 'auto', padding: '13px 20px', background: 'none', border: 'none',
-                                textAlign: 'left', fontSize: 14, fontWeight: 600, color: T.accent, cursor: 'pointer',
-                                borderTop: `1px solid ${T.lineSoft}`,
-                                display: 'flex', alignItems: 'center', gap: 8,
-                            }}>
-                                <UserCircle size={15} /> 로그인
-                            </button>
-                            <button onClick={() => { setMobileMenuOpen(false); (onRegisterClick ?? onLoginClick)?.(); }} style={{ padding: '13px 20px', background: T.accent, border: 'none', textAlign: 'left', fontSize: 14, fontWeight: 600, color: '#fff', cursor: 'pointer', minHeight: 44 }}>
-                                회원가입
-                            </button></>
-                        )}
+                        ) : null}
                     </div>
                 </>
             )}
