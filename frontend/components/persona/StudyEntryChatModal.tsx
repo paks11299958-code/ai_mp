@@ -18,9 +18,11 @@ const saveDraft = (key: string, value: string) => {
 };
 
 export const StudyEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?: string }> = ({
-    theme, messages, isTyping, balance, hideCost, onSend, onClose, onNeedCharge, onOpenFullChat,
+    theme, messages, isTyping, balance, hideCost, onSend, onClose: closeChat, onNeedCharge, onOpenFullChat,
     opener, draftOwner,
 }) => {
+    // 코치 채팅은 /learning 에서 들어온다 — 닫으면 메인이 아니라 공부 책상(진입 화면)으로 돌려보낸다(2026-10-07 사장 승인).
+    const onClose = () => { closeChat(); window.location.assign('/learning'); };
     const { data } = useLearningRead<TodayResponse>('/api/aimp/learning/today', !!localStorage.getItem('token'));
     const draftKey = `study-draft:${draftOwner || 'anonymous'}:${theme.personaId}`;
     const [draft, setDraft] = useState(() => readDraft(draftKey));
