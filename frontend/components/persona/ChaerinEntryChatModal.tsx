@@ -222,8 +222,9 @@ export const ChaerinEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?
                             <article
                                 key={message.id}
                                 className={`cb-message${message.role === 'user' ? ' cb-user' : ''}`}
+                                aria-label={message.role === 'user' ? '내 메시지' : undefined}
                             >
-                                <small>{message.role === 'user' ? '나' : '채린'}</small>
+                                {message.role !== 'user' && <small>채린</small>}
                                 {message.role === 'user' ? (
                                     <p>{message.text}</p>
                                 ) : (

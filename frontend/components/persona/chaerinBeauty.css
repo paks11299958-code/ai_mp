@@ -404,11 +404,19 @@
 }
 .cb-user {
     padding-left: 2rem;
+    display: flex;
+    justify-content: flex-end;
 }
+/* 내 말 = 오른쪽 진한 브라운 말풍선(2026-10-07 사장 "나가 구분되어야") — 채린 답변(왼쪽 연한 줄)과 모양부터 다르게 */
 .cb-user > p {
-    border-left: 0;
-    border-right: 2px solid #8f7e72;
-    background: #f6efeb;
+    width: fit-content;
+    max-width: 85%;
+    margin: 0;
+    padding: 0.7rem 0.95rem;
+    border: 0;
+    border-radius: 14px 14px 3px 14px;
+    background: #6f4a3c;
+    color: #fff;
     white-space: pre-wrap;
 }
 .cb-chat-menu {

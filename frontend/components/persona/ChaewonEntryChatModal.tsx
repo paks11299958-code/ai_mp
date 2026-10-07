@@ -116,8 +116,9 @@ export const ChaewonEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?
                         <div className="cw-caption">ANALYST DESK · 시장을 함께 읽어요</div>
                         {visibleMessages.length === 0 && <p className="cw-notice">궁금한 종목이나 보고서 내용을 물어보세요.</p>}
                         {visibleMessages.map(message => (
-                            <div key={message.id} className={`cw-message${message.role === 'user' ? ' cw-user' : ''}`}>
-                                <div className="cw-label">{message.role === 'user' ? '나' : '윤채원 · 애널리스트'}</div>
+                            <div key={message.id} className={`cw-message${message.role === 'user' ? ' cw-user' : ''}`}
+                                aria-label={message.role === 'user' ? '내 메시지' : undefined}>
+                                {message.role !== 'user' && <div className="cw-label">윤채원 · 애널리스트</div>}
                                 <div className="cw-body">
                                     {message.role === 'user' ? message.text : <ReactMarkdown remarkPlugins={[remarkGfm]}
                                         components={{ img: () => null }}>{message.text}</ReactMarkdown>}

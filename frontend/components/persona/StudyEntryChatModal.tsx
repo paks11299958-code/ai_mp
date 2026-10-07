@@ -119,8 +119,9 @@ export const StudyEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?: 
                         <div className="sc-caption">YOUR DAILY STUDY · 작은 목표부터</div>
                         {visibleMessages.length === 0 && <p className="sc-notice">안녕하세요. 오늘 공부에서 막힌 부분이 있나요? 목표부터 함께 정리해도 좋아요.</p>}
                         {visibleMessages.map(message => (
-                            <div key={message.id} className={`sc-message${message.role === 'user' ? ' sc-user' : ''}`}>
-                                <div className="sc-label">{message.role === 'user' ? '나' : '학습코치'}</div>
+                            <div key={message.id} className={`sc-message${message.role === 'user' ? ' sc-user' : ''}`}
+                                aria-label={message.role === 'user' ? '내 메시지' : undefined}>
+                                {message.role !== 'user' && <div className="sc-label">학습코치</div>}
                                 <div className="sc-body">
                                     {message.role === 'user' ? message.text : <ReactMarkdown remarkPlugins={[remarkGfm]}
                                         components={{ img: () => null }}>{message.text}</ReactMarkdown>}

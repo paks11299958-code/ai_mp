@@ -412,12 +412,14 @@
     max-width:100%}
 .cw-user{margin-left:auto;
     max-width:440px}
-.cw-user .cw-label{text-align:right;
-    color:#a7b6c7}
-
-.cw-user .cw-body{background:none;
-    border:1px solid #314357;
-    border-radius:14px 2px 14px 14px;
+.cw-user{display:flex;
+    justify-content:flex-end}
+/* 내 말 = 오른쪽 청록 말풍선(2026-10-07) — 채원 답변(어두운 카드)과 한눈에 구분 */
+.cw-user .cw-body{background:#8eddd6;
+    color:#08151d;
+    border:0;
+    width:fit-content;
+    border-radius:14px 14px 3px 14px;
     white-space:pre-wrap}
 
 .cw-composer{flex:none;
