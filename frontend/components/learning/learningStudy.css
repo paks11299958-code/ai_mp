@@ -50,11 +50,18 @@ align-items:center;
 gap:12px;
 padding:20px 24px}
 
-.lc-header a{min-height:44px;
-display:flex;
-align-items:center;
-font-size:.85rem}
 .lc-header strong{font-size:1.05rem}
+.lc-close{width:44px;
+height:44px;
+flex:none;
+display:grid;
+place-items:center;
+border-radius:50%;
+background:#fff;
+color:#2d2438;
+border:1px solid var(--lc-line);
+box-shadow:0 4px 12px rgba(45,36,56,.12)}
+.lc-close:active{transform:scale(.96)}
 
 .lc-main{max-width:1120px;
 margin:auto;
@@ -351,7 +358,6 @@ outline-offset:3px}
 @media(max-width:700px){
 .lc-header{padding:12px 20px}
 .lc-header strong{font-size:.94rem}
-.lc-header a{font-size:.78rem}
 
 .lc-main{padding:8px 20px 40px}
 .lc-hero{display:flex;
