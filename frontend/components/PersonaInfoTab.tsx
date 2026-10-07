@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Persona, Category } from '../types';
-import { personaApi, adminApi, categoryApi } from '../services/apiService';
+import { personaApi, adminApi, categoryApi, personaImageApi } from '../services/apiService';
 import { Icon } from './Icons';
 import { FEATURE_REGISTRY } from '../personaFeatures';
 
@@ -79,6 +79,7 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
     const faceReadingBgInputRef = useRef<HTMLInputElement>(null);
     const [chatBgUrls, setChatBgUrls] = useState<string[]>([]);
     const [isUploadingChatBg, setIsUploadingChatBg] = useState(false);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
     const chatBgInputRef = useRef<HTMLInputElement>(null);
     const [isVisible, setIsVisible] = useState(true);
     const [useGrounding, setUseGrounding] = useState(false);
@@ -271,13 +272,22 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
         } catch { alert('삭제에 실패했습니다.'); }
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // ★대표 이미지는 GCS 에 올리고 주소만 저장한다(2026-10-07). 전엔 data: URL(base64)을 DB 에 통째로 넣어
+    //   /api/personas 응답이 9.2MB 까지 불었다(유나 2.7MB 등 → GCS 이전 후 55KB).
+    //   서명 URL 은 갤러리와 같은 관리자 전용 경로를 쓴다 — 갤러리 기록은 만들지 않는다. 새 페르소나는 id 가 없어 'new' 폴더.
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         if (file.size > 5 * 1024 * 1024) { alert('이미지 크기는 5MB 이하로 업로드해주세요.'); return; }
-        const reader = new FileReader();
-        reader.onloadend = () => setImageUrl(reader.result as string);
-        reader.readAsDataURL(file);
+        setIsUploadingImage(true);
+        try {
+            const folderId = selectedId === 'new' ? 'new' : selectedId;
+            const { signedUrl, publicUrl } = await personaImageApi.getSignedUrl(folderId, file.type, 'profile');
+            const putRes = await fetch(signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+            if (!putRes.ok) throw new Error(`GCS 업로드 실패 (${putRes.status})`);
+            setImageUrl(publicUrl);
+        } catch { alert('대표 이미지 업로드에 실패했습니다.'); }
+        finally { setIsUploadingImage(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
     };
 
     return (
@@ -600,7 +610,9 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
                             </div>
                             <div>
                                 <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
-                                <p className="text-[11px] text-gray-500 mb-1">사이드바 하단에 표시됩니다. (5MB 이하)</p>
+                                <p className="text-[11px] text-gray-500 mb-1">
+                                    {isUploadingImage ? '업로드 중…' : '사이드바 하단에 표시됩니다. (5MB 이하)'}
+                                </p>
                                 {imageUrl && <button onClick={() => setImageUrl('')} className="text-[11px] text-red-400 hover:text-red-300">이미지 제거</button>}
                             </div>
                         </div>
