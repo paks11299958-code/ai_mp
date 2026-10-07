@@ -1,7 +1,7 @@
-import { StudyEntryChatModal } from './StudyEntryChatModal';
 import React from 'react';
 import { EunbiEntryChatModal, type EntryChatModalProps as BaseEntryChatModalProps } from './EunbiEntryChatModal';
 import { ChaewonEntryChatModal } from './ChaewonEntryChatModal';
+import { StudyEntryChatModal } from './StudyEntryChatModal';
 import { ChaerinEntryChatModal } from './ChaerinEntryChatModal';
 import { SeolaEntryChatModal } from './SeolaEntryChatModal';
 import { ArinEntryChatModal } from './ArinEntryChatModal';

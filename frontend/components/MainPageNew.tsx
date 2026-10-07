@@ -1,4 +1,3 @@
-import { LearningFeatureCard } from './learning/LearningFeatureCard';
 /**
  * MainPageNew.tsx
  * 뉴페이지 - 타로카드 스타일 채팅 화면
@@ -9,6 +8,7 @@ import { LearningFeatureCard } from './learning/LearningFeatureCard';
  */
 
 import { GuestAuthHeader } from './GuestAuthHeader';
+import { LearningFeatureCard } from './learning/LearningFeatureCard';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { LogOut, Settings, Megaphone, Search, Bell, X, Menu } from 'lucide-react';
 import { Persona, Category } from '../types';
