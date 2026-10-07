@@ -91,3 +91,11 @@
   .auth-v2.guest-home-header .auth-primary,.auth-v2.guest-home-header .auth-secondary{padding:.4rem .75rem;font-size:.8125rem}
   .auth-v2.guest-home-header .auth-link{min-width:32px}
 }
+/* 2026-10-07 사장 "버튼이 삼선보다 삐죽 튀어나온다" — 보이는 높이는 ☰·로고 높이(32px)로 낮추고,
+   누르는 범위는 ::after 로 위아래 6px 넓혀 손가락 영역(44px)을 유지한다. 그림자도 줄여 덜 떠 보이게. */
+.auth-v2.guest-home-header .auth-primary,.auth-v2.guest-home-header .auth-secondary{
+  position:relative;min-height:32px;height:32px;padding:0 .9rem;font-size:.8125rem;display:inline-flex;align-items:center}
+.auth-v2.guest-home-header .auth-primary::after,.auth-v2.guest-home-header .auth-secondary::after{content:'';position:absolute;inset:-6px -2px}
+.auth-v2.guest-home-header .auth-primary{box-shadow:0 2px 6px rgba(117,82,160,.22)}
+.auth-v2.guest-home-header .auth-link{min-height:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+@media(max-width:380px){.auth-v2.guest-home-header .auth-primary,.auth-v2.guest-home-header .auth-secondary{padding:0 .7rem;font-size:.78rem}}
