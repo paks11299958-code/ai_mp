@@ -125,3 +125,16 @@ PC 폭은 `max-w-4xl`(그전 `max-w-2xl`=672px 고정이라 1190px 화면에서 
   ※ `seed-learning-coach-scenario.js`는 **테스트 계정 생성용**이라 운영에서 실행하지 않는다.
 - 점검: `scripts/check-learning-schema-sync.ts`(읽기 전용, schema.prisma ↔ 운영 DB 컬럼 대조)
 - 상세 진행 기록: `ai_mp/PROGRESS.md`, `app/learning/{CLAUDE.md,PRD.md}`
+
+## 2026-10-07 — 학습코칭 서재 UI (learning-v2, 배포 전 검수)
+
+/learning은 큰 공부 책상 모션 → 진행 중 학습·오늘 할 일 체크리스트 → 그림 메뉴 6개로 구성한다.
+대시보드는 기존 today와 curriculum 조회만 사용한다. 새로운 학습일/정답률 집계는 추가하지 않는다.
+메인 기능카드 id 30은 홈 추천/기능탭 양쪽에 같은 서재 그림을 쓴다. 다른 카드의 렌더러는 그대로다.
+
+코치 대화는 /?p=learning-coach&studyChat=1에서 EntryChatModal의 study 프리셋을 연다.
+기존 App handleSendMessage·10P·세션 저장·스트리밍 계약을 재사용한다. 학습 확정 500P는 그대로다.
+최신 주간 리포트 id가 today에 없으므로 메뉴는 dashboard 안내로 폴백한다. 백엔드를 추가하지 않는다.
+
+검수 증거·시안 비교·한계는 design-lab/learning-coach/round1 및 RECEIPT_round1.md에 둔다.
+push/배포는 총괄 검수와 사장 승인 이후 별도 작업이다.

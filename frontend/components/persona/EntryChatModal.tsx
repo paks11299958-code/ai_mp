@@ -1,3 +1,4 @@
+import { StudyEntryChatModal } from './StudyEntryChatModal';
 import React from 'react';
 import { EunbiEntryChatModal, type EntryChatModalProps as BaseEntryChatModalProps } from './EunbiEntryChatModal';
 import { ChaewonEntryChatModal } from './ChaewonEntryChatModal';
@@ -14,7 +15,9 @@ export interface EntryChatModalProps extends BaseEntryChatModalProps {
 
 /** Visual presets share the existing onSend contract; Eunbi retains its exact renderer. */
 export const EntryChatModal: React.FC<EntryChatModalProps & { draftOwner?: string }> = (props) =>
-    props.theme.visualPreset === 'desk' ? (
+    props.theme.visualPreset === 'study' ? (
+        <StudyEntryChatModal {...props} />
+    ) : props.theme.visualPreset === 'desk' ? (
         <ChaewonEntryChatModal {...props} />
     ) : props.theme.visualPreset === 'beauty' ? (
         <ChaerinEntryChatModal {...props} />

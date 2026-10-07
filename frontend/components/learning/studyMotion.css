@@ -1,0 +1,228 @@
+  .lc-motion-scene .star{animation:lcMotionTwinkle 3.2s ease-in-out infinite}
+
+
+  .lc-motion-scene .star:nth-of-type(2){animation-delay:1.1s}
+
+.lc-motion-scene .star:nth-of-type(3){animation-delay:2.1s}
+
+
+  @keyframes lcMotionTwinkle{0%,100%{opacity:.25}
+
+50%{opacity:1}
+
+}
+
+
+  .lc-motion-scene .glow{transform-origin:150px 70px;
+
+animation:lcMotionBreathe 4.5s ease-in-out infinite}
+
+
+  @keyframes lcMotionBreathe{0%,100%{opacity:.78}
+
+50%{opacity:1}
+
+}
+
+
+  .lc-motion-scene .minute{transform-origin:318px 52px;
+
+animation:lcMotionSpin 9s linear infinite}
+
+
+  @keyframes lcMotionSpin{to{transform:rotate(360deg)}
+
+}
+
+
+  .lc-motion-scene .steam{opacity:0;
+
+animation:lcMotionRise 3s ease-out infinite}
+
+
+  .lc-motion-scene .steam.s2{animation-delay:1.5s}
+
+
+  @keyframes lcMotionRise{0%{opacity:0;
+
+transform:translateY(6px)}
+
+30%{opacity:.7}
+
+100%{opacity:0;
+
+transform:translateY(-14px)}
+
+}
+
+
+
+  /* 주층 — 9초 루프: 줄 1 → 줄 2 → 줄 3 → 체크 → 진도 칸 */
+  .lc-motion-scene .line{stroke-dasharray:1;
+
+stroke-dashoffset:1;
+
+animation:lcMotionWrite 9s cubic-bezier(.16,1,.3,1) infinite}
+
+
+  .lc-motion-scene .l2{animation-name:lcMotionWrite2}
+
+.lc-motion-scene .l3{animation-name:lcMotionWrite3}
+
+
+  @keyframes lcMotionWrite {0%{stroke-dashoffset:1}
+
+12%,90%{stroke-dashoffset:0;
+
+opacity:1}
+
+100%{stroke-dashoffset:0;
+
+opacity:0}
+
+}
+
+
+  @keyframes lcMotionWrite2{0%,14%{stroke-dashoffset:1}
+
+28%,90%{stroke-dashoffset:0;
+
+opacity:1}
+
+100%{stroke-dashoffset:0;
+
+opacity:0}
+
+}
+
+
+  @keyframes lcMotionWrite3{0%,30%{stroke-dashoffset:1}
+
+44%,90%{stroke-dashoffset:0;
+
+opacity:1}
+
+100%{stroke-dashoffset:0;
+
+opacity:0}
+
+}
+
+
+  .lc-motion-scene .pencil{animation:lcMotionPen 9s ease-in-out infinite}
+
+
+  @keyframes lcMotionPen{
+    0%{transform:translate(0,0)}
+
+12%{transform:translate(56px,0)}
+
+14%{transform:translate(-4px,12px)}
+
+
+    28%{transform:translate(44px,12px)}
+
+30%{transform:translate(-8px,24px)}
+
+44%{transform:translate(28px,24px)}
+
+
+    52%,92%{transform:translate(70px,30px)}
+
+100%{transform:translate(0,0)}
+
+}
+
+
+
+  /* 보조층 — 체크 팝(살짝 튐), 진도 칸 채우기 */
+  .lc-motion-scene .check{transform-origin:236px 168px;
+
+transform:scale(0);
+
+animation:lcMotionPop 9s infinite}
+
+
+  @keyframes lcMotionPop{0%,47%{transform:scale(0)}
+
+53%{transform:scale(1);
+
+animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+
+90%{transform:scale(1)}
+
+100%{transform:scale(0)}
+
+}
+
+
+  .lc-motion-scene .dot{opacity:.25}
+
+
+  .lc-motion-scene .dot.now{animation:lcMotionFill 9s infinite}
+
+
+  @keyframes lcMotionFill{0%,55%{opacity:.25;
+
+transform:scale(1)}
+
+62%{opacity:1;
+
+transform:scale(1.25)}
+
+68%,92%{opacity:1;
+
+transform:scale(1)}
+
+100%{opacity:.25}
+
+}
+
+
+  .lc-motion-scene .dot.now{transform-box:fill-box;
+
+transform-origin:center}
+
+
+  .lc-motion-scene .bar{transform-origin:84px 214px;
+
+transform:scaleX(.4);
+
+animation:lcMotionGrow 9s cubic-bezier(.16,1,.3,1) infinite}
+
+
+  @keyframes lcMotionGrow{0%,55%{transform:scaleX(.4)}
+
+70%,92%{transform:scaleX(.6)}
+
+100%{transform:scaleX(.4)}
+
+}
+
+
+
+  /* 움직임 줄이기: 1단계(이동·반짝임) 제거, 완성 장면을 정지로 보여준다. 빛·김은 아주 약하게만 */
+
+.lc-motion[data-paused="true"] .lc-motion-scene *{animation-play-state:paused!important}
+
+
+@media(prefers-reduced-motion:reduce){
+.lc-motion-scene *{animation:none!important}
+
+
+.lc-motion-scene .line{stroke-dashoffset:0}
+
+
+.lc-motion-scene .check{transform:scale(1)}
+
+
+.lc-motion-scene .dot.now{opacity:1}
+
+
+.lc-motion-scene .bar{transform:scaleX(.6)}
+
+
+.lc-motion-scene .steam{opacity:0}
+
+
+}

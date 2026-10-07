@@ -1,3 +1,4 @@
+import { LearningFeatureCard } from './learning/LearningFeatureCard';
 /**
  * MainPageNew.tsx
  * 뉴페이지 - 타로카드 스타일 채팅 화면
@@ -864,6 +865,15 @@ const PersonaSelectPanel: React.FC<{
     // 2026-07-29: 눌림 반응(onMouseDown/Up) 추가. 이 카드는 이미 그림자·호버 리프트가 있어
     // 입체감은 충분했고, 없던 건 **누를 때의 반응**이었다 — 잘 잡힌 디자인은 건드리지 않는다.
     const renderFeatureCard = (feat: typeof FEATURES_GRID[number], i: number) => {
+        if (feat.key === 'learning-coach') return (
+            <div key={feat.key} ref={feat.key === focusFeatureKey ? focusFeatureRef : undefined}>
+                <LearningFeatureCard onSelect={() => onFeatureSelect?.(feat.personaName, feat.key)}
+                    focused={feat.key === focusFeatureKey}
+                    onShare={onShareFeature ? () => onShareFeature(feat.key, feat.name) : undefined}
+                    onFavorite={onToggleFavorite && (!favoritableKeys || favoritableKeys.includes(feat.key))
+                        ? () => onToggleFavorite(feat.key) : undefined} favorite={isFavorite?.(feat.key)} />
+            </div>
+        );
         const gold = T.gold;
         const numeral = ROMAN_MPN[i % ROMAN_MPN.length];
         const isFocused = feat.key === focusFeatureKey;
@@ -1421,7 +1431,11 @@ const PersonaSelectPanel: React.FC<{
                         <SectionTitle>✨ 오늘의 추천</SectionTitle>
                         {/* 캐러셀: 큐레이션 4개+라 모바일에선 3개 보이고 나머지는 드래그/스와이프로. */}
                         <Carousel>
-                            {spotlightFeatures.map(f => (
+                            {spotlightFeatures.map(f => f.key === 'learning-coach' ? (
+                                <LearningFeatureCard key={f.key} home onSelect={() => onFeatureSelect?.(f.personaName, f.key)}
+                                    onFavorite={onToggleFavorite && (!favoritableKeys || favoritableKeys.includes(f.key))
+                                        ? () => onToggleFavorite(f.key) : undefined} favorite={isFavorite?.(f.key)} />
+                            ) : (
                                 <button
                                     key={f.key}
                                     onClick={() => onFeatureSelect?.(f.personaName, f.key)}

@@ -6,7 +6,7 @@ export interface EntryChatTheme {
     displayName: string;
     fallbackPortrait: string;
     accent: string;
-    visualPreset?: 'letter' | 'studio' | 'golf' | 'beauty' | 'desk';
+    visualPreset?: 'letter' | 'studio' | 'golf' | 'beauty' | 'desk' | 'study';
     headerCaption?: string;
 }
 
@@ -21,6 +21,10 @@ export const entryChatHasFeatureMenu = (theme?: EntryChatTheme) =>
     theme?.visualPreset === 'desk' || theme?.visualPreset === 'studio' || theme?.visualPreset === 'golf' || theme?.visualPreset === 'beauty';
 
 export const ENTRY_CHAT_THEMES: Record<string, EntryChatTheme> = {
+    ['learning-coach']: {
+        personaId: 'learning-coach', displayName: 'AI 학습코칭',
+        fallbackPortrait: '', accent: '#2b5948', visualPreset: 'study',
+    },
     [CHAEWON_ID]: {
         personaId: CHAEWON_ID,
         displayName: '윤채원',

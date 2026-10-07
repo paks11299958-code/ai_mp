@@ -1,129 +1,58 @@
-import React, { useEffect, useState } from 'react';
-import { LearningTabs } from './LearningTabs';
+import React, { useEffect } from 'react';
 import { useLearnAuth, goLoginTo } from '../learn/LearnKit';
-
-// 📊 대시보드 (/learning/dashboard) — S4 (app/learning/PRD.md 5장/4.2).
-// 오늘의 학습, 연속일, 진도 바, 복습 배지를 보여준다. GET /api/aimp/learning/today 조회.
-
-type TodayResponse = {
-    streak: number;
-    todayTask: {
-        id: string;
-        completedAt: string | null;
-        score: number | null;
-        module: { id: string; title: string; weekNo: number; orderNo: number; status: string };
-    } | null;
-    reviewDueCount: number;
-    goal: { id: string; title: string; progressPercent: number } | null;
-};
+import { LearningProgress, LearningShell } from './LearningParts';
+import { type TodayResponse, type CurriculumResponse, todayHref } from './learningModel';
+import { useLearningRead } from './useLearningRead';
 
 export const LearningDashboard: React.FC = () => {
     const auth = useLearnAuth();
-    const [data, setData] = useState<TodayResponse | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (auth === 'checking') return;
-        if (auth === 'guest') { goLoginTo('/learning/dashboard'); return; }
-
-        fetch('/api/aimp/learning/today', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-            .then(async r => {
-                if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.error || '대시보드 조회에 실패했습니다.');
-                return r.json();
-            })
-            .then((d: TodayResponse) => setData(d))
-            .catch(e => setError(e.message))
-            .finally(() => setLoading(false));
-    }, [auth]);
-
-    if (auth === 'checking' || loading) {
-        return (
-            <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438] flex items-center justify-center">
-                <p className="text-sm text-[#5C5468]">불러오는 중…</p>
-            </div>
-        );
-    }
-
+    const today = useLearningRead<TodayResponse>('/api/aimp/learning/today', auth === 'ok');
+    const curriculum = useLearningRead<CurriculumResponse>('/api/aimp/learning/curriculum', auth === 'ok' && !!today.data?.goal);
+    useEffect(() => { if (auth === 'guest') goLoginTo('/learning/dashboard'); }, [auth]);
+    const data = today.data;
+    const reportUnavailable = new URLSearchParams(window.location.search).get('report') === 'unavailable';
     return (
-        <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
-            <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur">
-                <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <button onClick={() => { window.location.href = '/'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
-                        ← 메인
-                    </button>
-                    <span className="text-sm font-extrabold">🎓 AI 학습코칭</span>
-                    <span className="w-16" />
-                </div>
-                <LearningTabs active="dashboard" />
-            </header>
-
-            <main className="max-w-4xl mx-auto px-4 py-6 pb-24">
-                {error && (
-                    <div className="mb-6 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-700">
-                        {error}
-                    </div>
-                )}
-
-                {data && (
-                    <>
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="flex-1 bg-white border border-[#F0E9DE] rounded-xl px-4 py-3 text-center">
-                                <div className="text-2xl font-extrabold text-indigo-700">🔥 {data.streak}</div>
-                                <div className="text-xs text-[#5C5468] mt-1">연속 학습일</div>
-                            </div>
-                            {data.goal && (
-                                <div className="flex-1 bg-white border border-[#F0E9DE] rounded-xl px-4 py-3 text-center">
-                                    <div className="text-2xl font-extrabold text-emerald-700">{data.goal.progressPercent}%</div>
-                                    <div className="text-xs text-[#5C5468] mt-1">전체 진도</div>
-                                </div>
-                            )}
-                        </div>
-
-                        {data.goal && (
-                            <button
-                                onClick={() => { window.location.href = '/learning/curriculum'; }}
-                                className="w-full mb-6 text-left"
-                            >
-                                <p className="text-sm font-bold text-[#5C5468] mb-1">{data.goal.title} <span className="text-xs text-indigo-700 font-normal">전체보기 →</span></p>
-                                <div className="w-full h-2 bg-[#F0E9DE] rounded-full overflow-hidden">
-                                    <div className="h-full bg-emerald-500 transition-all" style={{ width: `${data.goal.progressPercent}%` }} />
-                                </div>
-                            </button>
-                        )}
-
-                        {data.reviewDueCount > 0 && (
-                            <button
-                                onClick={() => { window.location.href = '/learning/review'; }}
-                                className="w-full mb-4 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 flex items-center justify-between text-left hover:bg-amber-500/15 transition-colors"
-                            >
-                                <span className="text-sm font-bold text-amber-700">📌 오늘의 복습 {data.reviewDueCount}개</span>
-                                <span className="text-xs text-amber-700">바로가기 →</span>
-                            </button>
-                        )}
-
-                        {data.todayTask ? (
-                            <button
-                                onClick={() => { window.location.href = `/learning/task/${data.todayTask!.id}?m=${data.todayTask!.module.id}`; }}
-                                className="w-full bg-indigo-500/10 border border-indigo-500/30 rounded-xl px-5 py-5 text-left hover:bg-indigo-500/15 transition-colors"
-                            >
-                                <span className="text-xs font-bold text-indigo-700">
-                                    {data.todayTask.completedAt ? '✅ 오늘 완료' : '오늘의 학습'}
-                                </span>
-                                <h2 className="text-lg font-extrabold mt-1">{data.todayTask.module.title}</h2>
-                                <p className="text-xs text-[#5C5468] mt-1">
-                                    {data.todayTask.module.weekNo}주차 {data.todayTask.module.orderNo}일차
-                                    {data.todayTask.completedAt && data.todayTask.score !== null ? ` · 점수 ${data.todayTask.score}점` : ''}
-                                </p>
-                            </button>
-                        ) : (
-                            <div className="bg-white border border-[#F0E9DE] rounded-xl px-5 py-8 text-center">
-                                <p className="text-sm text-[#5C5468]">오늘 배정된 학습이 없습니다.</p>
-                            </div>
-                        )}
-                    </>
-                )}
-            </main>
-        </div>
+        <LearningShell dashboard>
+            <div className="lc-dash-title"><span className="lc-eyebrow">MY STUDY / PROGRESS</span>
+                <h1>내 공부, 어디까지 왔을까요?</h1><p>오늘 할 일과 쌓인 진도를 확인해요.</p></div>
+            {reportUnavailable && <section className="lc-note" role="status">아직 연결된 주간 리포트가 없어요.</section>}
+            {auth === 'checking' || today.loading ? <section className="lc-panel" role="status">불러오는 중…</section>
+                : today.error ? <section className="lc-panel" role="alert"><h2>{today.error}</h2>
+                    <button className="lc-btn" onClick={today.retry}>다시 확인</button></section>
+                    : !data?.goal ? <section className="lc-panel lc-empty"><h2>아직 시작한 학습이 없어요.</h2>
+                        <p>목표를 정하면 여기에서 진행 상황을 볼 수 있어요.</p><a className="lc-btn" href="/learning/onboarding">새 학습</a></section>
+                        : <>
+                            <div className="lc-stats">{[[`${data.goal.progressPercent}%`, '전체 진도'], [`${data.streak}일`, '연속 학습'],
+                                [`${data.reviewDueCount}개`, '오늘 배정 복습']].map(([value, label]) => (
+                                <section className="lc-panel lc-stat" key={label}><strong>{value}</strong><span>{label}</span></section>
+                            ))}</div>
+                            <div className="lc-dashboard"><section className="lc-panel">
+                                <span className="lc-small">선택한 학습</span><h2>{data.goal.title}</h2><LearningProgress value={data.goal.progressPercent} />
+                                <div className="lc-section-head"><h3>주차별 진척</h3><a href="/learning/curriculum">전체 보기</a></div>
+                                {curriculum.loading && <p role="status">주차별 진척을 확인하고 있어요…</p>}
+                                {curriculum.error && <div role="alert"><p>주차별 진척을 불러오지 못했어요.</p>
+                                    <button className="lc-btn lc-secondary" onClick={curriculum.retry}>주차별 진척 다시 확인</button></div>}
+                                {curriculum.data?.goal?.id === data.goal.id && curriculum.data.weeks.map(week => {
+                                    const completed = week.modules.filter(module => module.completed).length;
+                                    return <div className="lc-week" key={week.weekNo}><header><strong>{week.weekNo}주차</strong>
+                                        <span>{week.modules.length ? `${completed}/${week.modules.length}개 완료` : '아직 미배정'}</span></header>
+                                        {week.modules.length > 0 && <div className="lc-bar" role="progressbar" aria-label={`${week.weekNo}주차 진도`}
+                                            aria-valuenow={completed} aria-valuemin={0} aria-valuemax={week.modules.length}>
+                                            <i style={{ width: `${completed / week.modules.length * 100}%` }} /></div>}</div>;
+                                })}
+                            </section><div>
+                                <section className="lc-panel lc-task"><span className="lc-label">{data.todayTask?.completedAt ? '오늘 완료' : '오늘 할 일'}</span>
+                                    {data.todayTask ? <><h2>{data.todayTask.module.title}</h2>
+                                        <p>{data.todayTask.module.weekNo}주차 · {data.todayTask.module.orderNo}일차
+                                            {data.todayTask.completedAt && data.todayTask.score !== null ? ` · 점수 ${data.todayTask.score}점` : ''}</p>
+                                        <a className="lc-btn" href={todayHref(data)}>{data.todayTask.completedAt ? '오늘 학습 다시 보기' : '오늘 학습 시작'}</a></>
+                                        : <p>오늘 배정된 학습이 없습니다.</p>}
+                                </section>
+                                <section className="lc-note"><strong>오늘의 복습 {data.reviewDueCount}개</strong><p>오늘 배정된 분량만 보여드려요.</p>
+                                    <a className="lc-btn lc-secondary" href="/learning/review">오답 복습</a></section>
+                                <section className="lc-panel"><h3>주간 기록</h3><p>아직 연결된 주간 리포트가 없어요.</p></section>
+                            </div></div>
+                        </>}
+        </LearningShell>
     );
 };

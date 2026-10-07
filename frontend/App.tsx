@@ -257,17 +257,19 @@ const AppContent: React.FC = () => {
             .catch(() => setGuestRegisterState('failed'));
     }, [isAuthChecking, arrivedViaReferral, user, guestRegisterState, handleGuestAuthSuccess]);
 
-    const [pendingDeepLink, setPendingDeepLink] = useState<{ kind: 'persona'; id: string } | { kind: 'feature'; key: string } | null>(() => {
+    const [pendingDeepLink, setPendingDeepLink] = useState<{ kind: 'persona'; id: string; studyChat?: boolean } | { kind: 'feature'; key: string } | null>(() => {
         const params = new URLSearchParams(window.location.search);
         const p = params.get('p');
+        const studyChat = p === 'learning-coach' && params.get('studyChat') === '1';
         const f = params.get('f');
         if (p || f) {
             params.delete('p');
+            if (studyChat) params.delete('studyChat');
             params.delete('f');
             const qs = params.toString();
             window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''));
         }
-        if (p) return { kind: 'persona', id: p };
+        if (p) return { kind: 'persona', id: p, studyChat };
         if (f) return { kind: 'feature', key: f };
         return null;
     });
@@ -687,6 +689,8 @@ const AppContent: React.FC = () => {
     //     소개를 보게 한다. 가입은 사용자가 "입장/시작"을 누를 때 자연스럽게 유도된다.
     useEffect(() => {
         if (!pendingDeepLink || isPersonasLoading || !personas.length) return;
+        // Wait for token verification before treating a study-chat link as a guest visit.
+        if (pendingDeepLink.kind === 'persona' && pendingDeepLink.studyChat && isAuthChecking) return;
 
         // ★인사말 선(先)생성(2026-07-28 사장 지적): 원래는 인트로 영상이 재생되는 동안
         // prefetchOnly로 인사말을 미리 만들었는데, 딥링크에서 인트로를 끄면서 그 시간이
@@ -722,7 +726,10 @@ const AppContent: React.FC = () => {
                 handlePersonaClick(target.id, { skipIntro: true });
                 // 이 페르소나가 무엇을 해주는지 먼저 알린다 — 채팅창만 보고는 뭘 물어봐야
                 // 할지 모른다. 메인 카드 클릭과 **같은 함수**를 쓴다(2026-07-29 공통화).
-                showPersonaGuide(target);
+                if (pendingDeepLink.studyChat && target.id === 'learning-coach') {
+                    setDeepLinkGuide(null);
+                    setEntryChatPersonaId(target.id);
+                } else showPersonaGuide(target);
             } else {
                 // ★비로그인도 회원과 **같은 진입화면**을 본다(2026-09-28 사장 지시).
                 //   전엔 handleGuestPersonaClick → introVideoModal 이었는데 그 모달 JSX 가
@@ -730,6 +737,9 @@ const AppContent: React.FC = () => {
                 //   showPersonaGuide 는 로그인 정보를 쓰지 않는 순수 함수라 그대로 쓴다.
                 showPersonaGuide(target);
                 setGuestEntryPersonaId(target.id);
+                if (pendingDeepLink.studyChat) {
+                    sessionStorage.setItem('afterAuthRedirect', '/?p=learning-coach&studyChat=1');
+                }
             }
             setPendingDeepLink(null);
             return;
@@ -845,7 +855,7 @@ const AppContent: React.FC = () => {
             goTo('main');
         }
         setPendingDeepLink(null);
-    }, [pendingDeepLink, isPersonasLoading, personas, user, showPersonaGuide]);
+    }, [pendingDeepLink, isPersonasLoading, personas, user, showPersonaGuide, isAuthChecking]);
 
     // activePersonaId 변경 시 트리거 영상 로드
     useEffect(() => {
