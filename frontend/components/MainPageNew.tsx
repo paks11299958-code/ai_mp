@@ -9,6 +9,7 @@
 
 import { GuestAuthHeader } from './GuestAuthHeader';
 import { LearningFeatureCard } from './learning/LearningFeatureCard';
+import { LampGlow } from './learning/LampGlow';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { LogOut, Settings, Megaphone, Search, Bell, X, Menu } from 'lucide-react';
 import { Persona, Category } from '../types';
@@ -240,6 +241,7 @@ const ChatStage: React.FC<{
                                 fontSize: 52, color: palette.accent, opacity: 0.4,
                             }}>✦</div>
                         )}
+                        {persona.imageUrl && persona.id === 'learning-coach' && <LampGlow />}
                         <div style={{
                             position: 'absolute', bottom: 0, left: 0, right: 0, height: 40,
                             background: `linear-gradient(to top, ${palette.bg}bb, transparent)`,
@@ -1119,6 +1121,7 @@ const PersonaSelectPanel: React.FC<{
                     ) : (
                         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, color: palette.accent, opacity: 0.4 }}>✦</div>
                     )}
+                    {persona.imageUrl && persona.id === 'learning-coach' && <LampGlow />}
                     {/* 하단 페이드 */}
                     <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 40, background: `linear-gradient(to top, ${palette.bg}cc, transparent)` }} />
                     {/* NEW 뱃지 */}
