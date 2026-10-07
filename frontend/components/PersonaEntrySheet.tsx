@@ -9,6 +9,7 @@ import { YunaTarotEntry } from './persona/YunaTarotEntry';
 import { JihoonBookEntry } from './persona/JihoonBookEntry';
 import { SeolaGolfEntry } from './persona/SeolaGolfEntry';
 import { EunbiEntry } from './persona/EunbiEntry';
+import { LearningEntryRedirect } from './learning/LearningEntryRedirect';
 import type { GuestNotice } from '../lib/guestFeatureGate';
 
 /** 비로그인 방문자가 진입화면 **안에서 직접 서버를 부르는** 동작을 눌렀을 때 App 에 알린다
@@ -137,6 +138,11 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     // ★이아린도 같은 규약으로 "우리 동네 가게 홍보" 랜딩으로 갈아 끼운다(2026-09-07 사장 지시).
     //   담당 기능이 5개인데 전부 기능 카드로 흩어져 "가게 홍보를 맡아주는 곳"이 안 보였다.
     //   판별 키는 앞의 셋과 **똑같이** guide.title 접두사다.
+    // ★AI 학습코칭은 페르소나 카드로 와도 전용 진입(/learning, 공부방 모션·그림 메뉴)으로 보낸다(2026-10-07).
+    //   전엔 범용 소개 시트가 떠서 새 진입 화면이 안 보였다. 판별 키는 위와 같은 title 접두사.
+    if (guide.title?.startsWith('AI 학습코칭')) {
+        return <LearningEntryRedirect />;
+    }
     if (guide.title?.startsWith('이아린')) {
         return <ArinPromoEntry guide={guide} onClose={onClose} onStart={onStart}
                                onFeature={onFeature} onInvite={onInvite} />;
