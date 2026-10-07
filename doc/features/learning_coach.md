@@ -126,7 +126,7 @@ PC 폭은 `max-w-4xl`(그전 `max-w-2xl`=672px 고정이라 1190px 화면에서 
 - 점검: `scripts/check-learning-schema-sync.ts`(읽기 전용, schema.prisma ↔ 운영 DB 컬럼 대조)
 - 상세 진행 기록: `ai_mp/PROGRESS.md`, `app/learning/{CLAUDE.md,PRD.md}`
 
-## 2026-10-07 — 학습코칭 서재 UI (learning-v2, 배포 전 검수)
+## 2026-10-07 — 학습코칭 서재 UI (✅운영 배포 `a414c7c`·`a36929c`)
 
 /learning은 큰 공부 책상 모션 → 진행 중 학습·오늘 할 일 체크리스트 → 그림 메뉴 6개로 구성한다.
 대시보드는 기존 today와 curriculum 조회만 사용한다. 새로운 학습일/정답률 집계는 추가하지 않는다.
@@ -137,4 +137,16 @@ PC 폭은 `max-w-4xl`(그전 `max-w-2xl`=672px 고정이라 1190px 화면에서 
 최신 주간 리포트 id가 today에 없으므로 메뉴는 dashboard 안내로 폴백한다. 백엔드를 추가하지 않는다.
 
 검수 증거·시안 비교·한계는 design-lab/learning-coach/round1 및 RECEIPT_round1.md에 둔다.
-push/배포는 총괄 검수와 사장 승인 이후 별도 작업이다.
+
+### 배포 후 후속 (2026-10-07, Opus)
+- **진입 모션 원본** = `~/design-lab/learning-coach/motion/study-desk.html`(총괄 제작: 밤 책상, 줄 쓰기→체크→진도 한 칸, 9초). 제품판은 `StudyDeskMotion.tsx`(인라인 SVG)
+- **페르소나 카드 그림 교체**: DB `Persona.imageUrl`(id `learning-coach`)이 **base64 PNG 약 2.4MB**(칠판 앞 "Luna"+영어 대시보드)였다 →
+  GCS `personas/learning-coach/profile-v2.jpg`(밤 서재 플랫 그림, 얼굴·글자 없음)로 교체. 원래 값 백업 = 서버1 `~/db_backups_manual/persona_learning-coach_imageUrl_20261007.txt`(롤백은 이 값을 다시 UPDATE)
+  - ★서버2·서버1 `gsutil` 은 **쓰기 권한 없음(403 scope)** → 서버1 shared-api 의 `GOOGLE_APPLICATION_CREDENTIALS_JSON` 으로 `@google-cloud/storage` upload
+  - 시드(`seed-learning-coach-persona.js`)는 imageUrl 을 건드리지 않아 재실행해도 안전
+- **카드 스탠드 불빛** `a584da0`·`647b1df`: `learning/LampGlow.tsx`+`lampGlow.css` — 처음 한 번 "틱틱" 켜짐 → 5초 숨쉬기, 투명도만(합성), 화면 밖 일시정지, reduced-motion 정지. MainPageNew 큰 카드 두 렌더러에 `persona.id==='learning-coach'` 일 때만
+- **페르소나 카드 → 전용 진입** `c80ebbb`: 🔴기능카드만 `/learning` 으로 보내고 **페르소나 카드는 범용 소개 시트**가 떴다(사장 캡처 지적). `PersonaEntrySheet` 에 `title.startsWith('AI 학습코칭')` → `LearningEntryRedirect`(location.assign('/learning'), 뒤로가기=메인)
+- **코치 채팅 닫기 → /learning** `a5d4a28`: `StudyEntryChatModal` onClose 래핑
+- 검증: 운영 Playwright(회원·비회원 카드 클릭 → /learning 새 진입, 채팅 열기·닫기 → /learning, 불빛 동작, pageerror 0), vitest 65파일/572(직렬)
+- 남음: 주간 리포트 id 발견 응답 없음(주간 기록 메뉴=대시보드 폴백), 실제 500P 생성·채팅 차감 미실행
+- 머리말 `33bda1f`: "← AI 스퀘어" 제거, 제목 왼쪽·오른쪽 위 동그란 닫기(✕ → 메인), 진입·대시보드 공통 `LearningShell`
