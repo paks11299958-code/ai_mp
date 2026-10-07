@@ -150,3 +150,4 @@ PC 폭은 `max-w-4xl`(그전 `max-w-2xl`=672px 고정이라 1190px 화면에서 
 - 검증: 운영 Playwright(회원·비회원 카드 클릭 → /learning 새 진입, 채팅 열기·닫기 → /learning, 불빛 동작, pageerror 0), vitest 65파일/572(직렬)
 - 남음: 주간 리포트 id 발견 응답 없음(주간 기록 메뉴=대시보드 폴백), 실제 500P 생성·채팅 차감 미실행
 - 머리말 `33bda1f`: "← AI 스퀘어" 제거, 제목 왼쪽·오른쪽 위 동그란 닫기(✕ → 메인), 진입·대시보드 공통 `LearningShell`
+- 프롬프트·지식 (2026-10-07): systemInstruction 을 존댓말·기능 안내·금지 사항 6절로 재작성(원문 `design-lab/learning-coach/prompt/`, 시드 정본 동기화). 지식창고 12문서/66청크 구축(어드민 📚 AI 구축과 같은 API). 인사말도 이 프롬프트로 생성된다
