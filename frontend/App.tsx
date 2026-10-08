@@ -94,6 +94,7 @@ import { LearningWeeklyReport } from './components/learning/LearningWeeklyReport
 import { LearningSettings } from './components/learning/LearningSettings';
 import { LearningCurriculum } from './components/learning/LearningCurriculum';
 import { trackLearningDepth } from './components/learning/learningNav';
+import { useBackButtonLayer } from './hooks/useBackButtonLayer';
 import { ReversePromptMain } from './components/reverse-prompt/ReversePromptMain';
 import { ReversePromptLibrary } from './components/reverse-prompt/ReversePromptLibrary';
 import { tarotApi } from './services/apiService';
@@ -1495,6 +1496,16 @@ const AppContent: React.FC = () => {
         setPendingQuickMenuLabel(null);
         if (menu) quickMenuRunnerRef.current(menu, !!cfg.useBirthInfo);
     }, [pendingQuickMenuLabel, screen, activePersonaId, personas]);
+
+    // ★조기 return(resetToken·isAuthChecking) **앞에** 둔다 — 뒤에 두면 렌더마다 훅 수가 달라 React #310(전 화면 백지).
+    // 진입화면·전용 채팅이 떠 있는 동안 폰 뒤로가기 = Esc(한 단계 위로)(2026-10-08).
+    // ★학습코칭은 시트가 아니라 /learning 으로 페이지 이동하므로 가드를 쌓지 않는다(쌓으면 기록에 빈 칸이 남는다).
+    // ★진입에서 연 기능 보드(entryReturn*)는 넣지 않는다 — 보드마다 Esc 처리가 달라, 안 받는 보드면
+    //   뒤로가기가 영영 안 먹는다. 보드 위 뒤로가기는 종전 그대로다.
+    useBackButtonLayer(
+        (!!deepLinkGuide && !rewardAlert && !deepLinkGuide.title?.startsWith('AI 학습코칭'))
+        || !!entryChatPersonaId,
+    );
 
     if (resetToken) {
         return (

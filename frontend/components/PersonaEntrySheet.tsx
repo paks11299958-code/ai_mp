@@ -1,4 +1,5 @@
 import React from 'react';
+import { EscToClose } from './EscToClose';
 import { MpnFeatureIcon } from './MainPageNew';
 import { SajuEntry } from './persona/SajuEntry';
 import { SeoaNewsDeskEntry } from './persona/SeoaNewsDeskEntry';
@@ -194,6 +195,7 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
             style={{ background: 'rgba(20,12,30,0.5)', backdropFilter: 'blur(6px)' }}
             onClick={onClose}
         >
+            <EscToClose onClose={onClose} />
             <div
                 onClick={e => e.stopPropagation()}
                 role="dialog"
