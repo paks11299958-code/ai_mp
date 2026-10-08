@@ -95,6 +95,7 @@ import { LearningSettings } from './components/learning/LearningSettings';
 import { LearningCurriculum } from './components/learning/LearningCurriculum';
 import { trackLearningDepth } from './components/learning/learningNav';
 import { useBackButtonLayer } from './hooks/useBackButtonLayer';
+import { createRevealer } from './lib/smoothReveal';
 import { ReversePromptMain } from './components/reverse-prompt/ReversePromptMain';
 import { ReversePromptLibrary } from './components/reverse-prompt/ReversePromptLibrary';
 import { tarotApi } from './services/apiService';
@@ -1380,6 +1381,8 @@ const AppContent: React.FC = () => {
         addMessageToSession(activePersonaId, { id: modelMsgId, role: 'model', text: '', isStreaming: true });
 
         let fullResponse = '';
+        // 받은 덩어리를 툭툭 붙이지 않고 고르게 풀어 보여 준다(lib/smoothReveal.ts, 2026-10-08). 받은 글·저장은 그대로.
+        const reveal = createRevealer(shown => updateMessageInSession(activePersonaId, modelMsgId, { text: shown }));
         try {
             await chatApi.stream(
                 {
@@ -1391,12 +1394,16 @@ const AppContent: React.FC = () => {
                 },
                 (chunk) => {
                     fullResponse += chunk;
-                    updateMessageInSession(activePersonaId, modelMsgId, { text: fullResponse });
+                    reveal.push(fullResponse);
                 },
                 (finalText) => {
                     fullResponse = finalText;
-                    updateMessageInSession(activePersonaId, modelMsgId, { text: fullResponse, isStreaming: false });
-                    setSessionTyping(activePersonaId, false);
+                    const shownFinal = finalText;
+                    // 화면이 다 풀린 뒤에 "답장 중" 표시를 끈다(≤0.5초). 저장·감정·기억은 기다리지 않는다.
+                    reveal.finish(shownFinal, () => {
+                        updateMessageInSession(activePersonaId, modelMsgId, { text: shownFinal, isStreaming: false });
+                        setSessionTyping(activePersonaId, false);
+                    });
                     onEmotionReplyDone(activePersonaId, text, fullResponse);
 
                     // AI 응답 DB 저장
@@ -1420,6 +1427,7 @@ const AppContent: React.FC = () => {
                     }
                 },
                 (errMsg) => {
+                    reveal.cancel();
                     updateMessageInSession(activePersonaId, modelMsgId, {
                         text: `죄송합니다. 오류가 발생했습니다: ${errMsg}`,
                         isStreaming: false, error: true,
@@ -1428,6 +1436,7 @@ const AppContent: React.FC = () => {
                 },
             );
         } catch (error: any) {
+            reveal.cancel();
             updateMessageInSession(activePersonaId, modelMsgId, {
                 text: `죄송합니다. 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`,
                 isStreaming: false, error: true,
