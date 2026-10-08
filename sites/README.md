@@ -45,3 +45,4 @@ Hermes가 자동으로:
 | new_ainara | /sites/new_ainara/ | AINARA AI Companion 독립 브랜드 사이트. Particle Network와 기존 AI 상담 흐름 적용(2026-08-23) |
 | ainara-partner | https://ainara2.dbzone.kr/ | AI SaaS 플랫폼 사업운영 라이선스 파트너 모집 독립사이트. 자체 생성 이미지와 3D 상담 모달 적용(2026-08-26) |
 | ainara-cube | https://aiworld.dbzone.kr/ | 큐브가 자동으로 펼쳐져 AI 임대형 서비스 메뉴가 되는 AINARA 파트너 독립사이트(2026-08-26) |
+| rentalfit | /sites/rentalfit/ | 렌탈핏 AI 렌탈 비교 홍보 시안(단순판: 가족 사진·LG 대표 제품 4종·절감 예시, 2026-10-08). 조건 입력·AI 비교는 미연결 |
