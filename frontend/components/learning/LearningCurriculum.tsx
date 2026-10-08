@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { LearningTabs } from './LearningTabs';
 import { useLearnAuth, goLoginTo } from '../learn/LearnKit';
+import { leaveLearning } from './learningNav';
 
 // 🗂 전체 커리큘럼 (/learning/curriculum) — S10 (app/learning/PRD.md 5장).
 // ★PRD 5장에 처음부터 명시된 화면이었으나 지금까지 구현되지 않았던 누락분(신규 기능
@@ -45,7 +46,7 @@ export const LearningCurriculum: React.FC = () => {
         <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
             <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur">
                 <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <button onClick={() => { window.location.href = '/'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
+                    <button onClick={leaveLearning} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
                         ← 메인
                     </button>
                     <span className="text-sm font-extrabold">🗂 전체 커리큘럼</span>

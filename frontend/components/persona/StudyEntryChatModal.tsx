@@ -22,7 +22,15 @@ export const StudyEntryChatModal: React.FC<EntryChatModalProps & { draftOwner?: 
     opener, draftOwner,
 }) => {
     // 코치 채팅은 /learning 에서 들어온다 — 닫으면 메인이 아니라 공부 책상(진입 화면)으로 돌려보낸다(2026-10-07 사장 승인).
-    const onClose = () => { closeChat(); window.location.assign('/learning'); };
+    // ★공부 책상에서 왔으면 뒤로 되감는다 — assign 은 기록을 한 칸 더 쌓아, 나중에 메인에서 뒤로가기를 누르면
+    //   공부 책상이 다시 떴다(2026-10-08 사장 지적). 다른 데서 왔으면(링크 직접) 기록을 늘리지 않게 교체.
+    const onClose = () => {
+        closeChat();
+        let fromLearning = false;
+        try { const u = new URL(document.referrer); fromLearning = u.origin === window.location.origin && u.pathname.startsWith('/learning'); } catch { /* 출처 모름 */ }
+        if (fromLearning && window.history.length > 1) window.history.back();
+        else window.location.replace('/learning');
+    };
     const { data } = useLearningRead<TodayResponse>('/api/aimp/learning/today', !!localStorage.getItem('token'));
     const draftKey = `study-draft:${draftOwner || 'anonymous'}:${theme.personaId}`;
     const [draft, setDraft] = useState(() => readDraft(draftKey));

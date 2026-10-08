@@ -1,6 +1,7 @@
 import React from 'react';
 import { LearningTabs } from './LearningTabs';
 import { LEARNING_MENU, learningMenuHref, progressValue, todayHref, type TodayResponse } from './learningModel';
+import { leaveLearning } from './learningNav';
 import './learningStudy.css';
 
 export const LearningShell: React.FC<React.PropsWithChildren<{ dashboard?: boolean }>> = ({ children, dashboard }) => (
@@ -8,7 +9,7 @@ export const LearningShell: React.FC<React.PropsWithChildren<{ dashboard?: boole
         <header className="lc-header">
             <strong>AI 학습코칭</strong>
             {/* 다른 페르소나 진입화면처럼 오른쪽 위 동그란 닫기(2026-10-07 사장 지시) */}
-            <a className="lc-close" href="/" aria-label="닫기">
+            <a className="lc-close" href="/" aria-label="닫기" onClick={e => { e.preventDefault(); leaveLearning(); }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
                     aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </a>

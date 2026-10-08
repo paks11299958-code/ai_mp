@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { LearningTabs } from './LearningTabs';
 import { useLearnAuth, goLoginTo } from '../learn/LearnKit';
+import { leaveLearning } from './learningNav';
 
 // 🎒 내 커리큘럼 목록 (/learning/goals) — 2026-08-25 신설.
 // ★배경: 조회가 '가장 최근 active 1개'만 보던 탓에 새 커리큘럼을 만들면
@@ -73,7 +74,7 @@ export const LearningGoals: React.FC = () => {
         <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
             <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur">
                 <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <button onClick={() => { window.location.href = '/'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
+                    <button onClick={leaveLearning} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
                         ← 메인
                     </button>
                     <span className="text-sm font-extrabold">🎓 AI 학습코칭</span>

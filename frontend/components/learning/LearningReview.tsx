@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { LearningTabs } from './LearningTabs';
 import { useLearnAuth, goLoginTo } from '../learn/LearnKit';
+import { leaveLearning } from './learningNav';
 
 // 📌 오답 노트 (/learning/review) — S8 (app/learning/PRD.md 5장, 7장 간격 반복).
 // GET /api/aimp/learning/review 로 오늘 복습해야 할 문항(최대 5개)을 받아 그 자리에서 재응시한다.
@@ -60,7 +61,7 @@ export const LearningReview: React.FC = () => {
         <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
             <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur">
                 <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <button onClick={() => { window.location.href = '/'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
+                    <button onClick={leaveLearning} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
                         ← 메인
                     </button>
                     <span className="text-sm font-extrabold">📌 오답 노트</span>

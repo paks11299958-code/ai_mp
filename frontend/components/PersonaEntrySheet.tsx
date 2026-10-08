@@ -141,7 +141,7 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     // ★AI 학습코칭은 페르소나 카드로 와도 전용 진입(/learning, 공부방 모션·그림 메뉴)으로 보낸다(2026-10-07).
     //   전엔 범용 소개 시트가 떠서 새 진입 화면이 안 보였다. 판별 키는 위와 같은 title 접두사.
     if (guide.title?.startsWith('AI 학습코칭')) {
-        return <LearningEntryRedirect />;
+        return <LearningEntryRedirect onClose={onClose} />;
     }
     if (guide.title?.startsWith('이아린')) {
         return <ArinPromoEntry guide={guide} onClose={onClose} onStart={onStart}

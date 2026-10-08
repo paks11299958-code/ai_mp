@@ -93,6 +93,7 @@ import { LearningReview } from './components/learning/LearningReview';
 import { LearningWeeklyReport } from './components/learning/LearningWeeklyReport';
 import { LearningSettings } from './components/learning/LearningSettings';
 import { LearningCurriculum } from './components/learning/LearningCurriculum';
+import { trackLearningDepth } from './components/learning/learningNav';
 import { ReversePromptMain } from './components/reverse-prompt/ReversePromptMain';
 import { ReversePromptLibrary } from './components/reverse-prompt/ReversePromptLibrary';
 import { tarotApi } from './services/apiService';
@@ -3529,6 +3530,8 @@ const IS_LEARNING_REPORT = /^\/learning\/report\/[^/]+$/.test(LEARNING_PATH);
 const IS_LEARNING_SETTINGS = /^\/learning\/settings$/.test(LEARNING_PATH);
 const IS_LEARNING_CURRICULUM = /^\/learning\/curriculum$/.test(LEARNING_PATH);
 const IS_LEARNING_GOALS = /^\/learning\/goals$/.test(LEARNING_PATH);
+// 학습 화면마다 '메인에서 몇 칸 들어왔나'를 기록 — ✕ 가 기록을 쌓지 않고 되감게 한다(2026-10-08).
+if (LEARNING_PATH.startsWith('/learning')) trackLearningDepth();
 
 // 🎨 리버스 프롬프트(/reverse-prompt) — app/reverse-prompt/PRD.md
 // LEARNING_PATH와 같은 뒤 슬래시 제거 규칙을 재사용한다.
