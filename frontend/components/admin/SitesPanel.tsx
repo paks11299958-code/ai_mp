@@ -10,6 +10,28 @@ const BASE = 'https://aichat.dbzone.kr';
 export const resolveSiteUrl = (url: string) =>
     /^https?:\/\//i.test(url) ? url : `${BASE}${url}`;
 
+/** 사이트 화면 썸네일(scripts/site-thumbs.cjs 로 생성, 2026-10-09 사장 "썸네일로 볼 수 있게").
+ *  공개 사이트 = sites/_thumbs/<name>.webp, 비공개 사이트 = 같은 비공개 경로의 thumb.webp(관리자 쿠키로만 열림). */
+export const siteThumbUrl = (s: { name: string; url: string }) => {
+    const m = s.url.match(/^\/api\/admin\/private-sites\/([^/]+)\//);
+    return m ? `${BASE}/api/admin/private-sites/${m[1]}/thumb.webp` : `${BASE}/sites/_thumbs/${encodeURIComponent(s.name)}.webp`;
+};
+const isPrivateSite = (url: string) => url.startsWith('/api/admin/private-sites/');
+
+const SiteThumb: React.FC<{ site: Site; href: string }> = ({ site, href }) => {
+    const [failed, setFailed] = useState(false);
+    return (
+        <a href={href} target="_blank" rel="noopener noreferrer" aria-label={`${site.name} 사이트 열기`}
+            className="block relative aspect-[16/10] bg-white/5 overflow-hidden rounded-t-xl border-b border-white/10 group">
+            {failed
+                ? <span className="absolute inset-0 grid place-items-center text-2xl font-bold text-white/30 uppercase">{site.name.slice(0, 2)}</span>
+                : <img src={siteThumbUrl(site)} alt="" loading="lazy" onError={() => setFailed(true)}
+                    className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]" />}
+            {isPrivateSite(site.url) && <span className="absolute top-2 left-2 text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/60 text-amber-200">🔒 비공개</span>}
+        </a>
+    );
+};
+
 export const SitesPanel: React.FC = () => {
     const [sites, setSites] = useState<Site[] | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -52,7 +74,7 @@ export const SitesPanel: React.FC = () => {
 
     return (
         <div className="flex-1 overflow-y-auto p-6">
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-4xl mx-auto">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <Icon name="Globe" size={18} className="text-sky-400" />
@@ -62,28 +84,27 @@ export const SitesPanel: React.FC = () => {
                         <Icon name="RefreshCw" size={13} /> 새로고침
                     </button>
                 </div>
-                <p className="text-xs text-gray-400 mb-4">Hermes가 만든 독립 웹사이트 목록입니다. 제목을 누르면 사이트가 열립니다.</p>
+                <p className="text-xs text-gray-400 mb-4">독립 웹사이트 목록입니다. 화면이나 제목을 누르면 사이트가 열립니다.</p>
 
                 {msg && <div className="text-xs text-amber-300 mb-3">{msg}</div>}
                 {error && <div className="text-xs text-red-400 py-6 text-center">{error}</div>}
                 {sites === null && !error && <div className="text-sm text-gray-500 py-8 text-center">불러오는 중…</div>}
                 {sites && sites.length === 0 && <div className="text-sm text-gray-500 py-8 text-center">아직 만든 사이트가 없어요.</div>}
 
-                <div className="space-y-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {sites && sites.map(s => {
                         const siteUrl = resolveSiteUrl(s.url);
                         return (
-                            <div key={s.name} className="bg-white/5 border border-white/10 rounded-xl p-4">
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                        <a href={siteUrl} target="_blank" rel="noopener noreferrer"
-                                            className="text-sm font-bold text-sky-300 hover:underline inline-flex items-center gap-1">
-                                            {s.name} <Icon name="ExternalLink" size={12} />
-                                        </a>
-                                        <div className="text-[11px] text-gray-500 mt-0.5 font-mono break-all">{siteUrl}</div>
-                                        {s.desc && <div className="text-xs text-gray-300 mt-1.5 leading-relaxed">{s.desc}</div>}
-                                    </div>
-                                    <div className="shrink-0 flex items-center gap-1.5">
+                            <div key={s.name} className="bg-white/5 border border-white/10 rounded-xl flex flex-col min-w-0">
+                                <SiteThumb site={s} href={siteUrl} />
+                                <div className="p-3.5 flex flex-col gap-2 flex-1 min-w-0">
+                                    <a href={siteUrl} target="_blank" rel="noopener noreferrer"
+                                        className="text-sm font-bold text-sky-300 hover:underline inline-flex items-center gap-1 break-all">
+                                        {s.name} <Icon name="ExternalLink" size={12} />
+                                    </a>
+                                    {s.desc && <div className="text-xs text-gray-300 leading-relaxed">{s.desc}</div>}
+                                    <div className="text-[11px] text-gray-500 font-mono break-all">{siteUrl}</div>
+                                    <div className="flex items-center gap-1.5 mt-auto pt-1">
                                         <button onClick={() => download(s.name)} disabled={dl === s.name}
                                             title="소스를 ZIP으로 받아 새 GitHub 저장소 + Vercel로 독립 배포"
                                             className="text-xs font-bold text-sky-300 px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 disabled:opacity-40">
