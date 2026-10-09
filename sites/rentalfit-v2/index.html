@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f6f3ec"><title>렌탈핏 AI — 우리 집에 딱 맞게</title>
+<link rel="preload" href="assets/serif.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/site.css">
+<script src="assets/site.js" defer></script>
+</head>
+<body>
+<header><div class="wrap hd"><a class="logo" href="#home" aria-label="렌탈핏 AI 처음으로">렌탈핏 <span>AI</span></a><a class="header-cta" href="#ask">AI 문의하기</a></div></header>
+<main id="home">
+<section class="hero" aria-labelledby="hero-title">
+<div class="hero-stack">
+<div class="hero-copy"><h1 id="hero-title">우리 집에 딱 맞게</h1><p>렌탈 조건, AI와 비교해요.</p><a class="btn" href="#ask">AI 문의하기 <span aria-hidden="true">↗</span></a></div>
+<div class="stage" id="stage">
+<picture id="poster"><source media="(orientation:portrait)" srcset="assets/poster_9x16.webp"><img src="assets/poster_16x9.webp" alt="조명이 켜지기 전의 아늑한 주방" fetchpriority="high" decoding="sync" width="1920" height="1080"></picture>
+<img id="end-frame" class="end-frame" alt="민트색 AI 로봇이 네 가전을 살펴본 밝은 주방" hidden>
+<canvas id="beam" aria-hidden="true"></canvas>
+<svg id="leaders" aria-hidden="true"></svg><div id="anchors" aria-hidden="true"></div>
+<div class="label-list" id="labels" aria-label="AI가 살펴본 가전"></div>
+<span class="disclosure">AI 연출 예시</span>
+</div>
+</div>
+<noscript><style>#poster{display:none}.hero-copy{opacity:1!important}</style><picture><source media="(orientation:portrait)" srcset="assets/last_9x16.webp"><img src="assets/last_16x9.webp" alt="AI 연출 예시: 정수기, 식기세척기, 공기청정기, 냉장고를 살펴본 로봇" width="1920" height="1080"></picture><p class="wrap">정수기 ✓ · 식기세척기 ✓ · 공기청정기 ✓ · 냉장고 ✓</p></noscript>
+</section>
+<section class="wrap section" id="how" aria-labelledby="how-title">
+<div class="section-head"><span class="eyebrow">우리 집 조건부터</span><h2 id="how-title">AI가 이렇게 봐요</h2></div>
+<div class="how-layout"><div class="look-picture"><picture><source media="(orientation:portrait)" srcset="assets/last_9x16.webp"><img id="look-image" src="assets/last_16x9.webp" alt="주방 가전 위치를 살펴보는 AI 연출 정지판" loading="lazy" width="1920" height="1080"></picture><div class="look-caption"><strong id="look-name">정수기</strong><p id="look-description">얼음·온수, 필요한 기능부터.</p></div></div>
+<div class="look-steps">
+<article data-look="water_purifier"><div class="look-crop"><img src="assets/look/water_purifier.webp" alt="AI 연출 정지판에서 확대한 정수기" width="640" height="480" loading="lazy"><span class="look-badge">정수기 ✓</span></div><div class="look-text"><span class="step-number">01</span><h3>정수기</h3><p>얼음·온수, 필요한 기능부터.</p></div></article>
+<article data-look="dishwasher"><div class="look-crop"><img src="assets/look/dishwasher.webp" alt="AI 연출 정지판에서 확대한 식기세척기" width="640" height="480" loading="lazy"><span class="look-badge">식기세척기 ✓</span></div><div class="look-text"><span class="step-number">02</span><h3>식기세척기</h3><p>우리 집 인원에 맞는 용량.</p></div></article>
+<article data-look="air_purifier"><div class="look-crop"><img src="assets/look/air_purifier.webp" alt="AI 연출 정지판에서 확대한 공기청정기" width="640" height="480" loading="lazy"><span class="look-badge">공기청정기 ✓</span></div><div class="look-text"><span class="step-number">03</span><h3>공기청정기</h3><p>사용할 공간의 넓이까지.</p></div></article>
+<article data-look="refrigerator"><div class="look-crop"><img src="assets/look/refrigerator.webp" alt="AI 연출 정지판에서 확대한 냉장고" width="640" height="480" loading="lazy"><span class="look-badge">냉장고 ✓</span></div><div class="look-text"><span class="step-number">04</span><h3>냉장고</h3><p>설치 공간과 생활 방식까지.</p></div></article>
+</div></div>
+</section>
+<section class="wrap section" aria-labelledby="cost-title">
+<div class="section-head"><span class="eyebrow">계산 예시</span><h2 id="cost-title">84개월, 총액으로 비교해요</h2></div>
+<div class="cost-card"><div class="difference"><div><p>두 제품의 총액 차이</p><strong>168,150<span>원</span></strong></div><img src="assets/coin.webp" alt="" width="96" height="96" loading="lazy"></div>
+<div class="cost-row"><div><b>SK매직</b><strong>3,358,350원</strong></div><div class="bar-track"><div class="bar sk" style="width:100%"></div></div></div>
+<div class="cost-row"><div><b>쿠쿠</b><strong>3,190,200원</strong></div><div class="bar-track"><div class="bar cuckoo" style="width:94.993076%"></div></div></div>
+<p class="note">방문관리 · 혜택 0원 · 2026.10.08 확인 조건<br>계산 예시이며, 절감을 보장하지 않아요.</p>
+<details><summary>계산식 펼치기</summary><div class="formula"><p><b>SK매직 WPUIAC606SNW</b><br>21,950원 × 15개월 + 43,900원 × 69개월 = 3,358,350원</p><p><b>쿠쿠 CP-AQS100EWH(S)</b><br>20,450원 × 12개월 + 40,900원 × 72개월 = 3,190,200원</p><p>84개월 렌탈료 기준, 사은혜택·제휴카드 할인은 적용하지 않았어요. 관리 주기는 제품마다 달라요. 계약 조건과 추가 설치비는 상담 시 확인해요.</p><p><a href="https://www.skmagic.com/goods/indexGoodsDetail?goodsId=G000069931" target="_blank" rel="noopener">SK매직 공식 조건 ↗</a> · <a href="https://www.cuckoo.co.kr/rental/productView?idx=1172" target="_blank" rel="noopener">쿠쿠 공식 조건 ↗</a></p></div></details>
+</div>
+</section>
+<section class="wrap section" aria-labelledby="products-title"><div class="section-head"><h2 id="products-title">무엇을 렌탈하세요?</h2></div>
+<div class="cats">
+<a class="cat" href="https://www.lge.co.kr/water-purifiers/wd520mh" target="_blank" rel="noopener"><div class="pic"><img src="assets/lg/water.webp" data-original-path="lg/water.webp" alt="LG 퓨리케어 오브제컬렉션 정수기" loading="lazy" width="320" height="320"></div><b>정수기</b><span>퓨리케어 오브제컬렉션</span><i>비교하기 →</i></a>
+<a class="cat" href="https://www.lge.co.kr/category/air-purifier" target="_blank" rel="noopener"><div class="pic"><img src="assets/lg/air.webp" data-original-path="lg/air.webp" alt="LG 퓨리케어 AI 360˚ 공기청정기 플러스" loading="lazy" width="320" height="320"></div><b>공기청정기</b><span>퓨리케어 AI 360˚</span><i>비교하기 →</i></a>
+<a class="cat" href="https://www.lge.co.kr/dishwashers/due6bgl2e" target="_blank" rel="noopener"><div class="pic"><img src="assets/lg/dish.webp" data-original-path="lg/dish.webp" alt="LG 디오스 오브제컬렉션 식기세척기" loading="lazy" width="320" height="320"></div><b>식기세척기</b><span>디오스 오브제컬렉션</span><i>비교하기 →</i></a>
+<a class="cat" href="https://www.lge.co.kr/search?keyword=%EC%8A%A4%ED%83%80%EC%9D%BC%EB%9F%AC" target="_blank" rel="noopener"><div class="pic"><img src="assets/lg/styler.webp" data-original-path="lg/styler.webp" alt="LG 스타일러 AI 오브제컬렉션" loading="lazy" width="320" height="320"></div><b>스타일러</b><span>스타일러 AI 오브제컬렉션</span><i>비교하기 →</i></a>
+</div>
+<div class="ask-card"><h2>AI 문의하기</h2><p>원하는 조건만 편하게 알려 주세요.</p><form id="ask"><label for="q">원하는 조건</label><input id="q" name="condition" value="4인 가족, 얼음, 월 4만 원 이하" autocomplete="off"><button class="btn" type="submit">AI 문의하기 ↗</button></form><p id="done" role="status" hidden></p></div>
+</section>
+</main><footer class="wrap">시안 · 제품 사진 LG전자 공식 이미지 · AI 연출 예시</footer>
+</body></html>
