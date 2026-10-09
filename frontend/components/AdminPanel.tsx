@@ -69,7 +69,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     }, [mainView]);
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-gray-900 z-40 relative animate-in fade-in duration-200">
+        <div className="flex-1 min-w-0 max-w-full flex flex-col h-full bg-gray-900 z-40 relative animate-in fade-in duration-200">
+            {/* min-w-0: 하위 탭 줄(가로 스크롤)이 폰에서 어드민 전체를 1500px 로 밀어내던 문제(2026-10-09) */}
 
             {/* ── 헤더 ── */}
             <header className="border-b border-gray-800 bg-gray-900/95 shrink-0">
