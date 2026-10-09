@@ -46,3 +46,4 @@ Hermes가 자동으로:
 | ainara-partner | https://ainara2.dbzone.kr/ | AI SaaS 플랫폼 사업운영 라이선스 파트너 모집 독립사이트. 자체 생성 이미지와 3D 상담 모달 적용(2026-08-26) |
 | ainara-cube | https://aiworld.dbzone.kr/ | 큐브가 자동으로 펼쳐져 AI 임대형 서비스 메뉴가 되는 AINARA 파트너 독립사이트(2026-08-26) |
 | rentalfit | /sites/rentalfit/ | 렌탈핏 AI 렌탈 비교 홍보 시안(단순판: 가족 사진·LG 대표 제품 4종·절감 예시, 2026-10-08). 조건 입력·AI 비교는 미연결 |
+| ansem | /api/admin/private-sites/ansem/ | 안쌤뷰티스쿨(외부 고객, 2026-10-09 사업 중단) 메인 시안 v5. 🔒비공개 — 어드민 로그인해야 열림, 파일은 서버1 ~/private-sites (git 밖) |
