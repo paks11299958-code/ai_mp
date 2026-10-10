@@ -134,3 +134,33 @@ rewrites:
   `height` 속성이 남아 `aspect-ratio` 가 무력화되고, `object-fit:cover` 가 이미지를
   잘라낸다. 모바일 미디어쿼리 분기점도 **620px 는 좁다**(780px 기기가 데스크톱 레이아웃을
   받았다) — 820px 권장. 360~1440px 를 훑으며 **잘림률을 수치로** 잴 것.
+
+---
+
+## 어드민 독립사이트 탭 — 썸네일·비공개·공개 전환 (2026-10-09~10)
+
+어드민 → 시스템 → 독립사이트(`frontend/components/admin/SitesPanel.tsx`). 목록 정본은 `sites/README.md` 표.
+
+### 사이트의 세 종류
+
+| 종류 | README 주소 칸 | 파일 위치 | 「로그인 없이 보기」 체크 |
+|------|----------------|-----------|--------------------------|
+| 공개 저장소 | `/sites/<name>/` | ai_mp `sites/<name>/`(Vercel 정적) | 켜짐. 끄면 비공개 폴더로 옮겨진다 |
+| 비공개 폴더 | `/api/admin/private-sites/<name>/index.html` | 서버1 `~/private-sites/<name>/`(git 밖) | 자유롭게 켜고 끔(즉시) |
+| 외부 도메인 | `https://…` | 다른 프로젝트 | 비활성(여기서 못 막음) |
+
+- 비공개 열람: `/api/admin/private-sites/<name>/index.html` — ADMIN 미들웨어 아래. ★입구는 `index.html`(Vercel 이 끝 슬래시 주소를 404 처리)
+- 공개 전환: 서버1 `~/private-sites/_visibility.json` `{public:[이름…]}` → 공개 주소 `/p/<name>/index.html`(`vercel.json` `/p/:path*` → shared-api `/api/aimp/public-sites`)
+- API: `PUT /api/admin/sites/:name/visibility {public:boolean}`. 공개 저장소 사이트를 끄면 서버1이 GitHub 에서 파일을 받아 비공개 폴더에 복사 → agent-api `POST /sites/<name>/privatize`(rag `site_ops.privatize_site`)가 저장소에서 빼고 push. 다시 켜면 주소는 `/p/<name>/` 가 된다
+- ★ai_mp 는 GitHub 공개 저장소 — 비공개 사이트 파일·썸네일을 커밋하지 않는다. 한 번 커밋된 것은 꺼도 SHA 로 한동안 열린다
+- ★공개 저장소 사이트를 끄는 경로는 단위 테스트만 통과(실사이트 미실증, 2026-10-10)
+
+### 썸네일
+
+```sh
+cd ~/ai_mp && node scripts/site-thumbs.cjs <이름>     # → sites/_thumbs/<이름>.webp, 커밋·push
+ADMIN_TOKEN=… PRIVATE_OUT=<폴더> node scripts/site-thumbs.cjs <비공개 이름>   # → 서버1 ~/private-sites/<이름>/thumb.webp 로 복사
+```
+
+새 사이트를 올리면 README 행 + 썸네일을 같이 넣고, **어드민 탭을 실제로 열어** 카드가 보이는지 확인한다.
+
