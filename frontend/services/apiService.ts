@@ -2044,7 +2044,10 @@ export const adminApi = {
         get<{ id: number; request: string; source: string; status: string; result: string | null; createdAt: string }[]>('/admin/dev-requests'),
     // 독립사이트 목록(sites/README.md 파싱) + 삭제 요청(큐)
     getSites: () =>
-        get<{ name: string; url: string; desc: string }[]>('/admin/sites'),
+        get<{ name: string; url: string; desc: string; storage?: 'git' | 'private' | 'external'; isPublic?: boolean; canToggle?: boolean; viewUrl?: string; thumbUrl?: string }[]>('/admin/sites'),
+    // "로그인 없이 보기" 체크(2026-10-10). 공개 저장소 사이트를 끄면 서버가 파일을 비공개 폴더로 옮긴다(immediate=false, 1~2분).
+    setSiteVisibility: (name: string, isPublic: boolean) =>
+        put<{ ok: boolean; name: string; isPublic: boolean; storage: 'git' | 'private'; immediate: boolean }>(`/admin/sites/${name}/visibility`, { public: isPublic }),
     deleteSite: (name: string) =>
         del<{ ok: boolean; immediate?: boolean; message?: string; id?: number }>(`/admin/sites/${name}`),
     // 사이트 소스 ZIP 다운로드 — 받은 파일을 새 GitHub 저장소에 올려 Vercel 독립 배포하는 용도.

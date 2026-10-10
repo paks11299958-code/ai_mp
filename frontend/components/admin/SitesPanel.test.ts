@@ -20,3 +20,18 @@ describe('siteThumbUrl', () => {
         expect(siteThumbUrl({ name: 'ansem', url: '/api/admin/private-sites/ansem/index.html' })).toBe('https://aichat.dbzone.kr/api/admin/private-sites/ansem/thumb.webp');
     });
 });
+
+// 2026-10-10 사장 지시 "리스트 옆에 어드민 로그인 안 해도 볼 수 있는 체크".
+describe('siteView — 로그인 없이 보기 체크 상태', () => {
+    it('서버가 준 값을 그대로 쓴다(비공개 폴더 + 공개 켬 = /p/ 주소)', async () => {
+        const { siteView } = await import('./SitesPanel');
+        const v = siteView({ name: 'ansem', url: '/api/admin/private-sites/ansem/index.html', desc: '', storage: 'private', isPublic: true, canToggle: true, viewUrl: '/p/ansem/index.html', thumbUrl: '/api/admin/private-sites/ansem/thumb.webp' });
+        expect(v).toEqual({ storage: 'private', isPublic: true, canToggle: true, viewUrl: 'https://aichat.dbzone.kr/p/ansem/index.html', thumbUrl: 'https://aichat.dbzone.kr/api/admin/private-sites/ansem/thumb.webp' });
+    });
+    it('옛 서버 응답(필드 없음)이면 주소로 미루어 채운다', async () => {
+        const { siteView } = await import('./SitesPanel');
+        expect(siteView({ name: 'rentalfit', url: '/sites/rentalfit/', desc: '' })).toMatchObject({ storage: 'git', isPublic: true, canToggle: true });
+        expect(siteView({ name: 'ansem', url: '/api/admin/private-sites/ansem/index.html', desc: '' })).toMatchObject({ storage: 'private', isPublic: false, canToggle: true });
+        expect(siteView({ name: 'cube', url: 'https://aiworld.dbzone.kr/', desc: '' })).toMatchObject({ storage: 'external', isPublic: true, canToggle: false });
+    });
+});
