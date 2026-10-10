@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { homepageApi, HomepageRequestRow } from '../services/apiService';
 import { buildFeatureShareLink, getMyReferralCode } from '../services/referral';
 import { HomepageEditPanel } from './HomepageEditPanel';
+import { takeHomepageBoardStartStep, type HomepageStartStep } from '../lib/homepageStart';
 
 // 홈페이지 만들기 보드 — 신청서를 채우면 AI(박하진, 웹 전문가)가 홈페이지 시안을 만들어
 // ①실제 링크(주인공) ②소스 zip(보조) 둘 다 제공. 결제 전 샘플 갤러리로 신뢰 형성.
@@ -11,6 +12,7 @@ import { HomepageEditPanel } from './HomepageEditPanel';
 interface Props {
     onClose: () => void;
     isAdmin?: boolean;
+    initialStep?: HomepageStartStep;
 }
 
 const INDIGO = '#5C6AC4';        // 박하진 팔레트(웹 전문가, from-indigo-500 to-violet-500 계열)
@@ -43,8 +45,8 @@ function fmtEta(min: number): string {
     return m ? `${h}시간 ${m}분` : `${h}시간`;
 }
 
-export const HomepageBoard: React.FC<Props> = ({ onClose, isAdmin = false }) => {
-    const [step, setStep] = useState<'intro' | 'form' | 'waiting' | 'result' | 'list'>('intro');
+export const HomepageBoard: React.FC<Props> = ({ onClose, isAdmin = false, initialStep }) => {
+    const [step, setStep] = useState<'intro' | 'form' | 'waiting' | 'result' | 'list'>(() => initialStep ?? takeHomepageBoardStartStep());
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
     const [reqId, setReqId] = useState<number | null>(null);
     const [row, setRow] = useState<HomepageRequestRow | null>(null);
@@ -177,7 +179,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose, isAdmin = false }) => 
                         <span className="text-lg">🏠</span>
                         <h2 className="text-base font-bold" style={{ color: INDIGO }}>홈페이지 만들기</h2>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">×</button>
+                    <button onClick={onClose} aria-label="홈페이지 만들기 닫기" className="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">×</button>
                 </div>
 
                 <div className="p-4 space-y-4">

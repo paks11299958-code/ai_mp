@@ -511,6 +511,10 @@ const AppContent: React.FC = () => {
         if (entryReturnChatId) {
             setEntryChatPersonaId(entryReturnChatId);
             setEntryReturnChatId(null);
+            if (entryReturnGuide) {
+                setDeepLinkGuide(entryReturnGuide);
+                setEntryReturnGuide(null);
+            }
             return;
         }
         if (entryReturnGuide) {
@@ -1730,7 +1734,9 @@ const AppContent: React.FC = () => {
                 }
                 setEntryChatPersonaId(null);
                 setDeepLinkGuide(null);
-                setEntryReturnGuide(null);
+                // 박하진 채팅의 메뉴에서 연 보드를 닫으면 채팅과 그 아래 진입화면을 함께 복원한다.
+                // 그래야 이후 닫기·Esc·폰 뒤로가기가 보드 → 채팅 → 진입화면 순서를 지킨다.
+                setEntryReturnGuide(entryChatTheme.visualPreset === 'showroom' ? deepLinkGuide : null);
                 if (key === 'reverse-prompt') {
                     setEntryReturnChatId(null);
                     rememberReturn(entryChatPersonaId);
@@ -2225,7 +2231,7 @@ const AppContent: React.FC = () => {
                     <MarketingBoard onClose={closeBoardAndReturn(() => setShowMarketingBoard(false))} />
                 )}
                 {showHomepageBoard && (
-                    <HomepageBoard onClose={() => setShowHomepageBoard(false)} isAdmin={user?.role === 'ADMIN'} />
+                    <HomepageBoard onClose={closeBoardAndReturn(() => setShowHomepageBoard(false))} isAdmin={user?.role === 'ADMIN'} />
                 )}
                 {showShortsMakerBoard && (
                     <ShortsMakerBoard onClose={closeBoardAndReturn(() => setShowShortsMakerBoard(false))} />
@@ -2474,7 +2480,7 @@ const AppContent: React.FC = () => {
                 <MarketingBoard onClose={closeBoardAndReturn(() => setShowMarketingBoard(false))} />
             )}
             {showHomepageBoard && (
-                <HomepageBoard onClose={() => setShowHomepageBoard(false)} isAdmin={user?.role === 'ADMIN'} />
+                <HomepageBoard onClose={closeBoardAndReturn(() => setShowHomepageBoard(false))} isAdmin={user?.role === 'ADMIN'} />
             )}
             {showShortsMakerBoard && (
                 <ShortsMakerBoard onClose={closeBoardAndReturn(() => setShowShortsMakerBoard(false))} />

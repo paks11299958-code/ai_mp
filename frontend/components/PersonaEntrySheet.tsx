@@ -11,6 +11,7 @@ import { JihoonBookEntry } from './persona/JihoonBookEntry';
 import { SeolaGolfEntry } from './persona/SeolaGolfEntry';
 import { EunbiEntry } from './persona/EunbiEntry';
 import { LearningEntryRedirect } from './learning/LearningEntryRedirect';
+import { HajinShowroomEntry } from './persona/HajinShowroomEntry';
 import type { GuestNotice } from '../lib/guestFeatureGate';
 
 /** 비로그인 방문자가 진입화면 **안에서 직접 서버를 부르는** 동작을 눌렀을 때 App 에 알린다
@@ -147,6 +148,10 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     if (guide.title?.startsWith('이아린')) {
         return <ArinPromoEntry guide={guide} onClose={onClose} onStart={onStart}
                                onFeature={onFeature} onInvite={onInvite} />;
+    }
+    // 박하진은 승인된 완성작 쇼룸 진입화면을 쓴다. 이 파일은 계속 훅 0개를 유지한다.
+    if (guide.title?.startsWith('박하진')) {
+        return <HajinShowroomEntry guide={guide} onClose={onClose} onStart={onStart} onFeature={onFeature} isGuest={isGuest} />;
     }
     // ★윤채원도 같은 규약으로 트레이딩 데스크 랜딩으로 갈아 끼운다(2026-09-07 사장 지시).
     //   주식 전문가인데 들어가면 채팅창부터 떠서 **무엇을 볼 수 있는지**가 안 보였다.

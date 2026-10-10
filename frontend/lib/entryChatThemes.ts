@@ -6,7 +6,7 @@ export interface EntryChatTheme {
     displayName: string;
     fallbackPortrait: string;
     accent: string;
-    visualPreset?: 'letter' | 'studio' | 'golf' | 'beauty' | 'desk' | 'study';
+    visualPreset?: 'letter' | 'studio' | 'golf' | 'beauty' | 'desk' | 'study' | 'showroom';
     headerCaption?: string;
 }
 
@@ -18,7 +18,17 @@ export const DOGYEOL_ID = 'cmopfkd4o000004la2q5p3nle';
 
 export const SEOLA_ID = 'custom-1777217377681';
 export const entryChatHasFeatureMenu = (theme?: EntryChatTheme) =>
-    theme?.visualPreset === 'desk' || theme?.visualPreset === 'studio' || theme?.visualPreset === 'golf' || theme?.visualPreset === 'beauty';
+    theme?.visualPreset === 'desk' || theme?.visualPreset === 'studio' || theme?.visualPreset === 'golf' || theme?.visualPreset === 'beauty' || theme?.visualPreset === 'showroom';
+
+let hajinTheme: EntryChatTheme | undefined;
+
+/** 박하진 id와 프로필은 DB의 guide가 정본이라 진입 CTA 직전에 등록한다. App 수정 없이 기존 전용 채팅 경로를 쓴다. */
+export const registerHajinEntryChatTheme = (personaId?: string, portrait?: string) => {
+    if (!personaId) return;
+    hajinTheme = {
+        personaId, displayName: '박하진', fallbackPortrait: portrait || '', accent: '#5C6AC4', visualPreset: 'showroom',
+    };
+};
 
 export const ENTRY_CHAT_THEMES: Record<string, EntryChatTheme> = {
     ['learning-coach']: {
@@ -70,7 +80,7 @@ export const ENTRY_CHAT_THEMES: Record<string, EntryChatTheme> = {
 };
 
 export const getEntryChatTheme = (personaId: string | undefined): EntryChatTheme | undefined =>
-    personaId ? ENTRY_CHAT_THEMES[personaId] : undefined;
+    personaId ? ENTRY_CHAT_THEMES[personaId] || (hajinTheme?.personaId === personaId ? hajinTheme : undefined) : undefined;
 
 /** 진입 CTA의 기존 기능 키 경로와 새 테마 채팅 경로를 한 곳에서 결정한다. */
 export const entryStartDestination = (personaId: string | undefined, runKey?: string) =>
