@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>렌탈핏 상담 도구</title>
+<link rel="stylesheet" href="pro.css">
+</head>
+<body>
+<!-- 상담용 조회 화면(2026-10-13). 데이터는 로그인한 관리자에게만 API 로 온다 — 이 파일에는 가격·수수료가 없다. -->
+<header class="top">
+  <a class="brand" href="../">렌탈핏 <small>상담 도구</small></a>
+  <div class="top-actions">
+    <label class="switch" id="feeSwitch" hidden><input type="checkbox" id="showFee"> <span>수수료 보기</span></label>
+    <button type="button" class="ghost" id="logout" hidden>로그아웃</button>
+  </div>
+</header>
+
+<main>
+  <section id="login" class="card login" hidden>
+    <h1>관리자 로그인</h1>
+    <p class="hint">aichat 관리자 계정으로 로그인합니다.</p>
+    <form id="loginForm">
+      <label>이메일 또는 전화번호<input id="identifier" autocomplete="username" required></label>
+      <label>비밀번호<input id="password" type="password" autocomplete="current-password" required></label>
+      <button type="submit" class="primary">로그인</button>
+      <p class="error" id="loginError" role="alert"></p>
+    </form>
+  </section>
+
+  <section id="tool" hidden>
+    <div class="status" id="status" role="status"></div>
+
+    <form id="filters" class="card filters">
+      <div class="field wide">
+        <span class="label">상품군</span>
+        <div class="chips" id="categories" role="group" aria-label="상품군"></div>
+      </div>
+      <div class="field wide">
+        <span class="label">브랜드</span>
+        <div class="chips" id="brands" role="group" aria-label="브랜드"></div>
+      </div>
+      <label class="field">약정<select id="contract"><option value="">전체</option></select></label>
+      <label class="field">관리<select id="care"><option value="">전체</option></select></label>
+      <label class="field">구분<select id="customer"><option value="">전체</option></select></label>
+      <label class="field">월 예산(원 이하)<input id="maxFee" inputmode="numeric" placeholder="예: 30000"></label>
+      <label class="field wide">검색어<input id="q" placeholder="제품 이름·모델 코드"></label>
+      <label class="field">정렬<select id="sort">
+        <option value="fee">월 렌탈료 낮은 순</option>
+        <option value="total">약정 총액 낮은 순</option>
+        <option value="fee_desc">월 렌탈료 높은 순</option>
+        <option value="brand">브랜드·제품 순</option>
+        <option value="commission" class="fee-only">수수료 높은 순</option>
+      </select></label>
+      <div class="field checks">
+        <label><input type="checkbox" id="changed"> 이번 달 변동만</label>
+        <label><input type="checkbox" id="noPromo"> 프로모션 없는 기본 조건만</label>
+      </div>
+      <div class="field wide actions">
+        <button type="submit" class="primary">찾기</button>
+        <button type="button" class="ghost" id="reset">조건 지우기</button>
+      </div>
+    </form>
+
+    <p class="count" id="count" aria-live="polite"></p>
+    <ul class="results" id="results"></ul>
+    <button type="button" class="ghost more" id="more" hidden>더 보기</button>
+  </section>
+</main>
+
+<div class="comparebar" id="comparebar" hidden>
+  <span id="compareCount"></span>
+  <button type="button" class="primary" id="openCompare">비교하기</button>
+  <button type="button" class="ghost" id="clearCompare">비우기</button>
+</div>
+
+<dialog id="compare" aria-label="조건 비교">
+  <div class="dialog-head"><h2>조건 비교</h2><button type="button" class="ghost" id="closeCompare" aria-label="닫기">닫기</button></div>
+  <div class="table-wrap"><table id="compareTable"></table></div>
+</dialog>
+
+<script src="pro.js"></script>
+</body>
+</html>
