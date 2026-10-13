@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>렌탈핏 AI — 우리 집 맞춤 찾기</title>
+<link rel="stylesheet" href="find.css">
+</head>
+<body>
+<!-- 손님용 맞춤 추천(2026-10-13). 가격은 가장 낮은 조건이 속한 만 원대로만 보여 준다. 정확한 금액·수수료는 이 화면과 API 응답에 없다. -->
+<header class="top"><a class="brand" href="../">렌탈핏 <span>AI</span></a><a class="back" href="../">처음으로</a></header>
+<main>
+  <h1>우리 집 맞춤 찾기</h1>
+  <p class="lead">네 가지만 고르면 맞는 제품 3개를 골라 드려요.</p>
+
+  <form id="ask" class="card">
+    <fieldset><legend><b>1</b> 무엇이 필요하세요?</legend><div class="chips" id="category" role="radiogroup" aria-label="상품 종류"></div></fieldset>
+    <fieldset><legend><b>2</b> 관리는 어떻게 할까요?</legend><div class="chips" id="care" role="radiogroup" aria-label="관리 방식">
+      <button type="button" class="chip" data-value="" aria-pressed="true">상관없어요</button>
+      <button type="button" class="chip" data-value="visit" aria-pressed="false">방문 관리</button>
+      <button type="button" class="chip" data-value="self" aria-pressed="false">직접 관리</button></div></fieldset>
+    <fieldset><legend><b>3</b> 한 달 예산은요?</legend><div class="chips" id="budget" role="radiogroup" aria-label="월 예산">
+      <button type="button" class="chip" data-value="" aria-pressed="true">상관없어요</button></div></fieldset>
+    <fieldset><legend><b>4</b> 약정 기간은요?</legend><div class="chips" id="term" role="radiogroup" aria-label="약정 기간">
+      <button type="button" class="chip" data-value="" aria-pressed="true">상관없어요</button>
+      <button type="button" class="chip" data-value="short" aria-pressed="false">짧게 (4년 이하)</button>
+      <button type="button" class="chip" data-value="mid" aria-pressed="false">5년</button>
+      <button type="button" class="chip" data-value="long" aria-pressed="false">길게 (6년 이상)</button></div></fieldset>
+    <button type="submit" class="primary" id="go" disabled>맞는 제품 찾기</button>
+  </form>
+
+  <section id="result" aria-live="polite" hidden>
+    <h2 id="resultTitle"></h2>
+    <ol class="cards" id="cards"></ol>
+    <p class="notice" id="notice"></p>
+  </section>
+</main>
+<script src="find.js"></script>
+</body>
+</html>
