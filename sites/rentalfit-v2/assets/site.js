@@ -60,8 +60,7 @@ async function start(){
 }
 new ResizeObserver(layout).observe(copy);new ResizeObserver(layout).observe(stage);new ResizeObserver(layout).observe(labels);
 portrait.addEventListener('change',()=>start().catch(()=>finalState('load-error')));reduced.addEventListener('change',()=>{if(reduced.matches){finalState('reduced-motion');if(window.ScrollTrigger)ScrollTrigger.getAll().forEach(t=>t.kill());if(window.gsap){gsap.killTweensOf(look);gsap.killTweensOf('[data-look]');gsap.set('[data-look]',{opacity:1,y:0});}refreshLook();}});
-document.querySelectorAll('a[href="#ask"]').forEach(a=>a.addEventListener('click',()=>setTimeout(()=>document.getElementById('q').focus({preventScroll:true}),350)));
-document.getElementById('ask').addEventListener('submit',e=>{e.preventDefault();const v=document.getElementById('q').value.trim(),done=document.getElementById('done');done.textContent=v?`"${v}" 조건으로 비교를 준비했어요. (시안이라 실제 분석은 연결 전이에요)`: '원하는 조건을 적어 주세요.';done.hidden=false;});
+// 'AI 문의하기'는 맞춤 찾기(find/)로 바로 간다 — 예전 가짜 접수 폼은 없앴다(2026-10-13).
 const compact=matchMedia('(max-width:760px), (orientation:portrait)');
 const lookImage=document.getElementById('look-image'),lookFrame=document.querySelector('.look-picture'),lookCards=[...document.querySelectorAll('[data-look]')];
 const look={scale:1,x:.5,y:.5};let activeLook=-1,lookFrameRequest=0;
