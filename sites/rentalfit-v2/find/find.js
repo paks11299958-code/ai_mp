@@ -3,6 +3,7 @@
 (() => {
   const $ = id => document.getElementById(id);
   const picked = { category: '', care: '', budget: '', term: '' };
+  const PHONE = '01074508867', MAIL = 'lumia7450@gmail.com';   // AINARA 상담 담당 연락처(사장 확인 2026-10-13)
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 
   function wire(group) {
@@ -34,10 +35,12 @@
     try { const res = await fetch('/api/rental/recommend?' + params); data = res.ok ? await res.json() : null; } catch { /* 아래에서 안내 */ }
     $('go').disabled = false; $('go').textContent = '맞는 제품 찾기';
     const list = $('cards'); list.textContent = ''; $('result').hidden = false;
+    $('contact').hidden = true;
     if (!data) { $('resultTitle').textContent = '추천을 불러오지 못했습니다'; $('notice').textContent = '잠시 후 다시 시도해 주세요.'; return; }
     if (!data.items.length) {
       $('resultTitle').textContent = '조건에 꼭 맞는 제품이 없어요';
-      $('notice').textContent = '예산이나 약정 기간을 "상관없어요"로 바꾸면 더 많이 찾을 수 있어요.'; return;
+      $('notice').textContent = '예산이나 약정 기간을 "상관없어요"로 바꾸면 더 많이 찾을 수 있어요. 아래로 문의하셔도 됩니다.';
+      $('smsBtn').href = 'sms:' + PHONE + '?&body=' + encodeURIComponent('[렌탈핏 상담 요청]\n' + data.category + ' 상담 부탁드립니다.'); $('contact').hidden = false; return;
     }
     $('resultTitle').textContent = `${data.category} 추천 ${data.items.length}개`;
     data.items.forEach((item, i) => {
@@ -52,6 +55,15 @@
       list.append(li);
     });
     $('notice').textContent = data.notice;
+    // 상담 연결: 고른 조건과 추천받은 제품을 문자·이메일에 미리 적어 둔다(손님이 다시 쓰지 않게).
+    const said = id => { const c = $(id).querySelector('[aria-pressed=true]'); return c && c.dataset.value ? c.textContent.trim() : ''; };
+    const asked = [data.category, said('care'), said('budget'), said('term')].filter(Boolean).join(' / ');
+    const names = data.items.map((item, i) => `${i + 1}) ${item.brand} ${item.title}`).join('\n');
+    const message = `[렌탈핏 상담 요청]\n조건: ${asked}\n추천받은 제품:\n${names}\n정확한 금액과 조건 안내 부탁드립니다.`;
+    // iOS 는 &body=, 안드로이드는 ?body= 를 읽는다 — "?&body=" 는 둘 다 받는다.
+    $('smsBtn').href = 'sms:' + PHONE + '?&body=' + encodeURIComponent(message);
+    $('mailBtn').href = 'mailto:' + MAIL + '?subject=' + encodeURIComponent('렌탈핏 상담 요청 — ' + data.category) + '&body=' + encodeURIComponent(message);
+    $('contact').hidden = false;
     $('result').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   });
 

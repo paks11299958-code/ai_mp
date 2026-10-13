@@ -40,5 +40,15 @@ legend b{display:inline-grid;place-items:center;width:1.5rem;height:1.5rem;margi
 .spec{margin:.5rem 0 0;color:var(--sub);font-size:.8125rem}
 .notice{margin:1rem 0 0;padding:.75rem 1rem;border-radius:.75rem;background:var(--soft);color:var(--sub);font-size:.875rem}
 .empty{padding:1rem;border:1px dashed var(--line);border-radius:1rem;color:var(--sub)}
+.contact{margin-top:1rem;padding:1rem;border:1px solid var(--green);border-radius:1.125rem;background:var(--card)}
+.contact h3{margin:0;font-size:1.0625rem}
+.contact-lead{margin:.25rem 0 .75rem;color:var(--sub);font-size:.9375rem}
+.contact-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+.contact-buttons a{display:grid;place-items:center;text-align:center;text-decoration:none;min-height:3.25rem;padding:.5rem;border-radius:.875rem}
+.contact-buttons .sms{background:#fff;color:var(--green);border:2px solid var(--green)}
+.contact-number{margin:.75rem 0 0;font-weight:700}
+.contact-number a{color:var(--ink)}
+.contact-mail{margin:.25rem 0 0;color:var(--sub);font-size:.8125rem}
+.contact-mail a{color:var(--sub)}
 [hidden]{display:none!important}
 @media(prefers-reduced-motion:no-preference){.chip,.primary{transition:background-color .15s,color .15s}}
