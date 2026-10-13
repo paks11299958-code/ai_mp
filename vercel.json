@@ -23,6 +23,17 @@
       "has": [{ "type": "host", "value": "ainara2.dbzone.kr" }],
       "destination": "/sites/ainara-partner/",
       "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "rental.dbzone.kr"
+        }
+      ],
+      "destination": "/sites/rentalfit-v2/",
+      "permanent": false
     }
   ],
   "rewrites": [
