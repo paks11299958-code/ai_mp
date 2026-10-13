@@ -13,6 +13,7 @@
 
 ## 결정 사항
 - 묶음 B 는 변형을 화면에서 계산하지 말고 GET /api/ab/charge-copy 로 받아 쓴다(active=false 면 지금 화면 그대로). 이벤트는 POST /api/ab/charge-event {event, packageId?, orderId?} 를 기다리지 않고 부른다. 어드민 결과표는 GET /api/admin/ab/charge-copy/stats, 설정 저장은 기존 PUT /api/settings(키 ab.charge_copy).
+- ⏸ 2026-10-13 사장 결정: 보류. 묶음 B(충전 모달 문구 변경)·C(어드민 탭)·D(실험 켜기)는 진행하지 않는다. 묶음 A 산출물(빈 ChargeAbEvent 표, /api/ab, 어드민 결과표 API)은 꺼진 채 남겨 둔다 — 실험 설정(AppConfig ab.charge_copy)이 없어 전원 control·무기록. 다시 하려면 사장 지시 후 `/hermes 이어서 p849214`.
 
 ---
 
