@@ -18,7 +18,11 @@ let categories=null,caller=null,resume=null,version=0,active=null,navTimer=0,sca
 const reduced=()=>!state.motion||motionQuery.matches;
 // Public text is allowlisted before interpolation. Fee labels are never computed from numbers.
 function safeText(value,max=160){if(typeof value!=='string')return '';const s=value.slice(0,max);return /수수료|commission|\d[\d,]{3,}\s*원/i.test(s)?'':s;}
-function feeLabel(value){return typeof value==='string'&&/^월 \d{1,2}만 원대부터$/.test(value)?value:'';}
+function feeLabel(value){
+    if(typeof value!=='string')return '';
+    const match=value.match(/^월 (?:[1-9]\d*만 원대|1만 원 미만)부터$/);
+    return match?.[0]===value?value:'';
+}
 function imageURL(value){try{if(typeof value!=='string')return '';const u=new URL(value,location.origin);return u.origin===location.origin&&u.pathname.startsWith('/sites/rentalfit-v2/assets/')&&!u.search&&!u.hash?u.pathname:'';}catch{return '';}}
 function photo(url,alt=''){const src=imageURL(url);return src?`<img src="${esc(src)}" alt="${esc(alt)}">`:icon(icons[state.category]||'water');}
 root.addEventListener('error',event=>{if(event.target.tagName==='IMG'){const img=event.target;img.insertAdjacentHTML('afterend',icon(icons[img.closest('[data-category]')?.dataset.category||state.category]||'water'));img.remove();}},true);
