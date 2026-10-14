@@ -108,7 +108,9 @@
       const fig = document.createElement('div'); fig.className = 'shot';
       const img = document.createElement('img'); img.src = imageUrl(r.id); img.alt = (r.correct ? '맞힌' : '틀린') + ' 문제 사진'; img.loading = 'lazy';
       const badge = document.createElement('span'); badge.className = 'badge ' + (r.correct ? 'o' : 'x'); badge.textContent = r.correct ? 'O' : 'X';
-      fig.append(img, badge);
+      const wrap = document.createElement('div'); wrap.className = 'shotwrap';
+      const lens = document.createElement('button'); lens.type = 'button'; lens.className = 'lens'; lens.textContent = '🔍'; lens.setAttribute('aria-label', '돋보기로 크게 보기');
+      wrap.append(img, lens); fig.append(wrap, badge);
       const info = document.createElement('div'); info.className = 'info';
       const no = document.createElement('p'); no.className = 'no'; no.textContent = `${total}문제 중 ${r.no}번째`;
       const ans = document.createElement('p'); ans.className = 'ans'; ans.textContent = '정답: ' + answerText(r);
@@ -126,14 +128,33 @@
     setTimeout(() => show('bye'), 300);   // 브라우저가 창 닫기를 막으면 안내
   });
 
-  // 사진 누르면 원본 크기로(2026-10-15 사장: 칸에 맞추지 말고 원본 그대로)
-  const openZoom = src => { $('zoomImg').src = src; $('zoom').hidden = false; $('zoom').scrollTo(0, 0); };
+  // 돋보기(2026-10-15 사장): 사진은 원본 그대로, 🔍 나 사진을 누르면 크게 보기 — 화면 맞춤 → 원본 → 1.5·2·3배
+  const zoom = { levels: ['fit', 1, 1.5, 2, 3], i: 1 };
+  const applyZoom = () => {
+    const img = $('zoomImg'), lv = zoom.levels[zoom.i];
+    const fit = Math.min((innerWidth - 24) / img.naturalWidth, (innerHeight - 110) / img.naturalHeight, 1);
+    const scale = lv === 'fit' ? fit : lv;
+    img.style.width = Math.round(img.naturalWidth * scale) + 'px';
+    $('zoomLevel').textContent = lv === 'fit' ? '화면 맞춤' : lv === 1 ? '원본' : lv + '배';
+    $('zoomOut').disabled = zoom.i === 0; $('zoomIn').disabled = zoom.i === zoom.levels.length - 1;
+  };
+  const openZoom = src => {
+    const img = $('zoomImg'); zoom.i = 1;
+    img.onload = () => { applyZoom(); const st = $('zoomStage'); st.scrollTo((st.scrollWidth - st.clientWidth) / 2, (st.scrollHeight - st.clientHeight) / 2); };
+    img.src = src; $('zoom').hidden = false;
+  };
   const closeZoom = () => { $('zoom').hidden = true; $('zoomImg').removeAttribute('src'); };
+  $('zoomIn').addEventListener('click', () => { if (zoom.i < zoom.levels.length - 1) { zoom.i++; applyZoom(); } });
+  $('zoomOut').addEventListener('click', () => { if (zoom.i > 0) { zoom.i--; applyZoom(); } });
   $('photo').addEventListener('click', () => openZoom($('photo').src));
-  $('wrongList').addEventListener('click', e => { if (e.target.tagName === 'IMG') openZoom(e.target.src); });
+  $('photoLens').addEventListener('click', () => openZoom($('photo').src));
+  $('wrongList').addEventListener('click', e => {
+    const lens = e.target.closest('.lens'), img = e.target.tagName === 'IMG' ? e.target : lens && lens.parentElement.querySelector('img');
+    if (img) openZoom(img.src);
+  });
   $('zoomClose').addEventListener('click', closeZoom);
-  $('zoom').addEventListener('click', e => { if (e.target === $('zoom')) closeZoom(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('zoom').hidden) closeZoom(); });
+  $('zoomStage').addEventListener('click', e => { if (e.target === $('zoomStage')) closeZoom(); });
+  document.addEventListener('keydown', e => { if ($('zoom').hidden) return; if (e.key === 'Escape') closeZoom(); if (e.key === '+') $('zoomIn').click(); if (e.key === '-') $('zoomOut').click(); });
 
   // 처음: 이미 로그인돼 있으면 바로 시작 화면
   api('/me').then(toStart).catch(() => show('login'));

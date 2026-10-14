@@ -39,7 +39,7 @@
       <div class="track"><div id="progressBar"></div></div>
       <span id="score" class="score">O 0 · X 0</span>
     </header>
-    <figure class="photo"><img id="photo" alt="문제 사진"><figcaption class="loading" id="photoLoading">사진 불러오는 중…</figcaption></figure>
+    <figure class="photo"><div class="shotwrap"><img id="photo" alt="문제 사진"><button class="lens" id="photoLens" type="button" aria-label="돋보기로 크게 보기">🔍</button></div><figcaption class="loading" id="photoLoading">사진 불러오는 중…</figcaption></figure>
     <form id="answerForm" class="answer" autocomplete="off">
       <input id="answer" placeholder="촬영법 이름을 쓰세요" spellcheck="false" autocapitalize="none" required>
       <button class="primary" type="submit" id="submitBtn">제출</button>
@@ -81,7 +81,7 @@
   </div>
 </div>
 <!-- 사진 원본 크기로 크게 보기 -->
-<div class="zoom" id="zoom" hidden><img id="zoomImg" alt="원본 크기 사진"><button class="zoom-close" id="zoomClose" type="button" aria-label="닫기">✕</button><p class="zoom-hint">원본 크기 · 밀어서 보기 · 두 손가락으로 확대</p></div>
+<div class="zoom" id="zoom" hidden><div class="zoom-stage" id="zoomStage"><img id="zoomImg" alt="크게 보기"></div><button class="zoom-close" id="zoomClose" type="button" aria-label="닫기">✕</button><div class="zoom-bar"><button type="button" id="zoomOut" aria-label="축소">－</button><span id="zoomLevel">원본</span><button type="button" id="zoomIn" aria-label="확대">＋</button></div></div>
 <script src="quiz.js"></script>
 </body>
 </html>

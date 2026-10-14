@@ -27,10 +27,16 @@ button{font:inherit;cursor:pointer;border-radius:12px;min-height:50px;padding:0 
 .photo{margin:0;position:relative;display:flex;justify-content:center;min-height:120px}
 .photo img{display:block;width:auto;height:auto;max-width:100%;border-radius:12px;cursor:zoom-in;box-shadow:0 2px 12px #1d273314}
 .loading{position:absolute;top:44px;color:var(--sub);font-size:14px}
-.zoom{position:fixed;inset:0;background:#0d141cee;z-index:20;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;align-items:flex-start;justify-content:flex-start}
-.zoom img{display:block;margin:auto;max-width:none;width:auto;height:auto;touch-action:pinch-zoom pan-x pan-y}
+.shotwrap{position:relative;display:inline-block;max-width:100%}
+.lens{position:absolute;right:8px;top:8px;width:44px;height:44px;min-height:0;padding:0;border-radius:50%;background:#ffffffe6;box-shadow:0 2px 8px #0003;font-size:20px;line-height:44px}
+.zoom{position:fixed;inset:0;background:#0d141cee;z-index:20}
+.zoom-stage{position:absolute;inset:0;overflow:auto;-webkit-overflow-scrolling:touch;display:flex}
+.zoom-stage img{display:block;margin:auto;max-width:none;flex:none;touch-action:pinch-zoom pan-x pan-y}
+.zoom-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:6px;box-shadow:0 4px 16px #0005;z-index:21}
+.zoom-bar button{width:48px;height:48px;min-height:0;padding:0;border-radius:50%;background:var(--blue2);color:var(--blue);font-size:24px}
+.zoom-bar span{min-width:72px;text-align:center;font-weight:800;font-size:15px}
 .zoom-close{position:fixed;top:calc(12px + env(safe-area-inset-top));right:12px;width:48px;height:48px;min-height:0;padding:0;border-radius:50%;background:#fff;color:var(--ink);font-size:24px;z-index:21}
-.zoom-hint{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fffc;font-size:13px;pointer-events:none}
+
 .answer{display:flex;gap:8px;margin-top:12px}
 .answer input{flex:1;min-width:0}
 .answer .primary{width:auto;flex:none;padding:0 22px}
