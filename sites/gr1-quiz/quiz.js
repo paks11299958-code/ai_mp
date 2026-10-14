@@ -126,6 +126,15 @@
     setTimeout(() => show('bye'), 300);   // 브라우저가 창 닫기를 막으면 안내
   });
 
+  // 사진 누르면 원본 크기로(2026-10-15 사장: 칸에 맞추지 말고 원본 그대로)
+  const openZoom = src => { $('zoomImg').src = src; $('zoom').hidden = false; $('zoom').scrollTo(0, 0); };
+  const closeZoom = () => { $('zoom').hidden = true; $('zoomImg').removeAttribute('src'); };
+  $('photo').addEventListener('click', () => openZoom($('photo').src));
+  $('wrongList').addEventListener('click', e => { if (e.target.tagName === 'IMG') openZoom(e.target.src); });
+  $('zoomClose').addEventListener('click', closeZoom);
+  $('zoom').addEventListener('click', e => { if (e.target === $('zoom')) closeZoom(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('zoom').hidden) closeZoom(); });
+
   // 처음: 이미 로그인돼 있으면 바로 시작 화면
   api('/me').then(toStart).catch(() => show('login'));
 })();
