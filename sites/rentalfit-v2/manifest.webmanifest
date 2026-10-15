@@ -1,0 +1,30 @@
+{
+  "name": "렌탈핏",
+  "short_name": "렌탈핏",
+  "lang": "ko",
+  "start_url": "/sites/rentalfit-v2/",
+  "scope": "/sites/rentalfit-v2/",
+  "display": "standalone",
+  "theme_color": "#f6f3ec",
+  "background_color": "#f6f3ec",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
