@@ -143,3 +143,16 @@
 #rental-finder .category>.icon{position:absolute;left:50%;top:42%;width:64px;height:64px;transform:translate(-50%,-50%);color:var(--ink)}
 /* Keep the approved compact details layout despite the parent site's generic details rule. */
 #rental-finder .product .details{border-top:0;padding-top:0}
+
+
+/* Phase 2 — approved warm 3D category scenes; older API cards keep their existing presentation. */
+#rental-finder .content[data-view=category] .category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+#rental-finder .content[data-view=category] .category.category-scene{aspect-ratio:1;min-height:11rem;min-width:0;width:100%;padding:0;background:var(--ink);isolation:isolate}
+#rental-finder .content[data-view=category] .category.category-scene.category-long{min-height:12rem}
+#rental-finder .category.category-scene img{inset:0;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:inherit;background:transparent;box-shadow:none;mix-blend-mode:normal}
+#rental-finder .category.category-scene:after{inset:auto 0 0;height:40%;background:linear-gradient(transparent,rgba(18,39,29,.62) 52%,rgba(18,39,29,.78));pointer-events:none}
+#rental-finder .category-scene .category-copy{position:absolute;z-index:2;inset:auto 10px 10px;display:flex;flex-direction:column;gap:3px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+#rental-finder .category-scene strong{position:static;display:block;font-size:1.375rem;line-height:1.12;font-weight:800;letter-spacing:-.035em;white-space:normal;overflow:visible;text-overflow:clip;word-break:keep-all;overflow-wrap:anywhere}
+#rental-finder .category-badges{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:.75rem;font-weight:700;line-height:1.2;white-space:nowrap;letter-spacing:-.02em}
+#rental-finder .category-badges>span{padding:4px 8px;border:1px solid rgba(255,255,255,.38);border-radius:999px;background:rgba(18,39,29,.42)}
+#rental-finder .category-badges .category-popular{background:var(--mint);border-color:var(--mint);color:var(--ink);text-shadow:none}
