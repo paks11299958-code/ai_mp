@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const CONTACT = Object.freeze({phone:'01074508867',email:'lumia7450@gmail.com',kakaoUrl:''});
+const CONTACT = Object.freeze({phone:'01074508867',email:'lumia7450@gmail.com',kakaoUrl:'https://open.kakao.com/o/sxgrCmSi'});
 const scriptURL = new URL(document.currentScript.src);
 const assetBase = new URL('../assets/', scriptURL).pathname;
 const homeURL = new URL('../', scriptURL);
