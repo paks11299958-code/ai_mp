@@ -18,3 +18,6 @@
 }
 @media(prefers-reduced-motion:reduce){.look-crop img,.look-steps article.is-seen .look-crop img{transform:none!important;transition:none!important}}
 .ask-card>.ask-range{grid-column:1/-1;margin-top:2px;font-size:15px;font-weight:700;color:var(--green)}
+
+/* Business disclosure and privacy navigation. */
+.business-footer p{margin-block:4px}.business-footer a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:3px}
