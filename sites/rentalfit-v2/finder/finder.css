@@ -162,3 +162,6 @@
 
 /* Keep consent and its policy link as separate touch targets. */
 #rental-finder .consent-row{grid-column:1/-1;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:0 10px}#rental-finder .consent{min-height:44px;align-items:center;flex:1 1 220px}#rental-finder .privacy-link,#rental-finder .standalone-privacy{display:inline-flex;align-items:center;min-height:44px;font-size:12px;text-decoration:underline;text-underline-offset:3px}#rental-finder .consent-summary{width:100%;margin:0 0 6px;color:var(--sub);font-size:11px}#rental-finder .standalone-privacy{margin-left:auto}
+
+/* Keep privacy links within the page touch-safe horizontal inset. */
+#rental-finder .privacy-link,#rental-finder .standalone-privacy{margin-right:16px}
