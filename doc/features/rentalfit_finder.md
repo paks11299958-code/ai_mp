@@ -4,7 +4,8 @@
 
 ## 무엇
 - `rental.dbzone.kr` = 렌탈핏 홍보 사이트(`sites/rentalfit-v2/`). 손님은 「AI 문의하기」 등 버튼 3곳에서 **맞춤 찾기 모달**(`sites/rentalfit-v2/finder/`)을 연다.
-- 흐름: 상품군 그림 메뉴(23종) → 그 상품군에 실제 있는 선택지만 묻는 질문(예산·관리·기간) → 추천 카드 3장 → 상담 신청(이름·연락처 → 담당자 문자) / 전화 / 이메일.
+- 흐름: 상품군 장면 카드(23종, 3D 주방 장면 사진 + 이름 + 인기·'월 N만 원대부터' 배지) → 그 상품군에 실제 있는 선택지만 묻는 질문(예산·관리·기간) → 추천 카드 3장 → 상담 신청(이름·연락처 → 담당자 문자) / 카톡 오픈채팅(`https://open.kakao.com/o/sxgrCmSi`) / 전화 / 이메일.
+- 메인 페이지 입구는 맞춤 찾기 하나(10-15 '무엇을 렌탈하세요?' 칸 삭제). 짧은 주소 `rental.dbzone.kr/find` → 맞춤 찾기.
 - 관리자 상담 도구: `rental.dbzone.kr/pro` (aichat 관리자 로그인, 수수료 보기 토글).
 
 ## 지키는 것 (사장 지시)
@@ -16,6 +17,8 @@
 | 층 | 위치 | 비고 |
 |---|---|---|
 | 화면 | `sites/rentalfit-v2/finder/finder.js`·`finder.css`, `find/index.html` | Pretendard, 사진 칸 흰 바탕, 사진 없으면 상품군 아이콘 |
+| 상품군 장면 | `sites/rentalfit-v2/assets/scenes/*.webp`(23장) | DB `rental_category_rule.scene_file` 이 파일명을 가리키고 options API 가 `sceneUrl` 로 준다. 원본·매핑은 서버2 `~/design-lab/rentalfit/category-cards/round2/` |
+| 보안 헤더 | 루트 `vercel.json` `headers`(`/sites/rentalfit-v2/(.*)`) | nosniff·X-Frame-Options SAMEORIGIN·Referrer-Policy·Permissions-Policy |
 | 제품 사진 | `sites/rentalfit-v2/assets/products/*.webp` | 긴 변 480px. 새 사진은 **새 파일명**(덮어쓰기 금지 — 캐시) |
 | 손님 API | shared-api `routes/aimp/rental-public.ts` → `/api/rental/options·questions·recommend`, `POST /api/rental/inquiry` | 추천 = 조건 맞는 후보 중 **인기순**, 같으면 낮은 가격대, 브랜드 분산 |
 | 관리자 API | shared-api `routes/aimp/rental.ts` → `/api/admin/rental/*` | ADMIN 미들웨어 뒤 |
@@ -29,7 +32,10 @@
 ## 매달 할 일
 rag 저장소 `rental/` 의 절차를 따른다(`load_db.py --dry-run` → 적재 → 새 제품만 사진 수집 → 사이트에 사진 올리고 **운영 확인 뒤** DB 사진 연결). 상세는 rag `rental/README_rules_popularity.md`·`RECEIPT_*.md`.
 
+## 점검 (2026-10-15, `/site-audit`)
+- 17항목 18건 → 즉시 수정 7(보안 헤더·`/find`·og 미리보기·포커스·44px·빈 결과 안내·문자 후 저장 실패 시 중복 문자 방지). 상담 화면 ✕ 가 한 단계 위로 가는 것은 사장 규칙대로(결함 아님).
+- `finder.js` 는 한 줄 압축 코드 — 주석은 `/* */` 만, 수정 후 `node --check`.
+
 ## 남은 일
-- LG 가전 카드 제목의 지역코드(`.AKOR` 등) 정리 (`~/TODO.md`)
+- 사장 결정 대기: 서버1 원본 구간 HTTPS(aichat 전체) · 개인정보 처리방침·사업자 정보 · 상담 개인정보 보관 기한·파기 · 메인 '84개월 총액' 정확 금액 예시
 - 사진 없는 제품 약 194개(아이콘 표시)
-- 카톡 상담 버튼: 오픈채팅 주소를 받으면 `finder.js` `CONTACT.kakaoUrl` 설정
