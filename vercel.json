@@ -45,6 +45,29 @@
       ],
       "destination": "/sites/rentalfit-v2/pro/",
       "permanent": false
+    },
+    {
+      "source": "/find",
+      "has": [{ "type": "host", "value": "rental.dbzone.kr" }],
+      "destination": "/sites/rentalfit-v2/find/",
+      "permanent": false
+    },
+    {
+      "source": "/find/",
+      "has": [{ "type": "host", "value": "rental.dbzone.kr" }],
+      "destination": "/sites/rentalfit-v2/find/",
+      "permanent": false
+    }
+  ],
+  "headers": [
+    {
+      "source": "/sites/rentalfit-v2/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" }
+      ]
     }
   ],
   "rewrites": [
