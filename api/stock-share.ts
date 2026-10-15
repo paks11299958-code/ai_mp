@@ -5,7 +5,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 // 크롤러(카톡/페북 등은 JS를 실행하지 않음)에게는 서버에서 조립한 OG HTML을 바로 응답하고,
 // 실제 사람(브라우저)은 기존 SPA(?stock=)로 리다이렉트해 React가 처리하게 한다.
 
-const SHARED_API = 'http://34.50.27.95:3020/api/aimp/stock-analysis/shared';
+const SHARED_API = 'https://origin.dbzone.kr/api/aimp/stock-analysis/shared';
 const SITE_ORIGIN = 'https://aichat.dbzone.kr';
 
 // 카카오톡/페이스북/트위터 등 링크 미리보기 크롤러의 UA 특징(전부 소문자 매칭).

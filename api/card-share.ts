@@ -10,7 +10,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 //   - 스크립트로 넘기는 데이터는 scriptJson()(<,>,&,U+2028/2029 이스케이프) 후 DOM 엔 textContent 로만 쓴다.
 //   - occasion 은 허용 목록 밖이면 birthday.
 
-const PUBLIC_API = 'http://34.50.27.95:3020/api/aimp/eunbi-card/public';
+const PUBLIC_API = 'https://origin.dbzone.kr/api/aimp/eunbi-card/public';
 const SITE_ORIGIN = 'https://aichat.dbzone.kr';
 /** 은비 페르소나 진입 링크 — 답장·놀러 가기 버튼이 여기로 간다. */
 export const EUNBI_ENTRY_URL = `${SITE_ORIGIN}/?p=cmoogeutq000004ifpx8r9xv2`;
