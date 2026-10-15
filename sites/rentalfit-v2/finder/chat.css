@@ -1,0 +1,45 @@
+/* Approved chat, scoped to avoid changing the recommendation cards. */
+#rental-finder .product .rf-product-actions{display:flex;align-items:start;gap:6px;flex-wrap:wrap;margin-top:7px}
+#rental-finder .product .rf-product-actions .details{flex:1;min-width:44px;margin-top:0}
+#rental-finder .product .rf-product-actions summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+#rental-finder .rf-ai-button{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:44px;min-width:44px;padding:5px 8px;border:1px solid var(--line);border-radius:10px;background:var(--mint);font-size:11px;font-weight:800}
+#rental-finder .rf-ai-button img{width:24px;height:24px;border-radius:7px}
+#rental-finder .rf-chat-layer{position:fixed;inset:var(--chat-vvy,0px) 0 auto;height:var(--chat-vvh,100dvh);z-index:10000;display:flex;align-items:center;justify-content:center;background:#1f2f286e;backdrop-filter:blur(7px);padding:20px}
+#rental-finder .rf-chat-shell{width:560px;max-width:100%;height:100%;max-height:820px;min-height:0;display:flex;flex-direction:column;overflow:hidden;background:var(--cream);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);font-size:1rem;line-height:1.6}
+#rental-finder .rf-chat-shell button,#rental-finder .rf-chat-shell a{min-height:44px;min-width:44px;font:inherit;font-size:.85em;cursor:pointer}
+#rental-finder .rf-chat-shell button{border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--mint2)}
+#rental-finder .rf-chat-shell button:disabled{opacity:.55;cursor:default}
+#rental-finder .rf-chat-shell :focus-visible{outline:3px solid #ca8d17;outline-offset:2px}
+#rental-finder .rf-chat-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);flex:none}
+#rental-finder .rf-chat-head img{width:44px;height:44px;border-radius:14px}
+#rental-finder .rf-chat-head>div{flex:1;min-width:0}
+#rental-finder .rf-chat-head small{display:block;font-size:.72em;color:var(--sub)}
+#rental-finder .rf-chat-head button{background:transparent;border:0;font-size:1.3em;padding:0}
+#rental-finder .rf-chat-chip{padding:12px 18px;background:var(--mint2);flex:none;font-size:.82em}
+#rental-finder .rf-chat-chip strong,#rental-finder .rf-chat-chip span{display:block;overflow-wrap:anywhere}
+#rental-finder .rf-chat-flow{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:16px 18px}
+#rental-finder .rf-chat-message{padding:14px;border:1px solid var(--line);border-radius:4px 18px 18px 18px;background:white;white-space:pre-line;overflow-wrap:anywhere;font-size:.88em;margin-bottom:14px;max-width:96%;line-height:1.8}
+#rental-finder .rf-chat-message.user{background:var(--mint2);border-radius:18px 4px 18px 18px;margin-left:auto;width:fit-content}
+#rental-finder .rf-chat-quick{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+#rental-finder .rf-chat-quick button{font-size:.75em;border-radius:99px}
+#rental-finder .rf-chat-notice{padding:12px;border-radius:12px;background:var(--mint2);font-size:.85em}
+#rental-finder .rf-chat-footer{flex:none;padding:12px 18px max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--cream)}
+#rental-finder .rf-chat-footer form{display:flex;align-items:center;gap:8px;background:white;border:1px solid var(--line);border-radius:15px;padding:5px}
+#rental-finder .rf-chat-footer input{width:100%;min-width:0;border:0;background:transparent;min-height:44px;padding:6px;font:inherit;font-size:.88em}
+#rental-finder .rf-chat-handoff{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:9px}
+#rental-finder .rf-chat-handoff button{display:flex;align-items:center;justify-content:center;gap:5px;background:var(--mint)}
+#rental-finder .rf-chat-handoff [data-chat=kakao]{background:#fae684}
+#rental-finder .rf-chat-handoff.emphasis button{box-shadow:0 0 0 2px var(--deep);font-weight:800}
+#rental-finder .rf-chat-fine{font-size:.68em;color:var(--sub);margin:7px 0 0;line-height:1.6}
+#rental-finder [data-chat=remaining]{font-size:.68em;color:var(--sub)}
+#rental-finder .rf-chat-panel{margin-top:16px;padding:16px;background:var(--mint2);border:1px solid var(--line);border-radius:18px}
+#rental-finder .rf-chat-panel h2{font-size:1em;margin:0 0 8px}
+#rental-finder .rf-chat-panel label{display:block;font-size:.85em;margin-top:10px}
+#rental-finder .rf-chat-panel input:not([type=checkbox]),#rental-finder .rf-chat-panel textarea{display:block;width:100%;min-width:0;min-height:48px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--cream);font:inherit}
+#rental-finder .rf-chat-panel textarea{resize:vertical;line-height:1.6}
+#rental-finder .rf-chat-panel .rf-chat-consent{display:flex;gap:8px;align-items:center;min-height:44px}
+#rental-finder .rf-chat-consent input{width:20px;height:20px;flex:none}
+#rental-finder .rf-chat-panel a{display:inline-flex;align-items:center;font-size:.8em}
+#rental-finder .rf-chat-panel button{margin:6px 4px 0 0}
+#rental-finder .rf-chat-panel [type=submit],#rental-finder [data-chat=open-kakao]{width:100%;background:var(--mint)}
+@media(max-width:640px){#rental-finder .rf-chat-layer{padding:0}#rental-finder .rf-chat-shell{width:100%;max-height:none;border:0;border-radius:0}#rental-finder .rf-chat-head{padding:12px 16px}#rental-finder .rf-chat-chip{padding:10px 16px}#rental-finder .rf-chat-flow{padding:12px 16px}#rental-finder .rf-chat-footer{padding:10px 16px max(10px,env(safe-area-inset-bottom))}}
