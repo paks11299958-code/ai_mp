@@ -51,3 +51,7 @@
 #rental-finder .rf-chat-product{display:grid;grid-template-columns:64px minmax(0,1fr);gap:3px 10px;text-align:left;width:100%;margin:8px 0;overflow-wrap:anywhere}
 #rental-finder .rf-chat-product img{grid-row:span 4;width:64px;height:80px;object-fit:contain}#rental-finder .rf-chat-product>*:not(img){grid-column:2}
 @media(max-width:360px){#rental-finder .rf-chat-categories{grid-template-columns:minmax(0,1fr)}}
+
+/* Stage visibility also applies before rendering and cannot be overridden by flex/button styles. */
+#rental-finder .rf-chat-layer:not([data-chat-stage="intro"]) .rf-chat-quick{display:none!important}
+#rental-finder .rf-chat-layer:not([data-chat-stage="list"]):not([data-chat-stage="intro"]) [data-chat="menu"]{display:none!important}
