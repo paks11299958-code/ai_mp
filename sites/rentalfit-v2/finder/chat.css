@@ -55,3 +55,13 @@
 /* Stage visibility also applies before rendering and cannot be overridden by flex/button styles. */
 #rental-finder .rf-chat-layer:not([data-chat-stage="intro"]) .rf-chat-quick{display:none!important}
 #rental-finder .rf-chat-layer:not([data-chat-stage="list"]):not([data-chat-stage="intro"]) [data-chat="menu"]{display:none!important}
+
+/* Option B preview only: warm site borders, white secondary controls, mint emphasis. */
+#rental-finder .rf-chat-shell button{background:white;border-color:var(--line)}
+#rental-finder .rf-chat-chip{background:white;border-bottom:1px solid var(--line)}
+#rental-finder .rf-chat-message.assistant{border-color:var(--mint)}
+#rental-finder .rf-chat-message.user{background:var(--mint2)}
+#rental-finder .rf-chat-panel,#rental-finder .rf-chat-notice{background:var(--cream)}
+#rental-finder .rf-chat-handoff [data-chat=phone],#rental-finder .rf-chat-panel [type=submit]{background:var(--mint)}
+#rental-finder .rf-chat-handoff [data-chat=kakao],#rental-finder [data-chat=open-kakao]{background:#fae684}
+#rental-finder .rf-chat-shell button[aria-pressed=true],#rental-finder .rf-chat-shell button[aria-selected=true],#rental-finder .rf-chat-shell button:active{background:var(--mint2)}
