@@ -71,6 +71,8 @@
     }
   ],
   "rewrites": [
+    { "source": "/", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "https://origin.dbzone.kr/api/aimp/public-sites/ansem/index.html" },
+    { "source": "/:path*", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "https://origin.dbzone.kr/api/aimp/public-sites/ansem/:path*" },
     { "source": "/api-proxy", "destination": "/api/api-proxy" },
     { "source": "/s/stock/:id", "destination": "/api/stock-share?id=:id" },
     { "source": "/c/:id", "destination": "/api/card-share?id=:id" },
