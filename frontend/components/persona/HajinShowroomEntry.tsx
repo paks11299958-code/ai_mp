@@ -13,11 +13,19 @@ interface Props {
     isGuest?: boolean;
 }
 
-const SLIDES = [
-    { name: '동네 카페', image: '/hajin/showroom/cafe.webp' },
-    { name: '미용실', image: '/hajin/showroom/salon.webp' },
-    { name: '공인중개사무소', image: '/hajin/showroom/realty.webp' },
+const SLIDE_GROUPS = [
+    { key: 'samples', label: '신청하면 받는 예시', slides: [
+        { name: '동네 카페', image: '/hajin/showroom/cafe.webp' },
+        { name: '미용실', image: '/hajin/showroom/salon.webp' },
+        { name: '공인중개사무소', image: '/hajin/showroom/realty.webp' },
+    ] },
+    { key: 'studio', label: '하진 스튜디오 작업 · 맞춤 제작', slides: [
+        { name: '렌탈핏', image: '/hajin/showroom/rentalfit-v2.webp' },
+        { name: 'AI Companion Partner', image: '/hajin/showroom/ainara-partner.webp' },
+        { name: 'AINARA', image: '/hajin/showroom/new-ainara.webp' },
+    ] },
 ] as const;
+const SLIDES = SLIDE_GROUPS.flatMap(group => group.slides.map(item => ({ ...item, group: group.key, label: group.label })));
 
 const reduceMotion = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -34,8 +42,11 @@ export const HajinShowroomEntry: React.FC<Props> = ({ guide, onClose, onStart, o
         dialog.current?.querySelector<HTMLElement>('button')?.focus();
         const onKey = (event: KeyboardEvent) => {
             if (document.querySelector('.hj-chat-overlay')) return;
-            if (event.key === 'ArrowLeft') setSlide(value => (value + SLIDES.length - 1) % SLIDES.length);
-            if (event.key === 'ArrowRight') setSlide(value => (value + 1) % SLIDES.length);
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                event.preventDefault();
+                setMotionOff(true);
+                setSlide(value => (value + (event.key === 'ArrowRight' ? 1 : -1) + SLIDES.length) % SLIDES.length);
+            }
             if (event.key !== 'Tab') return;
             const nodes = [...(dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled)') || [])];
             const first = nodes[0], last = nodes[nodes.length - 1];
@@ -48,7 +59,7 @@ export const HajinShowroomEntry: React.FC<Props> = ({ guide, onClose, onStart, o
 
     useEffect(() => {
         const query = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-        const update = (event: MediaQueryListEvent) => setMotionOff(event.matches);
+        const update = (event: MediaQueryListEvent) => { if (event.matches) setMotionOff(true); };
         query?.addEventListener?.('change', update);
         return () => query?.removeEventListener?.('change', update);
     }, []);
@@ -63,7 +74,10 @@ export const HajinShowroomEntry: React.FC<Props> = ({ guide, onClose, onStart, o
         registerHajinEntryChatTheme(guide.personaId, guide.imageUrl);
         onStart();
     };
-    const move = (amount: number) => setSlide(value => (value + amount + SLIDES.length) % SLIDES.length);
+    const move = (amount: number) => {
+        setMotionOff(true);
+        setSlide(value => (value + amount + SLIDES.length) % SLIDES.length);
+    };
     const finishSwipe = (clientX: number) => {
         if (touchStart.current === null) return;
         const distance = clientX - touchStart.current;
@@ -73,27 +87,39 @@ export const HajinShowroomEntry: React.FC<Props> = ({ guide, onClose, onStart, o
 
     return <div className="hj-entry-overlay" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
         <EscToClose onClose={onClose} />
-        <div className="hj-entry" ref={dialog} role="dialog" aria-modal="true" aria-label="박하진 완성작 쇼룸">
+        <div className={`hj-entry${motionOff ? ' hj-motion-off' : ''}`} ref={dialog} role="dialog" aria-modal="true" aria-label="박하진 완성작 쇼룸">
             <header className="hj-header">
                 <span className="hj-avatar">{guide.imageUrl ? <img src={guide.imageUrl} alt="" /> : '박'}</span>
                 <span className="hj-identity"><strong>박하진</strong><small>홈페이지 만드는 웹 파트너</small></span>
                 <button type="button" className="hj-icon-button" onClick={onClose} aria-label="닫기">×</button>
+                <button type="button" className="hj-motion" aria-pressed={motionOff}
+                    onClick={() => setMotionOff(value => !value)}>자동 넘김 {motionOff ? '꺼짐' : '켜짐'}</button>
             </header>
             <main className="hj-entry-body">
                 <div className="hj-intro"><h1>가게를 화면으로.</h1><p>완성작을 먼저 넘겨 보세요</p></div>
-                <section className="hj-showroom" aria-roledescription="carousel" aria-label="홈페이지 완성작 예시">
-                    <button type="button" className="hj-motion" aria-pressed={motionOff} onClick={() => setMotionOff(value => !value)}>자동 넘김 {motionOff ? '꺼짐' : '켜짐'}</button>
+                <section className="hj-showroom" aria-roledescription="carousel" aria-label="홈페이지 완성작 예시"
+                    onFocusCapture={() => setMotionOff(true)} onMouseEnter={() => setMotionOff(true)}>
+                    <h2 className="hj-group" data-group={SLIDES[slide].group}>{SLIDES[slide].label}</h2>
                     <button type="button" className="hj-slide-button hj-prev" aria-label="이전 예시" onClick={() => move(-1)}>‹</button>
-                    <div className="hj-phone" onPointerDown={event => { touchStart.current = event.clientX; }} onPointerUp={event => finishSwipe(event.clientX)}>
+                    <div className="hj-phone" onPointerDown={event => { touchStart.current = event.clientX; }}
+                        onPointerUp={event => finishSwipe(event.clientX)} onPointerCancel={() => { touchStart.current = null; }}>
                         <div className="hj-phone-screen">
-                            {SLIDES.map((item, index) => <article key={item.name} className={`hj-slide${index === slide ? ' active' : ''}`} aria-hidden={index !== slide}>
-                                <span className="hj-example">[예시]</span><img src={item.image} alt={`${item.name} 홈페이지 예시 화면`} /><span className="hj-slide-label">{item.name}</span>
+                            {SLIDES.map((item, index) => <article key={item.name}
+                                className={`hj-slide${index === slide ? ' active' : ''}`} data-group={item.group}
+                                role="group" aria-roledescription="slide" aria-label={`${item.name} ${index + 1} / ${SLIDES.length}`}
+                                aria-hidden={index !== slide}>
+                                <img src={item.image} alt={`${item.name} 홈페이지 ${item.group === 'samples' ? '예시' : '스튜디오 작업'} 화면`} />
+                                <span className="hj-slide-label">{item.name}</span>
                             </article>)}
                         </div>
                     </div>
                     <button type="button" className="hj-slide-button hj-next" aria-label="다음 예시" onClick={() => move(1)}>›</button>
-                    <div className="hj-dots" aria-label="예시 선택">{SLIDES.map((item, index) => <button key={item.name} type="button" className={index === slide ? 'active' : ''} aria-label={`${item.name} 예시`} onClick={() => setSlide(index)} />)}</div>
-                    <p className="hj-sr-only" aria-live="polite">{SLIDES[slide].name} 예시 {slide + 1} / {SLIDES.length}</p>
+                    <div className="hj-dots" aria-label="예시 선택">{SLIDES.map((item, index) => <button key={item.name} type="button"
+                        className={index === slide ? 'active' : ''} aria-label={`${item.name} 예시`} aria-pressed={index === slide}
+                        onClick={() => { setMotionOff(true); setSlide(index); }} />)}</div>
+                    <p className="hj-sr-only" aria-live={motionOff ? 'polite' : 'off'}>
+                        {SLIDES[slide].label} · {SLIDES[slide].name} {slide + 1} / {SLIDES.length}
+                    </p>
                 </section>
                 <div className="hj-menu-heading"><strong>무엇을 도와드릴까요?</strong><span>그림 카드를 눌러 보세요</span></div>
                 <HajinMenu onFeature={onFeature} isGuest={isGuest} />

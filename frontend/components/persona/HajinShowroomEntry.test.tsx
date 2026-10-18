@@ -92,26 +92,26 @@ describe('박하진 완성작 쇼룸 진입화면', () => {
         vi.useFakeTimers();
         const props = makeProps();
         const { container } = render(<HajinShowroomEntry {...props} />);
-        expect(screen.getByText('동네 카페')).toBeInTheDocument();
+        expect(container.querySelector('.hj-slide.active')).toHaveTextContent('동네 카페');
         act(() => vi.advanceTimersByTime(4000));
-        expect(screen.getByText('미용실')).toBeInTheDocument();
+        expect(container.querySelector('.hj-slide.active')).toHaveTextContent('미용실');
         fireEvent.click(screen.getByRole('button', { name: '다음 예시' }));
-        expect(screen.getByText('공인중개사무소')).toBeInTheDocument();
+        expect(container.querySelector('.hj-slide.active')).toHaveTextContent('공인중개사무소');
         const phone = container.querySelector('.hj-phone')!;
         fireEvent.pointerDown(phone, { clientX: 200 }); fireEvent.pointerUp(phone, { clientX: 80 });
-        expect(screen.getByText('동네 카페')).toBeInTheDocument();
-        fireEvent.click(screen.getByRole('button', { name: /자동 넘김/ }));
+        expect(container.querySelector('.hj-slide.active')).toHaveTextContent('렌탈핏');
+        expect(screen.getByRole('button', { name: /자동 넘김/ })).toHaveAttribute('aria-pressed', 'true');
         act(() => vi.advanceTimersByTime(8000));
-        expect(screen.getByText('동네 카페')).toBeInTheDocument();
+        expect(container.querySelector('.hj-slide.active')).toHaveTextContent('렌탈핏');
     });
 
     it('reduced-motion이면 자동 전환을 처음부터 끈다', () => {
         vi.mocked(matchMedia).mockReturnValue({ ...media, matches: true } as unknown as MediaQueryList);
         vi.useFakeTimers();
-        render(<HajinShowroomEntry {...makeProps()} />);
+        const { container } = render(<HajinShowroomEntry {...makeProps()} />);
         expect(screen.getByRole('button', { name: /자동 넘김/ })).toHaveAttribute('aria-pressed', 'true');
         act(() => vi.advanceTimersByTime(8000));
-        expect(screen.getByText('동네 카페')).toBeInTheDocument();
+        expect(container.querySelector('.hj-slide.active')).toHaveTextContent('동네 카페');
     });
 
     it('채팅 CTA가 DB guide id·사진을 등록하고 전용 모달 목적지를 연다', () => {
@@ -130,4 +130,65 @@ describe('박하진 완성작 쇼룸 진입화면', () => {
         fireEvent.keyDown(window, { key: 'Escape' });
         expect(props.onClose).toHaveBeenCalledTimes(2);
     });
+
+    it('샘플 3종 다음에 스튜디오 3곳을 두 묶음으로 구성하고 기존 그림 경로를 보존한다', () => {
+        const { container } = render(<HajinShowroomEntry {...makeProps()} />);
+        const slides = [...container.querySelectorAll('.hj-slide')];
+        expect(slides.map(item => item.getAttribute('data-group'))).toEqual([
+            'samples', 'samples', 'samples', 'studio', 'studio', 'studio',
+        ]);
+        expect(slides.map(item => item.querySelector('img')?.getAttribute('src'))).toEqual([
+            '/hajin/showroom/cafe.webp', '/hajin/showroom/salon.webp', '/hajin/showroom/realty.webp',
+            '/hajin/showroom/rentalfit-v2.webp', '/hajin/showroom/ainara-partner.webp', '/hajin/showroom/new-ainara.webp',
+        ]);
+        expect(container.querySelector('.hj-slide.active')).toBe(slides[0]);
+    });
+
+    it('모든 장면에서 정확한 묶음 이름표를 폰 바깥 HTML 제목으로 표시하고 순환한다', () => {
+        const { container } = render(<HajinShowroomEntry {...makeProps()} />);
+        const names = ['동네 카페', '미용실', '공인중개사무소', '렌탈핏', 'AI Companion Partner', 'AINARA'];
+        for (const [index, name] of names.entries()) {
+            const label = screen.getByRole('heading', {
+                name: index < 3 ? '신청하면 받는 예시' : '하진 스튜디오 작업 · 맞춤 제작',
+            });
+            expect(container.querySelector('.hj-phone')).not.toContainElement(label);
+            expect(container.querySelector('.hj-slide.active')).toHaveTextContent(name);
+            expect(container.querySelectorAll('.hj-slide[aria-hidden="false"]')).toHaveLength(1);
+            fireEvent.click(screen.getByRole('button', { name: '다음 예시' }));
+        }
+        expect(container.querySelector('.hj-slide.active')).toHaveTextContent(names[0]);
+        fireEvent.keyDown(window, { key: 'ArrowLeft' });
+        expect(container.querySelector('.hj-slide.active')).toHaveTextContent(names[5]);
+    });
+
+    it('스튜디오 장면에는 가격을 넣지 않고 샘플 카드와 기존 3,000P 및 채팅 CTA를 유지한다', () => {
+        const { container } = render(<HajinShowroomEntry {...makeProps()} />);
+        for (const studio of container.querySelectorAll('[data-group="studio"]')) {
+            expect(studio).not.toHaveTextContent(/3,000|3000|가격|원|\d+P/);
+            expect(studio.querySelector('.hj-example')).toBeNull();
+        }
+        fireEvent.click(screen.getByRole('button', { name: '렌탈핏 예시' }));
+        expect(container.querySelector('.hj-showroom')).not.toHaveTextContent(/3,000|3000|가격|\d+P/);
+        expect(screen.getByRole('button', { name: /샘플 둘러보기/ })).toBeInTheDocument();
+        expect(container.querySelector('[data-menu-key="create"]')).toHaveTextContent('3,000P');
+        expect(screen.getAllByText('3,000P')).toHaveLength(1);
+        expect(container.querySelectorAll('[data-menu-key]')).toHaveLength(4);
+        expect(screen.getByRole('button', { name: '하진에게 물어보기' })).toBeInTheDocument();
+    });
+
+    it('승인 v1처럼 진입 즉시 쇼룸·질문·메뉴를 공개하고 수동 선택 뒤 자동 넘김을 멈춘다', () => {
+        vi.useFakeTimers();
+        const { container } = render(<HajinShowroomEntry {...makeProps()} />);
+        expect(screen.getByText('무엇을 도와드릴까요?')).toBeVisible();
+        expect(screen.getByRole('heading', { name: '신청하면 받는 예시' })).toBeVisible();
+        expect(container.querySelector('form')).toBeNull();
+        fireEvent.click(screen.getByRole('button', { name: 'AINARA 예시' }));
+        act(() => vi.advanceTimersByTime(12000));
+        expect(container.querySelector('.hj-slide.active')).toHaveTextContent('AINARA');
+        expect(screen.getByRole('button', { name: /자동 넘김/ })).toHaveAttribute('aria-pressed', 'true');
+        fireEvent.click(screen.getByRole('button', { name: /자동 넘김/ }));
+        act(() => vi.advanceTimersByTime(4000));
+        expect(container.querySelector('.hj-slide.active')).toHaveTextContent('동네 카페');
+    });
+
 });
