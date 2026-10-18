@@ -18,6 +18,8 @@
   },
   "redirects": [
     { "source": "/", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "/home", "permanent": false },
+    { "source": "/robots.txt", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "/anssam-robots.txt", "permanent": false },
+    { "source": "/sitemap.xml", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "/anssam-sitemap.xml", "permanent": false },
     { "source": "/k/:feature", "destination": "/?f=:feature&ref=KIN", "permanent": false },
     {
       "source": "/",
