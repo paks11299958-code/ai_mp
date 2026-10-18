@@ -17,6 +17,7 @@
     }
   },
   "redirects": [
+    { "source": "/", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "/home", "permanent": false },
     { "source": "/k/:feature", "destination": "/?f=:feature&ref=KIN", "permanent": false },
     {
       "source": "/",
@@ -72,6 +73,7 @@
   ],
   "rewrites": [
     { "source": "/", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "https://origin.dbzone.kr/api/aimp/public-sites/ansem/index.html" },
+    { "source": "/home", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "https://origin.dbzone.kr/api/aimp/public-sites/ansem/index.html" },
     { "source": "/:path*", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "https://origin.dbzone.kr/api/aimp/public-sites/ansem/:path*" },
     { "source": "/api-proxy", "destination": "/api/api-proxy" },
     { "source": "/s/stock/:id", "destination": "/api/stock-share?id=:id" },
