@@ -75,6 +75,9 @@
     { "source": "/s/stock/:id", "destination": "/api/stock-share?id=:id" },
     { "source": "/c/:id", "destination": "/api/card-share?id=:id" },
 
+    { "source": "/sites/ansem", "destination": "https://origin.dbzone.kr/api/aimp/public-sites/ansem/index.html" },
+    { "source": "/sites/ansem/", "destination": "https://origin.dbzone.kr/api/aimp/public-sites/ansem/index.html" },
+    { "source": "/sites/ansem/:path*", "destination": "https://origin.dbzone.kr/api/aimp/public-sites/ansem/:path*" },
     { "source": "/sites/:sitename", "destination": "/sites/:sitename/index.html" },
     { "source": "/sites/:sitename/", "destination": "/sites/:sitename/index.html" },
     { "source": "/sites/:sitename/:path*", "destination": "/sites/:sitename/:path*" },
