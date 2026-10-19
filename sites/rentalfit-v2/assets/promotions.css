@@ -1,0 +1,40 @@
+#how {font-size:1rem;line-height:1.6;overflow-wrap:anywhere;color:#263d33}
+#how *,#how *::before,#how *::after {box-sizing:border-box;min-width:0}
+#how [hidden] {display:none!important}
+#how .section-head h2 {font-size:clamp(1.6rem,4vw,2.5rem);line-height:1.4}
+#how .section-head p {font-size:1rem;margin:.75rem 0}
+#how #promotion-month {font-size:.875rem;letter-spacing:0;text-transform:none}
+#how button,#how select {font:inherit;line-height:1.5;min-height:2.75rem;min-width:2.75rem;max-width:100%;border:1px solid #96a99b;border-radius:.7rem;background:#fff;color:#263d33;padding:.6rem .8rem}
+#how button {cursor:pointer;white-space:normal}
+#how button:disabled {opacity:.65;cursor:wait}
+#how button[aria-pressed=true] {background:#254f3c;color:#fff;border-color:#254f3c}
+#how :focus-visible {outline:.18rem solid #168168;outline-offset:.2rem}
+#how #promotion-categories {display:flex;flex-wrap:wrap;gap:.5rem}
+#how #promotion-expand {margin-top:.5rem}
+#how .promotion-filters {display:flex;flex-wrap:wrap;gap:.75rem;margin:1rem 0}
+#how .promotion-filter {display:flex;flex:1 1 10rem;flex-direction:column;gap:.3rem}
+#how .promotion-filters label {font-size:1rem}
+#how .promotion-filters select {width:100%}
+#how #promotion-status {font-size:.875rem;min-height:1.6em;color:#4e6356}
+#how #promotion-cards {display:grid;grid-template-columns:minmax(0,1fr);gap:1rem;min-height:22rem;align-items:start}
+#how #promotion-cards:empty {min-height:0}
+#how #promotion-results {min-height:24rem}
+#how .promotion-card {container-type:inline-size;display:block;text-decoration:none;color:inherit;background:#fff;border:1px solid #c4cec5;border-radius:1.1rem;padding:1rem;height:auto}
+#how .promotion-copy {background:#e7eee4;border-radius:.5rem;padding:.75rem;font-weight:700;line-height:1.6;margin:0 0 1rem}
+#how .promotion-badge {display:block;font-size:.875rem;margin-bottom:.25rem;color:#27533f}
+#how .promotion-product {display:grid;grid-template-columns:minmax(6rem,25%) minmax(0,1fr);gap:1rem;align-items:start}
+#how .promotion-photo {width:100%;aspect-ratio:1/1.25;display:grid;place-items:center;background:#f4f5f0;border-radius:.4rem;font-size:.875rem;text-align:center;padding:.3rem}
+#how .promotion-photo img {width:100%;height:auto;max-height:8rem;object-fit:contain}
+#how .promotion-brand {font-size:.875rem;color:#526858;margin:0}
+#how h3 {font-size:1.125rem;line-height:1.5;margin:.25rem 0 .6rem}
+#how .promotion-fee {font-size:1rem;margin:0}
+#how .promotion-price {display:block;font-weight:750}
+#how .promotion-terms,#how .promotion-explain,#how .promotion-notice {font-size:.875rem;line-height:1.6;color:#4e6356}
+#how .promotion-cta {display:block;border:1px solid #96a99b;border-radius:.7rem;min-height:2.75rem;text-align:center;padding:.65rem;font-size:1rem}
+#how #promotion-more {width:100%;margin:1rem 0}
+#how #promotion-message button,#how #promotion-message a {display:inline-block;min-height:2.75rem;padding:.65rem;margin:.25rem}
+#how .promotion-notice {border-top:1px solid #c4cec5;padding-top:1rem}
+@media(min-width:48rem){#how #promotion-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:70rem){#how #promotion-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+@container (max-width:18rem){#how .promotion-product{grid-template-columns:minmax(0,1fr)}#how .promotion-photo{width:6rem;max-width:100%}}

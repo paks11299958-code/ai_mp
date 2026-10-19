@@ -7,6 +7,8 @@
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="assets/site.css">
 <script src="assets/site.js" defer></script>
+<link rel="stylesheet" href="assets/promotions.css">
+<script src="assets/promotions.js" defer></script>
 <link rel="stylesheet" href="finder/finder.css">
 <script src="finder/finder.js" defer></script>
 <link rel="manifest" href="manifest.webmanifest">
@@ -32,14 +34,19 @@
 <noscript><style>#poster{display:none}.hero-copy{opacity:1!important}</style><picture><source media="(orientation:portrait)" srcset="assets/last_9x16.webp"><img src="assets/last_16x9.webp" alt="AI 연출 예시: 정수기, 식기세척기, 공기청정기, 냉장고를 살펴본 로봇" width="1920" height="1080"></picture><p class="wrap">정수기 ✓ · 식기세척기 ✓ · 공기청정기 ✓ · 냉장고 ✓</p></noscript>
 </section>
 <section class="wrap section" id="how" aria-labelledby="how-title">
-<div class="section-head"><span class="eyebrow">우리 집 조건부터</span><h2 id="how-title">AI가 이렇게 봐요</h2></div>
-<div class="how-layout"><div class="look-picture"><picture><source media="(orientation:portrait)" srcset="assets/last_9x16.webp"><img id="look-image" src="assets/last_16x9.webp" alt="주방 가전 위치를 살펴보는 AI 연출 정지판" loading="lazy" width="1920" height="1080"></picture><div class="look-caption"><strong id="look-name">정수기</strong><p id="look-description">얼음·온수, 필요한 기능부터.</p></div></div>
-<div class="look-steps">
-<article data-look="water_purifier"><div class="look-crop"><img src="assets/look/water_purifier.webp" alt="AI 연출 정지판에서 확대한 정수기" width="640" height="480" loading="lazy"><span class="look-badge">정수기 ✓</span></div><div class="look-text"><span class="step-number">01</span><h3>정수기</h3><p>얼음·온수, 필요한 기능부터.</p></div></article>
-<article data-look="dishwasher"><div class="look-crop"><img src="assets/look/dishwasher.webp" alt="AI 연출 정지판에서 확대한 식기세척기" width="640" height="480" loading="lazy"><span class="look-badge">식기세척기 ✓</span></div><div class="look-text"><span class="step-number">02</span><h3>식기세척기</h3><p>우리 집 인원에 맞는 용량.</p></div></article>
-<article data-look="air_purifier"><div class="look-crop"><img src="assets/look/air_purifier.webp" alt="AI 연출 정지판에서 확대한 공기청정기" width="640" height="480" loading="lazy"><span class="look-badge">공기청정기 ✓</span></div><div class="look-text"><span class="step-number">03</span><h3>공기청정기</h3><p>사용할 공간의 넓이까지.</p></div></article>
-<article data-look="refrigerator"><div class="look-crop"><img src="assets/look/refrigerator.webp" alt="AI 연출 정지판에서 확대한 냉장고" width="640" height="480" loading="lazy"><span class="look-badge">냉장고 ✓</span></div><div class="look-text"><span class="step-number">04</span><h3>냉장고</h3><p>설치 공간과 생활 방식까지.</p></div></article>
-</div></div>
+<div class="section-head"><span class="eyebrow" id="promotion-month">등록된 혜택을 확인해 보세요</span><h2 id="how-title">이달의 프로모션 제품</h2><p>필요한 제품부터 골라보세요.</p></div>
+<div id="promotion-categories" role="group" aria-label="프로모션 상품군"></div>
+<button id="promotion-expand" type="button" aria-expanded="false" aria-controls="promotion-categories" hidden>더 많은 종류</button>
+<div class="promotion-filters">
+<div class="promotion-filter"><label for="promotion-brand">브랜드</label><select id="promotion-brand"><option value="all">브랜드 전체</option></select></div>
+<div class="promotion-filter"><label for="promotion-budget">예산</label><select id="promotion-budget"><option value="all">예산 전체</option></select></div>
+<div class="promotion-filter"><label for="promotion-care">관리 방식</label><select id="promotion-care"><option value="all">관리 전체</option></select></div>
+</div>
+<p id="promotion-status" role="status" aria-live="polite">혜택을 불러올 준비를 하고 있어요.</p>
+<div id="promotion-results" aria-busy="false"><div id="promotion-cards"></div><div id="promotion-message"></div></div>
+<button id="promotion-more" type="button" hidden>프로모션 더 보기</button>
+<p class="promotion-notice">선택한 제품의 확정 견적이 아니에요. 약정·관리 범위는 모든 조합의 제공을 뜻하지 않으며, 혜택 적용 범위와 다를 수 있어요.</p>
+<noscript><p>혜택을 보려면 자바스크립트를 켜 주세요. <a href="find/">맞춤 찾기</a></p></noscript>
 </section>
 <section class="wrap section" aria-labelledby="cost-title">
 <div class="section-head"><span class="eyebrow">계산 예시</span><h2 id="cost-title">84개월, 총액으로 비교해요</h2></div>
