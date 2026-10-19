@@ -77,6 +77,7 @@
     { "source": "/", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "https://origin.dbzone.kr/api/aimp/public-sites/ansem/index.html" },
     { "source": "/home", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "https://origin.dbzone.kr/api/aimp/public-sites/ansem/index.html" },
     { "source": "/review", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "https://origin.dbzone.kr/api/aimp/anssam/review" },
+    { "source": "/quiz", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "https://origin.dbzone.kr/api/aimp/anssam/quiz" },
     { "source": "/api/anssam/:path*", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "https://origin.dbzone.kr/api/aimp/anssam/:path*" },
     { "source": "/:path*", "has": [{ "type": "host", "value": "anssam.dbzone.kr" }], "destination": "https://origin.dbzone.kr/api/aimp/public-sites/ansem/:path*" },
     { "source": "/api-proxy", "destination": "/api/api-proxy" },
