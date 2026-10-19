@@ -1,5 +1,7 @@
 (() => {
 'use strict';
+function priceLabel(value){return value==='렌탈료(할인가)'?value:'렌탈료';}
+
 const CONTACT = Object.freeze({phone:'01074508867',email:'lumia7450@gmail.com',kakaoUrl:'https://open.kakao.com/o/sxgrCmSi'});
 const scriptURL = new URL(document.currentScript.src);
 const assetBase = new URL('../assets/', scriptURL).pathname;
@@ -68,10 +70,88 @@ function renderCategories(){progress(0);$('guide').hidden=false;const featured=c
 async function loadQuestion(){cancelPending();const ticket=version;loading('필요한 조건을 살펴보고 있어요');try{const data=await api('questions?'+params());if(ticket!==version||root.hidden)return;if(data.next===null){startScan();return;}const q=data.next;if(!q||!['budget','care','term'].includes(q.key)||Object.hasOwn(state.picks,q.key)||!Array.isArray(q.choices)||!q.choices.length)throw new Error('bad-question');q.choices=q.choices.filter(c=>typeof c.value==='string'&&safeText(c.label,70)&&Number(c.count)>0);if(!q.choices.length)throw new Error('empty-question');state.question={key:q.key,title:safeText(q.title,80),say:safeText(q.say,80),choices:q.choices,step:Number(data.step)||1,steps:Number(data.steps)||1};renderQuestion();remember();}catch(e){if(ticket===version&&!root.hidden)failure(loadQuestion);}}
 function renderQuestion(){const q=state.question;progress(1);$('guide').hidden=false;setScene(`<p class="subcopy">${q.step} / ${q.steps}</p><h1>${esc(q.title)}</h1><div class="choice-list">${q.choices.map(c=>`<button class="choice" type="button" data-value="${esc(c.value)}"><span>${esc(safeText(c.label,70))}</span><small>${esc(safeText(c.hint,80))}</small></button>`).join('')}</div>`,q.title,'question');say(q.say||q.title);scene.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{checkpoint();state.picks[q.key]=b.dataset.value||'any';state.labels[q.key]=safeText(q.choices.find(c=>c.value===b.dataset.value).label,70);scene.querySelectorAll('.choice').forEach(el=>el.disabled=true);b.setAttribute('aria-pressed','true');nod();navTimer=setTimeout(loadQuestion,reduced()?0:260);});}
 function scanScene(){progress(1);$('guide').hidden=true;setScene(`<div class="scan pending" role="status" aria-label="제품을 찾고 있어요"><div class="scan-title">조건에 맞는 제품을 찾고 있어요</div><div class="scan-robot"><img src="${assetBase}last_9x16.webp" alt="제품을 살펴보는 민트 로봇"></div><i class="beam-source" aria-hidden="true"></i><i class="scan-beam" aria-hidden="true"></i><div class="scan-products" aria-hidden="true">${Array.from({length:8},()=>`<i>${icon(icons[state.category]||'water')}</i>`).join('')}</div><div class="checkline">${chipLabels().map((t,i)=>`<span style="--i:${i}">${icon('check')}${esc(t)}</span>`).join('')}</div></div>`,'제품을 찾고 있어요','scan');}
-async function startScan(){cancelPending();const ticket=version;scanScene();const started=performance.now();try{const data=await api('recommend?'+params());if(ticket!==version||root.hidden)return;if(!Array.isArray(data.items)||!data.items.length)throw new Error('empty-recommend');const items=data.items.slice(0,3).map(p=>({id:typeof p.id==='string'?p.id:'',brand:safeText(p.brand,50),title:safeText(p.title,120),modelCode:safeText(p.modelCode,60),imageUrl:imageURL(p.imageUrl),feeBandLabel:feeLabel(p.feeBandLabel),tags:Array.isArray(p.tags)?p.tags.map(t=>safeText(t,45)).filter(Boolean).slice(0,2):[],reason:safeText(p.reason,40),relaxed:safeText(p.relaxed,70),spec:safeText(p.spec,300),promo:p.promo&&safeText(p.promo.copy,40)?{copy:safeText(p.promo.copy,40)}:null}));if(items.some(p=>!p.id||!p.title||!p.feeBandLabel))throw new Error('bad-item');state.items=items;state.recommend={say:safeText(data.say,80),notice:safeText(data.notice,160),exact:Number(data.exact)||0};const scan=scene.querySelector('.scan');scan.classList.remove('pending');scan.querySelectorAll('.scan-products i').forEach((el,i)=>{if(items[i])el.innerHTML=photo(items[i].imageUrl);});const delay=reduced()?0:Math.max(0,1550-(performance.now()-started));await new Promise(resolve=>{const timer=setTimeout(()=>{scanDelay=null;resolve();},delay);scanDelay=()=>{clearTimeout(timer);resolve();};});if(ticket!==version||root.hidden)return;renderResults();remember();}catch(e){if(ticket===version&&!root.hidden)failure(startScan,e.name==='AbortError'?'8초 안에 응답하지 않았어요. 다시 시도하거나 전화해 주세요.':e.message==='empty-recommend'?'이 조건에 맞는 제품이 지금은 없어요. 조건을 바꾸거나 전화로 물어봐 주세요.':'추천을 불러오지 못했어요. 다시 시도하거나 전화해 주세요.');}}
-function card(p,i){return `<article class="product ${i===0?'best':''}">${p.relaxed?`<span class="relaxed">${esc(p.relaxed)}</span>`:''}<span class="rank">${i+1}순위</span><div class="product-photo">${photo(p.imageUrl,p.title)}</div><div class="product-body"><p class="brandname">${esc(p.brand)}</p><h3>${esc(p.title)}</h3>${p.promo?`<div class="rf-promotion"><span>프로모션</span><p>${esc(p.promo.copy)}</p></div>`:''}<p class="price">${esc(p.feeBandLabel)}</p><div class="tags">${p.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><p class="reason" data-reason="${esc(p.reason)}"></p><div class="rf-product-actions"><details class="details"><summary>자세히</summary><p>${esc(p.modelCode)} · ${esc(p.spec)}</p></details><button type="button" class="rf-ai-button" data-chat-product="${esc(p.id)}" aria-label="${esc(p.brand+' '+p.title)} AI 상담"><img src="${esc(assetBase+'icons/icon-192.png')}" alt="">AI 상담</button></div></div></article>`;}
+async function startScan(){cancelPending();
+const ticket=version;
+scanScene();
+const started=performance.now();
+try{const data=await api('recommend?'+params());
+if(ticket!==version||root.hidden)return;
+if(!Array.isArray(data.items)||!data.items.length)throw new Error('empty-recommend');
+const items=data.items.slice(0,3).map(p=>({id:typeof p.id==='string'?p.id:'',
+brand:safeText(p.brand,50),
+title:safeText(p.title,120),
+modelCode:safeText(p.modelCode,60),
+imageUrl:imageURL(p.imageUrl),
+feeBandLabel:feeLabel(p.feeBandLabel),
+feeLabel:priceLabel(p.feeLabel),
+tags:Array.isArray(p.tags)?p.tags.map(t=>safeText(t,45)).filter(Boolean).slice(0,2):[],reason:safeText(p.reason,40),
+relaxed:safeText(p.relaxed,70),
+spec:safeText(p.spec,300),
+promo:p.promo&&safeText(p.promo.copy,40)?{copy:safeText(p.promo.copy,40)}:null}));
+if(items.some(p=>!p.id||!p.title||!p.feeBandLabel))throw new Error('bad-item');
+state.items=items;
+state.recommend={say:safeText(data.say,80),
+notice:safeText(data.notice,160),
+exact:Number(data.exact)||0};
+const scan=scene.querySelector('.scan');
+scan.classList.remove('pending');
+scan.querySelectorAll('.scan-products i').forEach((el,i)=>{if(items[i])el.innerHTML=photo(items[i].imageUrl);
+});
+const delay=reduced()?0:Math.max(0,1550-(performance.now()-started));
+await new Promise(resolve=>{const timer=setTimeout(()=>{scanDelay=null;
+resolve();
+},
+delay);
+scanDelay=()=>{clearTimeout(timer);
+resolve();
+};
+});
+if(ticket!==version||root.hidden)return;
+renderResults();
+remember();
+}catch(e){if(ticket===version&&!root.hidden)failure(startScan,
+e.name==='AbortError'?'8초 안에 응답하지 않았어요. 다시 시도하거나 전화해 주세요.':
+e.message==='empty-recommend'?'이 조건에 맞는 제품이 지금은 없어요. 조건을 바꾸거나 전화로 물어봐 주세요.':'추천을 불러오지 못했어요. 다시 시도하거나 전화해 주세요.');
+}}
+function card(p,i){return `<article class="product ${i===0?'best':''}">${p.relaxed?`<span class="relaxed">${esc(p.relaxed)}</span>`:''}<span class="rank">${i+1}순위</span>
+<div class="product-photo">${photo(p.imageUrl,p.title)}</div>
+<div class="product-body">
+<p class="brandname">${esc(p.brand)}</p>
+<h3>${esc(p.title)}</h3>
+${p.promo?`<div class="rf-promotion">
+<span>프로모션</span>
+<p>${esc(p.promo.copy)}</p>
+</div>`:''}<p class="price">
+<span class="price-label">${esc(priceLabel(p.feeLabel))}</span> ${esc(p.feeBandLabel)}</p>
+<div class="tags">${p.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+<p class="reason" data-reason="${esc(p.reason)}">
+</p>
+<div class="rf-product-actions">
+<details class="details">
+<summary>자세히</summary>
+<p>${esc(p.modelCode)} · ${esc(p.spec)}</p>
+</details>
+<button type="button" class="rf-ai-button" data-chat-product="${esc(p.id)}" aria-label="${esc(p.brand+' '+p.title)} AI 상담">
+<img src="${esc(assetBase+'icons/icon-192.png')}" alt="">AI 상담</button>
+</div>
+</div>
+</article>`;
+}
 function renderResults(){progress(2);$('guide').hidden=false;setScene(`<div class="result-head"><div><h1>${esc(state.category)} 추천 ${state.items.length}개</h1><p>${esc(state.recommend.notice)}</p></div></div>${state.recommend.exact===0?`<p class="notice">${esc(state.recommend.say)}</p>`:''}<div class="results">${state.items.map(card).join('')}</div><div class="result-actions"><button class="secondary" id="rf-restart" type="button">다시 고르기</button><button class="primary" id="rf-consult" type="button">상담 이어가기</button></div>`,'추천 제품','results');say(state.recommend.say||'조건에 맞는 제품을 골랐어요.');scene.querySelectorAll('.reason').forEach((el,i)=>{const text=el.dataset.reason;if(reduced()){el.textContent=text;return;}let n=0;const tick=()=>{if(!el.isConnected)return;if(reduced()){el.textContent=text;return;}el.textContent=text.slice(0,++n);if(n<text.length)reasonTimers.push(setTimeout(tick,18));};reasonTimers.push(setTimeout(tick,450+i*120));});scene.querySelectorAll('[data-chat-product]').forEach(button=>button.onclick=async()=>{button.disabled=true;try{const chat=await loadChat();if(state.view==='results'&&!root.hidden)chat.open({category:state.category,picks:{...state.picks},labels:Object.values(state.labels),items:state.items.map(p=>({...p})),focus:state.items.find(p=>p.id===button.dataset.chatProduct)},button);}catch{button.textContent='다시 AI 상담';}finally{button.disabled=false;}});$('restart').onclick=()=>{checkpoint();state.more=false;renderCategories();};$('consult').onclick=()=>{checkpoint();renderConsult();remember();};}
-function summary(){return `<section class="consult-summary" aria-labelledby="rf-summary-title"><h2 id="rf-summary-title">이 내용이 전달돼요</h2><div class="summary-chips">${chipLabels().map(t=>`<span>${esc(t)}</span>`).join('')}</div><div class="summary-list" tabindex="0" role="region" aria-label="상담할 추천 제품">${state.items.map(p=>`<article class="summary-product"><div class="summary-photo">${photo(p.imageUrl)}</div><div><p class="summary-brand">${esc(p.brand)}</p><h3>${esc(p.title)}</h3><p class="summary-price">${esc(p.feeBandLabel)}</p></div></article>`).join('')}</div></section>`;}
+function summary(){return `<section class="consult-summary" aria-labelledby="rf-summary-title">
+<h2 id="rf-summary-title">이 내용이 전달돼요</h2>
+<div class="summary-chips">${chipLabels().map(t=>`<span>${esc(t)}</span>`).join('')}</div>
+<div class="summary-list" tabindex="0" role="region" aria-label="상담할 추천 제품">${state.items.map(p=>`<article class="summary-product">
+<div class="summary-photo">${photo(p.imageUrl)}</div>
+<div>
+<p class="summary-brand">${esc(p.brand)}</p>
+<h3>${esc(p.title)}</h3>
+<p class="summary-price">
+<span class="price-label">${esc(priceLabel(p.feeLabel))}</span> ${esc(p.feeBandLabel)}</p>
+</div>
+</article>`).join('')}</div>
+</section>`;
+}
 const consultationText=()=>`[렌탈핏 상담 요청]\n조건: ${chipLabels().join(' / ')}\n추천 제품:\n${state.items.map(p=>`${p.brand} ${p.title} · ${p.feeBandLabel}`).join('\n')}`;
 function renderConsult(){progress(2);$('guide').hidden=false;setScene(`<section class="consult ${CONTACT.kakaoUrl?'has-kakao':''}"><h1>상담 신청</h1><p class="subcopy">고른 조건과 추천 제품은 함께 정리해 드려요.</p><form class="form" id="rf-consult-form"><label class="field">이름<input name="name" autocomplete="name" maxlength="20" required placeholder="이름"></label><label class="field">연락처<input name="phone" autocomplete="tel" inputmode="tel" maxlength="15" required placeholder="010-0000-0000"></label><div class="consent-row"><label class="consent"><input type="checkbox" required><span>상담 연락을 위한 개인정보 수집·이용에 동의합니다.</span></label><a class="privacy-link" href="${new URL('privacy/',homeURL).pathname}" target="_blank" rel="noopener">개인정보 처리방침</a><p class="consent-summary">이름·휴대폰·선택 조건·추천 제품 수집 · 상담 연락·안내 · 접수일로부터 1년 보관</p></div><p class="field-error" id="rf-form-error" role="alert" hidden></p><button class="primary submit-consult" type="submit">상담 신청하기</button></form><div class="quick-links">${CONTACT.kakaoUrl?`<button class="quick-link kakao" id="rf-kakao" type="button">${icon('kakao')}카톡 상담</button>`:''}<a class="quick-link" href="tel:${CONTACT.phone}">${icon('phone')}전화 걸기</a></div><a class="mail-link" href="mailto:${CONTACT.email}?subject=${encodeURIComponent('렌탈핏 상담 요청 — '+state.category)}&body=${encodeURIComponent(consultationText())}">${icon('mail')}이메일로 문의하기</a><p class="toast" id="rf-toast" aria-live="polite"></p>${summary()}</section>`,'상담 신청','consult');say('상담 내용을 남겨 주세요.');$('consult-form').onsubmit=submitInquiry;if($('kakao'))$('kakao').onclick=async()=>{try{const u=new URL(CONTACT.kakaoUrl);if(u.protocol!=='https:'||u.hostname!=='open.kakao.com')throw new Error();await navigator.clipboard.writeText(consultationText());$('toast').textContent='붙여넣기만 하세요';window.open(u.href,'_blank','noopener,noreferrer');}catch{$('toast').textContent='요약을 복사하지 못했어요. 전화나 이메일로 문의해 주세요.';}};}
 async function submitInquiry(event){event.preventDefault();if(isSubmitting)return;const form=event.currentTarget,err=$('form-error'),name=form.elements.name.value.trim(),phone=form.elements.phone.value.replace(/\D/g,''),consent=form.querySelector('[type=checkbox]').checked;if(!name||name.length>20||!/^\d{10,11}$/.test(phone)||!consent){err.hidden=false;err.textContent='이름·연락처와 개인정보 동의를 확인해 주세요.';return;}isSubmitting=true;const button=form.querySelector('[type=submit]');button.disabled=true;button.textContent='신청을 보내고 있어요';err.hidden=true;const ticket=version;try{const data=await api('inquiry',{method:'POST',body:JSON.stringify({name,phone,consent,category:state.category,picks:{...state.picks},items:state.items.map(p=>p.id)})});if(ticket!==version||root.hidden)return;if(data.ok!==true)throw new Error('bad-inquiry');checkpoint();renderDone();}catch(e){if(ticket!==version||root.hidden)return;err.hidden=false;err.textContent=(e.status===400||e.status===429)&&e.publicMessage?e.publicMessage:'신청을 보내지 못했어요. 전화나 카톡으로 문의해 주세요.';}finally{isSubmitting=false;if(button.isConnected){button.disabled=false;button.textContent='상담 신청하기';}}}

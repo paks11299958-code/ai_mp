@@ -1,5 +1,12 @@
 (() => {
 'use strict';
+function priceLabel(value){return value==='렌탈료(할인가)'?value:'렌탈료';}
+function priceNode(p,suffix=''){
+ const node=document.createElement('span');
+ const label=document.createElement('small');label.textContent=priceLabel(p.feeLabel);label.className='price-label';
+ node.append(label,document.createTextNode(' '+p.feeBandLabel+suffix));return node;
+}
+
 /* The finder supplies validated public cards. Only IDs go to the server. */
 window.createRentalChat = ({root, CONTACT, assetBase, homeURL, icon, esc, reduced, imageURL, sceneURL, safeText, feeLabel, refine}) => {
 const layer=document.createElement('div');layer.className='rf-chat-layer';layer.hidden=true;root.append(layer);
@@ -47,16 +54,68 @@ function focusStep(){if(layer.hidden)return;const title=steps[step]?.stage==='in
 function saveStep(){const current=steps[step];if(!current||layer.hidden)return;Object.assign(current,{context:{...context},firstReply,nodes:[...$('messages').childNodes],catalog:[...$('catalog').childNodes],notice:$('notice').textContent,retry:$('retry').hidden,scroll:$('flow').scrollTop});}
 function cancelWork(){menuVersion++;menuController?.abort();menuController=null;generation++;controller?.abort();controller=null;if(busy&&steps[step]?.stage==='intro'&&!firstReply)$('retry').hidden=false;busy=false;layer.querySelectorAll('[data-full-reply]').forEach(el=>el.textContent=el.dataset.fullReply);}
 function renderStep(){const current=steps[step];context={...current.context};firstReply=current.firstReply||'';layer.dataset.chatStage=current.stage;$('messages').replaceChildren(...current.nodes);$('catalog').replaceChildren(...(current.catalog||[]));$('notice').textContent=current.notice||'';$('notice').hidden=!current.notice;$('retry').hidden=current.retry!==false;panel(null);$('phone-form').reset();$('chip').hidden=current.stage!=='intro';$('catalog').hidden=current.stage==='intro';$('menu').hidden=!['list','intro'].includes(current.stage);layer.querySelector('.rf-chat-quick').hidden=current.stage!=='intro';$('question').placeholder=current.stage==='menu'?'궁금한 점을 물어보세요 (예: 정수기 처음인데 뭐가 좋아요?)':'궁금한 점을 물어보세요';
- if(current.stage==='intro'){const p=context.focus;const title=textNode('strong',p.brand+' '+p.title);title.tabIndex=-1;title.dataset.chatStepTitle='';$('chip').replaceChildren(title,textNode('span',p.feeBandLabel+' · '+p.tags.join(' · ')));}
+ if(current.stage==='intro'){const p=context.focus;
+const title=textNode('strong',p.brand+' '+p.title);
+title.tabIndex=-1;
+title.dataset.chatStepTitle='';
+$('chip').replaceChildren(title,priceNode(p,' · '+p.tags.join(' · ')));
+}
  if(current.stage==='list'&&!current.catalog)renderList();controls();$('flow').scrollTop=current.scroll||0;focusStep();if(current.stage==='menu'&&!current.catalog)void showMenu();}
 function pushStep(stage,data,nodes){steps.splice(step+1);const current={stage,context:{...data},nodes:nodes||(stage==='intro'?[...conversation]:[...$('messages').childNodes]),catalog:null,firstReply:'',notice:'',retry:true,scroll:0};steps.push(current);step=steps.length-1;history.pushState({rentalChat:true,rentalChatSession:session,rentalChatStep:step},'',location.href);}
 function enter(stage,data){cancelWork();saveStep();pushStep(stage,data);renderStep();saveStep();}
 function handlePopState(state){if(layer.hidden)return false;cancelWork();saveStep();if(state?.rentalChatSession!==session||!Number.isInteger(state.rentalChatStep)||!steps[state.rentalChatStep])return false;step=state.rentalChatStep;renderStep();return true;}
 function requestExit(){if(layer.hidden)return;if(history.state?.rentalChatSession===session)history.go(-(step+1));else close();}
 function menuBack(){if(step>0&&history.state?.rentalChatSession===session)history.go(-step);else void showMenu();}
-function renderList(){const {category,items}=context;panel(null);$('phone-form').reset();$('catalog').replaceChildren(stepTitle(category+' 추천 '+items.length+'개'));for(const p of items){const b=document.createElement('button');b.className='rf-chat-product';b.type='button';b.dataset.chatSelect=p.id;if(p.imageUrl){const img=document.createElement('img');img.src=p.imageUrl;img.alt='';b.append(img);}b.append(textNode('span',p.brand),textNode('strong',p.title),textNode('span',p.feeBandLabel));if(p.promo)b.append(textNode('small','프로모션 · '+p.promo.copy));b.onclick=()=>{if(busy||limited)return;enter('intro',{...context,focus:p});void ask('',true);};$('catalog').append(b);}const narrow=textNode('button','예산·관리 방식으로 좁혀 볼까요?');narrow.type='button';narrow.dataset.chatRefine='';narrow.onclick=()=>refine(category);$('catalog').append(narrow);controls();scroll();focusStep();}
+function renderList(){const {category,items}=context;
+panel(null);
+$('phone-form').reset();
+$('catalog').replaceChildren(stepTitle(category+' 추천 '+items.length+'개'));
+for(const p of items){const b=document.createElement('button');
+b.className='rf-chat-product';
+b.type='button';
+b.dataset.chatSelect=p.id;
+if(p.imageUrl){const img=document.createElement('img');
+img.src=p.imageUrl;
+img.alt='';
+b.append(img);
+}b.append(textNode('span',p.brand),
+textNode('strong',p.title),
+priceNode(p));
+if(p.promo)b.append(textNode('small','프로모션 · '+p.promo.copy));
+b.onclick=()=>{if(busy||limited)return;
+enter('intro',{...context,focus:p});
+void ask('',true);
+};
+$('catalog').append(b);
+}const narrow=textNode('button','예산·관리 방식으로 좁혀 볼까요?');
+narrow.type='button';
+narrow.dataset.chatRefine='';
+narrow.onclick=()=>refine(category);
+$('catalog').append(narrow);
+controls();
+scroll();
+focusStep();
+}
 async function showMenu(){if(layer.hidden||busy||submitting)return;const job=catalogStart();try{const data=await get('options',job.signal);if(job.ticket!==menuVersion||layer.hidden)return;const cats=Array.isArray(data.categories)?data.categories.filter(c=>safeText(c.value,40)).slice(0,60):[];if(!cats.length)throw new Error('empty');context={category:'',picks:{},labels:[],items:[],focus:null};$('retry').hidden=true;firstReply='';$('phone-form').reset();panel(null);$('catalog').replaceChildren(stepTitle('궁금한 상품을 골라 주세요.'));/* Keep each menu's nodes and expanded state together, including history restores. */const menu=$('catalog'),grid=document.createElement('div');grid.className='rf-chat-categories';grid.id='rf-chat-categories-'+crypto.randomUUID();const buttons=cats.map((c,i)=>{const b=document.createElement('button');b.type='button';b.dataset.chatCategory=c.value;b.hidden=i>=6;const url=sceneURL(c.sceneUrl)||imageURL(c.imageUrl);if(url){const img=document.createElement('img');img.src=url;img.alt='';img.loading='lazy';b.append(img);}b.append(textNode('span',safeText(c.value,40)));b.onclick=()=>void chooseCategory(c.value);grid.append(b);return b;});menu.append(grid);if(cats.length>6){const b=textNode('button','더 보기');b.type='button';b.dataset.chatMore='';b.setAttribute('aria-controls',grid.id);b.setAttribute('aria-expanded','false');b.onclick=()=>{const expanded=b.getAttribute('aria-expanded')!=='true';buttons.forEach((button,i)=>button.hidden=!expanded&&i>=6);b.textContent=expanded?'접기':'더 보기';b.setAttribute('aria-expanded',String(expanded));if(!expanded){b.focus({preventScroll:true});const flow=$('flow');flow.scrollTop+=menu.getBoundingClientRect().top-flow.getBoundingClientRect().top;}saveStep();};menu.append(b);}$('chip').hidden=true;scroll();if(!messages.length)$('flow').scrollTop=0;focusStep();saveStep();}catch(e){if(job.ticket===menuVersion&&!layer.hidden)catalogError(e,()=>void showMenu());}finally{job.finish();}}
-async function chooseCategory(category){if(busy||submitting)return;const job=catalogStart(true);try{const data=await get('recommend?'+new URLSearchParams({category}),job.signal);if(job.ticket!==menuVersion||layer.hidden)return;const items=Array.isArray(data.items)?data.items.slice(0,3).map(p=>({id:p.id,brand:safeText(p.brand,50),title:safeText(p.title,120),modelCode:safeText(p.modelCode,60),imageUrl:imageURL(p.imageUrl),feeBandLabel:feeLabel(p.feeBandLabel),tags:Array.isArray(p.tags)?p.tags.map(t=>safeText(t,45)).filter(Boolean).slice(0,2):[],promo:p.promo&&safeText(p.promo.copy,40)?{copy:safeText(p.promo.copy,40)}:null})):[];if(!items.length||items.some(p=>typeof p.id!=='string'||!/^[a-zA-Z0-9_-]{1,24}:[0-9a-f]{14}$/.test(p.id)||!p.title||!p.feeBandLabel))throw new Error('bad');enter('list',{category,picks:{},labels:[],items,focus:null});}catch(e){if(job.ticket===menuVersion&&!layer.hidden)catalogError(e,()=>void chooseCategory(category));}finally{job.finish();}}
+async function chooseCategory(category){if(busy||submitting)return;
+const job=catalogStart(true);
+try{const data=await get('recommend?'+new URLSearchParams({category}),
+job.signal);
+if(job.ticket!==menuVersion||layer.hidden)return;
+const items=Array.isArray(data.items)?data.items.slice(0,3).map(p=>({id:p.id,
+brand:safeText(p.brand,50),
+title:safeText(p.title,120),
+modelCode:safeText(p.modelCode,60),
+imageUrl:imageURL(p.imageUrl),
+feeBandLabel:feeLabel(p.feeBandLabel),
+feeLabel:priceLabel(p.feeLabel),
+tags:Array.isArray(p.tags)?p.tags.map(t=>safeText(t,45)).filter(Boolean).slice(0,2):[],promo:p.promo&&safeText(p.promo.copy,40)?{copy:safeText(p.promo.copy,40)}:null})):[];
+if(!items.length||items.some(p=>typeof p.id!=='string'||!/^[a-zA-Z0-9_-]{1,24}:[0-9a-f]{14}$/.test(p.id)||!p.title||!p.feeBandLabel))throw new Error('bad');
+enter('list',{category,picks:{},
+labels:[],items,focus:null});
+}catch(e){if(job.ticket===menuVersion&&!layer.hidden)catalogError(e,()=>void chooseCategory(category));
+}finally{job.finish();
+}}
 function panel(name){for(const key of ['phone-panel','kakao-panel','done-panel'])$(key).hidden=key!==name;$('phone').setAttribute('aria-expanded',String(name==='phone-panel'));if(name){scroll();const field=$(name).querySelector('input,textarea,button');field?.focus({preventScroll:true});}}
 function summary(){if(!context.focus)return `[렌탈핏 AI 상담 요약]\n종류: ${context.category||'선택 전'}\n상품을 함께 고르고 싶어요.`;return `[렌탈핏 AI 상담 요약]\n종류·조건: ${[context.category,...context.labels].join(' / ')}\n선택: ${context.focus.brand} ${context.focus.title}\n${context.focus.feeBandLabel} / ${context.focus.tags.join(' / ')}\n핏이 첫 설명: ${firstReply.slice(0,500)||'설명 연결 전'}`;}
 async function copy(){panel('kakao-panel');const ticket=generation;$('copy-preview').value=summary();try{await navigator.clipboard.writeText($('copy-preview').value);if(ticket!==generation)return;$('copy-status').textContent='상담 내용을 복사했어요. 카톡 채팅창에 붙여넣기 해 주세요.';}catch{if(ticket!==generation)return;$('copy-status').textContent='자동 복사를 하지 못했어요. 아래 내용을 직접 복사한 뒤 카톡에 붙여넣기 해 주세요.';$('copy-preview').focus();$('copy-preview').select();}}

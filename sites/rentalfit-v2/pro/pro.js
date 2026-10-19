@@ -133,7 +133,9 @@
     line('제품', r => title(r)); line('브랜드', r => r.brand); line('구분', r => r.customer_type); line('관리', r => r.care_type);
     line('방문주기', r => r.visit_cycle_text); line('프로모션', r => r.promotion);
     line('약정', r => r.contract_months, { format: v => v + '개월' }); line('소유권 이전', r => r.ownership_months, { format: v => (v ? v + '개월' : '-') });
-    line('월 렌탈료', r => r.fee, { format: won, best: 'min' }); line('약정 총액', r => r.total_cost, { format: won, best: 'min' });
+    line('월 렌탈료', r => r.fee, { format: won, best: 'min' });
+    line('요금 기준', r => r.fee_label === '렌탈료(할인가)' ? r.fee_label : '렌탈료');
+    line('약정 총액', r => r.total_cost, { format: won, best: 'min' });
     line('수수료', r => r.commission_total, { format: won, best: 'max', cls: 'fee-only' });
     document.querySelector('#compare h2').textContent = heading;
     $('compare').showModal();

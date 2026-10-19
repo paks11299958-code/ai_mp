@@ -170,3 +170,5 @@
 
 /* Promotion copy stays in normal flow, below title and away from rank/popularity. */
 .rf-promotion{margin:12px 0;padding:12px;background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow-wrap:anywhere}.rf-promotion>span{display:inline-block;font-weight:700;color:var(--green);font-size:.875em}.rf-promotion>p{margin:4px 0 0;font-size:1em;line-height:1.6;white-space:normal}
+
+#rental-finder .price-label{display:block;font-size:.85em;color:var(--sub);font-weight:500;overflow-wrap:anywhere}
