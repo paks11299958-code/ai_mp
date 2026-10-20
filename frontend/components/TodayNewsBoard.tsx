@@ -415,7 +415,7 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose, initialCategory }) =>
                             >
                                 <span>{cat.emoji}</span>
                                 <span>{cat.label}</span>
-                                {newsMap[cat.key] !== undefined && newsMap[cat.key] !== null && !isActive && (
+                                {newsMap[`${slot}:${cat.key}`] !== undefined && newsMap[`${slot}:${cat.key}`] !== null && !isActive && (
                                     <span style={{ width: 5, height: 5, borderRadius: '50%', background: cat.accent, display: 'inline-block' }} />
                                 )}
                             </button>
@@ -443,7 +443,7 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose, initialCategory }) =>
                     )}
 
                     {/* 비로그인·만료 → 로그인 안내 */}
-                    {!isLoading && needLogin && newsMap[activeKey] === null && (
+                    {!isLoading && needLogin && current === null && (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '48px 16px', textAlign: 'center' }} data-news-login>
                             <span style={{ fontSize: 36 }}>🔒</span>
                             <p style={{ fontSize: 15, fontWeight: 600, color: T.ink }}>로그인하면 오늘의 뉴스를 볼 수 있어요</p>
@@ -457,7 +457,7 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose, initialCategory }) =>
                     )}
 
                     {/* 에러 */}
-                    {!isLoading && !needLogin && error && newsMap[activeKey] === null && (
+                    {!isLoading && !needLogin && error && current === null && (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '48px 16px', textAlign: 'center' }}>
                             <span style={{ fontSize: 36 }}>⚠️</span>
                             <p style={{ fontSize: 13, color: '#C0392B' }}>{error}</p>
