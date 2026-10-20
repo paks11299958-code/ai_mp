@@ -86,7 +86,11 @@ export function useAuth() {
         if (!token) { setIsAuthChecking(false); return; }
         authApi.me()
             .then(({ user }) => { setUser(user); goTo('main'); })
-            .catch(() => localStorage.removeItem('token'))
+            .catch((e: any) => {
+                localStorage.removeItem('token');
+                // 토큰 만료(관리자 24h·회원 7d) → 빈 화면 대신 바로 로그인 창(2026-10-20 사장).
+                if (e?.status === 401) { setUser(null); goTo('authPage'); }
+            })
             .finally(() => setIsAuthChecking(false));
     }, []);
 

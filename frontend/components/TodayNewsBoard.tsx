@@ -218,8 +218,9 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose, initialCategory }) =>
                     window.dispatchEvent(new CustomEvent('insufficient-points'));
                 }
                 if (res.status === 401) {
-                    // 관리자 토큰은 24시간, 일반 7일 뒤 만료 → 낡은 토큰을 지우고 로그인 안내로.
+                    // 관리자 토큰은 24시간, 일반 7일 뒤 만료 → 낡은 토큰을 지우고 **바로 로그인 창**으로(복귀 경로 기억).
                     localStorage.removeItem('token'); setNeedLogin(true);
+                    goLoginTo(window.location.pathname + window.location.search);
                     throw new Error('로그인이 만료됐어요. 다시 로그인해 주세요.');
                 }
                 throw new Error(d.error || `오류 ${res.status}`);
