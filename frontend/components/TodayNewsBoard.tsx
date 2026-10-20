@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { goLoginTo } from './learn/LearnKit';
 import { X, Newspaper, Volume2, VolumeX, Loader, RefreshCw } from 'lucide-react';
 
 interface Props {
@@ -180,6 +181,7 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose, initialCategory }) =>
     const [newsMap, setNewsMap] = useState<Record<string, NewsData | null>>({});
     const [loadingKey, setLoadingKey] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [needLogin, setNeedLogin] = useState(false);
     const [collectedAt, setCollectedAt] = useState<string | null>(null);
     const { speaking, ttsLoading, speakCategory, stop, prime } = useTTS();
 
@@ -199,6 +201,9 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose, initialCategory }) =>
         if (!s) return; // 슬롯 확정 전엔 보류
         const cacheKey = `${s}:${key}`;
         if (newsMap[cacheKey] !== undefined) return;
+        // 비로그인·만료: 빈 토큰으로 유료 조회를 보내지 않는다(401 빨간 글자 대신 로그인 안내).
+        if (!localStorage.getItem('token')) { setNeedLogin(true); setNewsMap(prev => ({ ...prev, [cacheKey]: null })); setError('로그인이 필요합니다.'); return; }
+        setNeedLogin(false);
         setLoadingKey(cacheKey);
         setError(null);
         try {
@@ -211,6 +216,11 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose, initialCategory }) =>
                 // 포인트 부족(402) → 전역 충전모달 트리거(다른 기능과 동일 패턴). raw fetch라 직접 dispatch.
                 if (res.status === 402 && typeof window !== 'undefined') {
                     window.dispatchEvent(new CustomEvent('insufficient-points'));
+                }
+                if (res.status === 401) {
+                    // 관리자 토큰은 24시간, 일반 7일 뒤 만료 → 낡은 토큰을 지우고 로그인 안내로.
+                    localStorage.removeItem('token'); setNeedLogin(true);
+                    throw new Error('로그인이 만료됐어요. 다시 로그인해 주세요.');
                 }
                 throw new Error(d.error || `오류 ${res.status}`);
             }
@@ -432,8 +442,22 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose, initialCategory }) =>
                         </div>
                     )}
 
+                    {/* 비로그인·만료 → 로그인 안내 */}
+                    {!isLoading && needLogin && newsMap[activeKey] === null && (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '48px 16px', textAlign: 'center' }} data-news-login>
+                            <span style={{ fontSize: 36 }}>🔒</span>
+                            <p style={{ fontSize: 15, fontWeight: 600, color: T.ink }}>로그인하면 오늘의 뉴스를 볼 수 있어요</p>
+                            <p style={{ fontSize: 13, color: T.inkSoft }}>{error}</p>
+                            <button
+                                type="button"
+                                onClick={() => goLoginTo(window.location.pathname + window.location.search)}
+                                style={{ padding: '12px 22px', minHeight: 44, borderRadius: 12, border: 'none', background: T.ink, color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+                            >로그인하기</button>
+                        </div>
+                    )}
+
                     {/* 에러 */}
-                    {!isLoading && error && newsMap[activeKey] === null && (
+                    {!isLoading && !needLogin && error && newsMap[activeKey] === null && (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '48px 16px', textAlign: 'center' }}>
                             <span style={{ fontSize: 36 }}>⚠️</span>
                             <p style={{ fontSize: 13, color: '#C0392B' }}>{error}</p>
