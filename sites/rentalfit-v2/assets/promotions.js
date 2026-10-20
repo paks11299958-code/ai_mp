@@ -14,7 +14,10 @@ function controls(){
  const values=[{value:'all',label:'전체'},...(facets?.categories||[]).map(x=>({...x,label:x.value}))];
  values.forEach((c,i)=>{const b=button(c.label,()=>{filters.category=c.value;load();});b.dataset.category=c.value;b.setAttribute('aria-pressed',String(filters.category===c.value));b.hidden=!expanded&&i>4;$('categories').append(b);});
  $('expand').hidden=values.length<=5;$('expand').setAttribute('aria-expanded',String(expanded));$('expand').textContent=expanded?'종류 접기':'더 많은 종류';
- if(focused)$('categories').querySelectorAll('button').forEach(b=>{if(b.dataset.category===focused&&!b.hidden)b.focus({preventScroll:true});});
+ if(focused){
+  const chip=[...$('categories').children].find(b=>b.dataset.category===focused&&!b.hidden);
+  (chip||$('expand')).focus({preventScroll:true});
+ }
  for(const [key,facet,label] of [['brand','brands','브랜드 전체'],['budget','budgets','예산 전체'],['care','careModes','관리 전체']]){
   const select=$(key);select.replaceChildren(new Option(label,'all'));
   (facets?.[facet]||[]).forEach(x=>select.add(new Option(x.label+' ('+x.count+')',String(x.value))));if(filters[key]!=='all'&&![...select.options].some(o=>o.value===filters[key]))select.add(new Option(key==='budget'?(filters[key]==='0'?'월 1만 원 미만':'월 '+Number(filters[key])/10000+'만 원대까지'):(careNames[filters[key]]||filters[key]),filters[key]));select.value=filters[key];
@@ -83,7 +86,10 @@ async function load(append=false,recovery=0,notice=''){
  }catch(e){if(ticket!==sequence)return;const text=e.status===429?'요청이 많아요. 잠시 후 다시 시도해 주세요.':'혜택을 불러오지 못했어요.';status(text);message(text,()=>load(append),e.status===429?'잠시 후 다시 시도':'재시도');if(append){$('more').disabled=false;$('more').focus();}}
  finally{clearTimeout(timeout);if(ticket===sequence){busy=false;$('results').setAttribute('aria-busy','false');$('more').disabled=false;}}
 }
-$('expand').onclick=()=>{expanded=!expanded;controls();};
+$('expand').onclick=()=>{
+ if(expanded&&(facets?.categories||[]).slice(4).some(c=>c.value===filters.category))return;
+ expanded=!expanded;controls();
+};
 for(const key of ['brand','budget','care'])$(key).onchange=()=>{filters[key]=$(key).value;load();};
 $('more').onclick=()=>load(true);
 controls();

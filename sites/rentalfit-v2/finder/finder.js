@@ -59,9 +59,30 @@ async function api(path,options={}){const controller=new AbortController();activ
 function params(){const q=new URLSearchParams({category:state.category});for(const key of ['budget','care','term'])if(Object.hasOwn(state.picks,key))q.set(key,state.picks[key]||'any');return q;}
 function loading(text){$('guide').hidden=false;setScene(`<div class="loading" role="status"><h1>${esc(text)}</h1></div>`,text,'loading');say('잠시만 기다려 주세요.');}
 function failure(retry,text='불러오지 못했어요. 다시 시도해 주세요.'){setScene(`<section class="error-panel" role="alert"><h1>잠시 연결이 어려워요</h1><p>${esc(text)}</p><div class="error-actions"><button type="button" class="primary" id="rf-retry">다시 시도</button><a class="secondary" href="tel:${CONTACT.phone}">${icon('phone')}전화 걸기</a></div></section>`,'잠시 연결이 어려워요','error');$('guide').hidden=false;say('전화로도 도와드릴 수 있어요.');$('retry').onclick=retry;}
-async function loadOptions(){cancelPending();const ticket=version;loading('제품을 불러오고 있어요');try{const data=await api('options');if(ticket!==version||root.hidden)return;if(!Array.isArray(data.categories)||!data.categories.length)throw new Error('empty-options');categories=data.categories.filter(c=>safeText(c.value,40)).map(c=>({value:safeText(c.value,40),featured:c.featured===true,imageUrl:imageURL(c.imageUrl),
+async function loadOptions(){
+ cancelPending();const ticket=version;loading('제품을 불러오고 있어요');
+ try{
+  const data=await api('options');if(ticket!==version||root.hidden)return;
+  if(!Array.isArray(data.categories)||!data.categories.length)throw new Error('empty-options');
+  categories=data.categories.filter(c=>safeText(c.value,40)).map(c=>({
+    value:safeText(c.value,40),featured:c.featured===true,imageUrl:imageURL(c.imageUrl),
     sceneUrl:sceneURL(c.sceneUrl),minBandLabel:feeLabel(c.minBandLabel),
-    brands:Number.isSafeInteger(c.brands)&&c.brands>0?c.brands:0,popular:c.popular===true}));if(!categories.length)throw new Error('empty-options');if(promotionCategory){const requested=promotionCategory;promotionCategory=null;if(categories.some(c=>c.value===requested)){state.trail=[];state.category=requested;state.picks={};state.labels={};state.items=[];state.recommend=null;loadQuestion();return;}}renderCategories();}catch(e){if(ticket===version&&!root.hidden)failure(loadOptions,'제품 목록을 불러오지 못했어요. 다시 시도하거나 전화해 주세요.');}}
+    brands:Number.isSafeInteger(c.brands)&&c.brands>0?c.brands:0,popular:c.popular===true}));
+  if(!categories.length)throw new Error('empty-options');
+  if(promotionCategory){
+   const requested=promotionCategory;promotionCategory=null;
+   if(categories.some(c=>c.value===requested)){
+    state.trail=[];
+    state.view='category';state.category=null;state.question=null;state.more=false;
+    state.picks={};state.labels={};state.items=[];state.recommend=null;
+    checkpoint();state.category=requested;loadQuestion();return;
+   }
+  }
+  renderCategories();
+ }catch(e){
+  if(ticket===version&&!root.hidden)failure(loadOptions,'제품 목록을 불러오지 못했어요. 다시 시도하거나 전화해 주세요.');
+ }
+}
 function categoryCard(c){
     // New scene cards require validated optional fields; old API responses keep the product-cut card.
     if(!c.sceneUrl||!c.minBandLabel)return `<button type="button" class="category" data-category="${esc(c.value)}" aria-label="${esc(c.value)}">${c.imageUrl?photo(c.imageUrl):icon(icons[c.value]||'water')}<strong>${esc(c.value)}</strong></button>`;
