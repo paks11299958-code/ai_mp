@@ -39,6 +39,7 @@ import { BizReportPanel } from './admin/BizReportPanel';
 import { ShortsAdminPanel } from './admin/ShortsAdminPanel';
 import { SampleVaultPanel } from './admin/SampleVaultPanel';
 import { CodexShortsFactoryPanel } from './admin/CodexShortsFactoryPanel';
+import { OpsDashboardPanel } from './admin/OpsDashboardPanel';
 import { PartnerApplicationsPanel } from './admin/PartnerApplicationsPanel';
 
 interface AdminPanelProps {
@@ -51,7 +52,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'partner-applications' | 'menu-limits' | 'monitor' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'herdr' | 'kin-answer' | 'skills' | 'shorts' | 'codex-shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault' | 'ai-avatar'>('personas');
+    const [mainView, setMainView] = useState<'dashboard' | 'batch-jobs' | 'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'partner-applications' | 'menu-limits' | 'monitor' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'herdr' | 'kin-answer' | 'skills' | 'shorts' | 'codex-shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault' | 'ai-avatar'>('dashboard');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -87,6 +88,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                     // 14개 탭을 성격별 그룹으로 묶어 2단 네비(그룹 → 하위탭)로 표시. mainView 키는 그대로.
                     const GROUPS = [
                         { id: 'content', label: '콘텐츠', icon: 'BookOpen', tabs: [
+                            { key: 'dashboard', label: '📊 운영 대시보드', icon: 'BarChart2' },
                             { key: 'personas',      label: '페르소나', icon: 'Bot' },
                             { key: 'categories',    label: '카테고리', icon: 'Tag' },
                             { key: 'webtoon',       label: '웹툰 관리', icon: 'BookOpen' },
@@ -210,6 +212,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {/* 그 외 탭: 우측 콘텐츠 영역 */}
                 {mainView !== 'personas' && (
                 <div className="flex-1 flex flex-col overflow-hidden">
+
+                {mainView === 'dashboard' && <OpsDashboardPanel onNavigate={setMainView} />}
 
                 {/* 공통 설정 패널 */}
                 {mainView === 'settings' && <SettingsPanel onGoPersonas={() => setMainView('personas')} />}
