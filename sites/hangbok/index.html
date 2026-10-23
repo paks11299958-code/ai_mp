@@ -1,165 +1,34 @@
-<!doctype html>
-<html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>행복컴퍼니 렌탈 파트너 모집 — 집에서 시작하는 렌탈 부업</title>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>행복컴퍼니 렌탈 파트너 모집 — 집에서 시작하는 렌탈 부업</title>
+<meta property="og:type" content="website"><meta property="og:title" content="행복컴퍼니 렌탈 파트너 모집 — 집에서 시작하는 렌탈 부업"><meta property="og:description" content="가입비·물품 구매 없이, 내 시간에 맞춰. 자체 콜센터·영상교육·정산까지 한곳에서. 상담 접수 또는 전화 010-2389-4386"><meta property="og:image" content="https://hangbok.dbzone.kr/sites/hangbok/assets/family.jpg"><meta property="og:url" content="https://hangbok.dbzone.kr/">
 <meta name="description" content="우리 집에서 시작하는 렌탈 부업. 행복컴퍼니 공식 파트너 모집, 안내·상담은 ㈜디비존.">
-<style>
-:root{--bg:#f6f3ec;--ink:#293a33;--sub:#5d6b62;--green:#376650;--soft:#e9eee5;--line:#dfe3da;--serif:'Nanum Myeongjo','Batang','AppleMyungjo',serif;--sans:Pretendard,'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif}
-*{box-sizing:border-box}
-html{text-size-adjust:100%;-webkit-text-size-adjust:100%;scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font:1rem/1.6 var(--sans);word-break:keep-all;overflow-wrap:anywhere}
-a{color:inherit;text-decoration:none}
-img{display:block;max-width:100%;height:auto}
-h1,h2,h3,p,ul,ol{margin:0;padding:0}
-ul,ol{list-style:none}
-h1,h2{font-family:var(--serif);font-weight:800;letter-spacing:-.035em;text-wrap:balance}
-a:focus-visible,summary:focus-visible{outline:3px solid var(--green);outline-offset:4px}
-.wrap{width:min(1080px,calc(100% - 40px));margin-inline:auto}
-header{border-bottom:1px solid var(--line)}
-.hd{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:72px;padding-block:12px;flex-wrap:wrap}
-.logo{font:800 1.4375rem/1.3 var(--serif)}
-.logo span{font:700 .8125rem var(--sans);color:var(--green)}
-.header-cta{font-size:.875rem;padding:9px 14px;min-height:44px;display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:var(--green);color:#fff;min-height:50px;max-width:100%;border-radius:12px;padding:12px 22px;font-weight:700;font-size:1rem;line-height:1.4;text-align:center;border:1px solid var(--green)}
-.btn-soft{background:var(--soft);color:var(--green)}
-.btn-app{background:#fff;color:var(--green);border:2px solid var(--green);font-size:1.0625rem;min-height:56px;box-shadow:0 4px 0 var(--green)}
-.eyebrow{font-size:.8125rem;color:var(--green);display:block;margin-bottom:8px;font-weight:600}
-.hero{padding-block:24px 8px;text-align:center}
-.hero h1{font-size:clamp(1.75rem,3vw + 1rem,2.6rem);line-height:1.35}
-.hero .lead{margin-top:8px;color:var(--sub)}
-.hero figure{margin:16px auto 0;max-width:640px;border-radius:20px;overflow:hidden;border:1px solid var(--line);background:var(--soft)}
-.hero figure img{width:100%}
-.actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:14px}
-.actions .btn{flex:1 1 220px;max-width:340px}
-.section{padding-block:56px 8px}
-.section h2{font-size:clamp(1.5625rem,2vw + 1rem,2.125rem);line-height:1.4;margin-bottom:20px}
-.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;counter-reset:s}
-.flow li,.why li,.steps li,.brands li{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0}
-.num{font-size:.8125rem;font-weight:700;color:var(--green);display:block}
-.flow b,.steps b{font-size:1.125rem;display:block;margin-top:2px}
-.flow p,.steps p{font-size:.9375rem;color:var(--sub);margin-top:4px}
-.why{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.why li{display:flex;gap:12px;align-items:flex-start}
-.why li::before{content:"✓";flex:none;width:1.75rem;height:1.75rem;border-radius:50%;background:var(--soft);color:var(--green);display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:.9375rem}
-.fit{background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px;display:grid;gap:12px}
-.fit li{padding-left:1.1rem;position:relative}
-.fit li::before{content:"";position:absolute;left:0;top:.7em;width:.45rem;height:.45rem;border-radius:50%;background:var(--green)}
-.fit .goal{background:var(--soft);border-radius:14px;padding:14px 16px;font-weight:700;color:var(--green)}
-.fit .goal::before{display:none}
-.fit .goal{padding-left:16px}
-.brands{display:flex;flex-wrap:wrap;gap:10px}
-.brands li{padding:12px 18px;font-weight:700;border-radius:999px}
-.note{font-size:.8125rem;color:var(--sub);margin-top:10px}
-.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.cta-box{margin-top:20px;background:var(--soft);border-radius:20px;padding:24px;text-align:center}
-.cta-box p{color:var(--sub);margin-bottom:14px}
-.faq{display:grid;gap:10px}
-details{background:#fff;border:1px solid var(--line);border-radius:14px;padding:4px 18px}
-summary{cursor:pointer;min-height:48px;display:list-item;padding-block:10px;font-weight:700}
-details p{padding-bottom:14px;color:var(--sub)}
-.final{padding-block:40px 8px;text-align:center}
-.final .actions{margin-top:0}
-footer{font-size:.75rem;color:var(--sub);padding-block:36px 40px}
-footer p{margin-block:4px}
-footer a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:3px}
-.role-line{font-weight:700;color:var(--ink);font-size:.8125rem;margin-bottom:10px}
-@media(max-width:860px){.flow,.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:560px){.flow,.steps,.why{grid-template-columns:minmax(0,1fr)}.section{padding-block:44px 4px}.actions .btn{max-width:none;flex-basis:100%}}
-</style>
-</head>
-<body>
-<header><div class="wrap hd"><a class="logo" href="#top" aria-label="행복컴퍼니 렌탈 파트너">행복컴퍼니 <span class="logo-sub">렌탈 파트너</span></a><button type="button" class="header-cta" data-partner-inquiry>상담 요청</button></div></header>
-<main id="top">
-<section class="wrap hero" aria-labelledby="h1">
-<div class="strip"><span class="dot" aria-hidden="true"></span><span data-month>10월</span> 파트너 모집 중 · 지금 신청 가능</div>
-<span class="eyebrow">행복컴퍼니 공식 파트너 · 안내·상담 ㈜디비존</span>
-<h1 id="h1"><em>가입비·물품 구매 없이,</em><br>집에서 시작하는 렌탈 부업</h1>
-<p class="lead">내 시간에 맞춰 렌탈 상품을 안내하고,<br>계약 건당 수수료를 받습니다.</p>
-<figure><img src="assets/family.jpg" width="840" height="465" alt="식탁에서 태블릿으로 함께 렌탈 상품을 살펴보는 가족"></figure>
-<ul class="chips" aria-label="조건"><li>재택·시간 자유</li><li>영상교육 약 2시간</li><li>경험 없어도 OK</li></ul>
-<div class="actions">
-<button type="button" class="btn" data-partner-inquiry>상담 연락 요청하기 →</button>
-<p class="assure">연락처를 남겨 주시면 담당자가 연락드립니다.</p>
-<a class="btn btn-soft" href="tel:010-2389-4386">☎ 지금 전화 상담 010-2389-4386</a>
-</div>
-</section>
-
-<section class="wrap section" aria-labelledby="h-work">
-<span class="eyebrow">하는 일</span>
-<h2 id="h-work">제품 비교부터 수수료 정산까지, 네 단계</h2>
-<ol class="flow">
-<li><span class="num">01</span><b>제품 비교</b><p>렌탈이 필요한 분께 조건에 맞는 상품을 찾아 안내합니다.</p></li>
-<li><span class="num">02</span><b>견적 공유</b><p>비교한 내용으로 견적을 공유합니다.</p></li>
-<li><span class="num">03</span><b>주문·설치 진행</b><p>계약이 되면 주문·설치를 진행합니다.</p></li>
-<li><span class="num">04</span><b>수수료 정산</b><p>계약 1건당 수수료를 행복컴퍼니에서 정산합니다.</p></li>
-</ol>
-</section>
-
-<section class="wrap section" aria-labelledby="h-why">
-<span class="eyebrow">부담 없는 이유</span>
-<h2 id="h-why">시작이 가벼운 이유 4가지</h2>
-<ul class="why">
-<li>가입비·물품 구매 없이 시작</li>
-<li>매장·사무실 없어도 됨, 인터넷만 있으면 됨</li>
-<li>제품·조건을 외울 필요 없음 — 전용 앱에서 보고 안내</li>
-<li>영상 교육(약 2시간) + 자체 콜센터가 뒤에서 받쳐 줌</li>
-</ul>
-</section>
-
-<section class="wrap section" aria-labelledby="h-fit">
-<span class="eyebrow">이런 분과 함께</span>
-<h2 id="h-fit">틈틈이, 내 시간에 맞춰</h2>
-<ul class="fit">
-<li>만 20세 이상, 영업 경험 없어도 됨</li>
-<li>직장인·주부·육아 중 틈틈이, 평일·주말 자유</li>
-<li class="goal"><strong>첫 달 1건</strong>을 목표로 실제로 움직이실 분 — 저희가 첫 계약까지 같이 갑니다</li>
-<li>본업으로 키우실 분, 다른 영업·사업과 병행하실 분 환영</li>
-</ul>
-</section>
-
-<section class="wrap section" aria-labelledby="h-brand">
-<span class="eyebrow">취급 브랜드</span>
-<h2 id="h-brand">안내할 수 있는 브랜드</h2>
-<ul class="brands">
-<li>LG전자</li><li>SK매직</li><li>코웨이</li><li>쿠쿠</li><li>청호나이스</li><li>현대렌탈케어</li>
-</ul>
-</section>
-
-<section class="wrap section" aria-labelledby="h-step">
-<span class="eyebrow">등록 절차</span>
-<h2 id="h-step">등록은 이 순서로 진행됩니다</h2>
-<ol class="steps">
-<li><span class="num">1단계</span><b>상담</b><p>전화·당근 채팅</p></li>
-<li><span class="num">2단계</span><b>파트너 등록</b><p>상담 후 등록 방법을 안내드립니다</p></li>
-<li><span class="num">3단계</span><b>영상 교육</b><p>약 2시간</p></li>
-<li><span class="num">4단계</span><b>첫 상담 함께 진행</b><p>첫 계약까지 같이 갑니다</p></li>
-</ol>
-<div class="cta-box"><p>상담을 마치시면 등록 방법을 바로 안내드립니다.</p></div>
-</section>
-
-<section class="wrap section" aria-labelledby="h-faq">
-<span class="eyebrow">자주 묻는 질문</span>
-<h2 id="h-faq">먼저 궁금하신 것</h2>
-<div class="faq">
-<details><summary>가입비가 있나요?</summary><p>가입비·물품 구매 없이 시작합니다.</p></details>
-<details><summary>경험이 없어도 되나요?</summary><p>영업 경험 없어도 됩니다. 만 20세 이상이면 됩니다.</p></details>
-<details><summary>시간은 어떻게 되나요?</summary><p>재택 · 시간 자유 · 평일·주말 자유입니다.</p></details>
-<details><summary>수수료 정산은 누가 하나요?</summary><p>수수료 정산은 행복컴퍼니에서 합니다. 정산 방식과 실제 사례는 상담 때 그대로 보여드립니다.</p></details>
-</div>
-</section>
-
-<section class="wrap final" aria-label="문의">
-<p class="role-line">부업 문의는 상담 접수를 남겨 주시면 담당자가 연락드립니다.</p>
-<div class="actions"><button type="button" class="btn" data-partner-inquiry>상담 연락 요청하기 →</button><a class="btn btn-soft" href="tel:010-2389-4386">☎ 지금 전화 상담 010-2389-4386</a></div>
-</section>
-</main>
-<footer class="wrap business-footer">
-<p class="role-line">행복컴퍼니 공식 파트너 모집 · 안내·상담 ㈜디비존 · 등록은 상담 후 안내 · 수수료 정산은 행복컴퍼니</p>
-</footer>
-
-<!-- 상담 접수(2026-10-23 사장: 전화 대신 접수, 문자는 파트너 담당자에게) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"><style>
+:root{--bg:#f6f3ec;--ink:#293a33;--sub:#5d6b62;--green:#376650;--soft:#e9eee5;--line:#dfe3da;--orange:#ff6a2b;--sans:Pretendard,'Apple SD Gothic Neo',sans-serif}
+*{box-sizing:border-box}body{margin:0;font:16px/1.6 var(--sans);color:var(--ink);background:var(--bg);word-break:keep-all}a{color:inherit;text-decoration:none}h1,h2,p{margin:0}ul,ol{margin:0;padding:0;list-style:none}
+.wrap{width:min(1080px,calc(100% - 32px));margin-inline:auto}header{background:#fff;border-bottom:1px solid var(--line)}.hd{display:flex;justify-content:space-between;align-items:center;min-height:64px;gap:10px}
+.logo{display:flex;align-items:center;gap:9px}.mark{width:34px;height:34px}.wm{font-weight:800;font-size:19px;line-height:1.05;letter-spacing:-.02em}.wm small{display:block;font-size:11px;font-weight:600;color:var(--green);letter-spacing:0}
+.header-cta{font:700 14px var(--sans);padding:0 14px;min-height:42px;border:1.5px solid var(--green);color:var(--green);background:#fff;border-radius:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;background:var(--green);color:#fff;min-height:54px;border:0;border-radius:12px;padding:12px 20px;font:800 17px var(--sans);width:100%;box-shadow:0 6px 18px rgba(55,102,80,.3)}.btn-soft{background:#fff;color:var(--green);border:2px solid var(--green);box-shadow:none}
+.actions{display:grid;gap:10px;margin-top:14px}.strip{display:inline-flex;align-items:center;gap:8px;background:var(--orange);color:#fff;font-weight:800;font-size:14px;border-radius:999px;padding:8px 14px}.strip i{width:8px;height:8px;border-radius:50%;background:#fff}
+.eyebrow{display:block;font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px}h2{font-size:24px;line-height:1.3;letter-spacing:-.02em;font-weight:800}.section{padding:36px 0 6px}
+.hero{padding:22px 0 8px;text-align:center}.hero h1{font-size:30px;line-height:1.25;letter-spacing:-.03em;font-weight:800;margin-top:10px}.hero h1 em{font-style:normal;color:var(--green)}.lead{margin-top:10px;color:var(--sub);font-size:15.5px}.hero figure{margin:16px 0 0}.hero img{display:block;width:100%;border-radius:18px}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px}.chips li{font-size:13px;font-weight:700;color:var(--green);background:var(--soft);border-radius:999px;padding:7px 11px}.assure{margin-top:8px;font-size:14px;color:var(--sub);text-align:center}
+.brands{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 16px;text-align:center}.brands .bl{display:block;font-size:12px;font-weight:700;color:var(--sub);margin-bottom:8px;letter-spacing:.06em}.brands ul{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px}.brands li{font-weight:900;font-size:17px;letter-spacing:-.02em}
+.sup{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.sup li{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 14px}.sup i{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--soft);color:var(--green);margin-bottom:10px}.sup svg{width:22px;height:22px}.sup b{display:block;font-size:16px}.sup p{font-size:13.5px;color:var(--sub);margin-top:4px;line-height:1.45}
+.steps{display:grid;gap:10px;margin-top:14px}.steps li{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px}.steps span{font-size:12px;font-weight:700;color:var(--green)}.steps b{display:block;font-size:17px;margin-top:2px}.steps p{font-size:14px;color:var(--sub)}
+.faq{display:grid;gap:8px;margin-top:14px}details{background:#fff;border:1px solid var(--line);border-radius:12px;padding:0 14px}summary{font-weight:700;min-height:48px;display:flex;align-items:center;cursor:pointer}details p{padding:0 0 12px;color:var(--sub);font-size:15px}
+.final{text-align:center;padding:30px 0 8px}.role-line{font-size:14px;color:var(--sub)}.business-footer{padding:28px 0 36px;font-size:12px;color:var(--sub);line-height:1.7}.business-footer .role-line{font-size:13px;color:var(--ink);margin-bottom:6px}.business-footer a{text-decoration:underline}
+/* B 다크 히어로 */
+.B .hero{position:relative;padding:0;text-align:left;color:#fff;background:#0b1611}.B .hero .photo{height:360px;background:url(family-wide.jpg) center 40%/cover}.B .hero .shade{position:absolute;left:0;right:0;top:180px;height:200px;background:linear-gradient(180deg,rgba(11,22,17,0),#0b1611)}.B .hero .body{position:relative;padding:0 16px 20px;margin-top:-30px}.B .hero h1{color:#fff}.B .hero h1 em{color:#ffd166}.B .lead{color:#dfe7e2}.B .chips{justify-content:flex-start}.B .chips li{background:rgba(255,255,255,.14);color:#fff}.B .assure{color:#b7c2bb;text-align:left}.B .btn{background:#fff;color:var(--green);box-shadow:none}.B .btn-soft{background:transparent;color:#fff;border-color:#fff}
+/* C 신뢰 우선 */
+.C .trustband{background:var(--green);color:#fff;font-size:13px;font-weight:700;text-align:center;padding:9px 12px}.C .hero figure{margin-top:12px}.C .hero img{height:200px;object-fit:cover}
+@media(min-width:720px){.actions{grid-template-columns:1fr 1fr}.sup{grid-template-columns:repeat(4,1fr)}.steps{grid-template-columns:repeat(4,1fr)}.hero h1{font-size:40px}}
+.C .trustband{padding:10px 12px;line-height:1.35}.C .trustband b{display:block;font-size:14px}.C .trustband span{display:block;font-size:12.5px;font-weight:600;opacity:.95;margin-top:2px}
+.who{margin-top:8px;font-size:13px;color:var(--sub)}.brands ul.two{max-width:330px;margin:0 auto}.C .brands{margin-top:14px;border-radius:14px;border:1px solid var(--line)}
+.steps.mini{grid-template-columns:repeat(4,1fr);gap:6px}.steps.mini li{padding:12px 6px;text-align:center}.steps.mini span{display:grid;place-items:center;width:26px;height:26px;margin:0 auto 4px;border-radius:50%;background:var(--green);color:#fff;font-size:13px}.steps.mini b{font-size:13.5px;line-height:1.3}
+</style></head><body class="C"><header><div class="wrap hd"><a class="logo" href="#top"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#376650"/><path d="M11 21.5 20 13l9 8.5V30H11z" fill="#fff"/><circle cx="20" cy="25.5" r="2.4" fill="#ff6a2b"/></svg><span class="wm">행복컴퍼니<small>렌탈 파트너</small></span></a><button type="button" class="header-cta" data-partner-inquiry>상담 요청</button></div></header><div class="trustband"><b>행복컴퍼니 공식 파트너 모집</b><span>자체 콜센터 · 영상교육 약 2시간 · 행복컴퍼니 수수료 정산</span></div><section class="wrap hero"><span class="strip"><i></i><span data-month>10월</span> 파트너 모집 중 · 지금 신청 가능</span><h1 style="margin-top:12px"><em>가입비·물품 구매 없이,</em><br>집에서 시작하는 렌탈 부업</h1><p class="who">모집 안내·상담: ㈜디비존</p><p class="lead">내 시간에 맞춰 렌탈 상품을 안내하고,<br>계약 건당 수수료를 받습니다.</p><div class="brands" aria-label="취급 브랜드"><span class="bl">취급 브랜드</span><ul class="two"><li style="color:#a50034">LG전자</li><li style="color:#e4002b">SK매직</li><li style="color:#0072ce">코웨이</li><li style="color:#c8102e">쿠쿠</li><li style="color:#005bac">청호나이스</li><li style="color:#1e3a6e">현대렌탈케어</li></ul></div><figure><img src="assets/family-wide.jpg" alt=""></figure><div class="actions"><button type="button" class="btn" data-partner-inquiry>상담 연락 요청하기 →</button><a class="btn btn-soft" href="tel:010-2389-4386">☎ 지금 전화 상담 010-2389-4386</a></div><p class="assure">연락처를 남겨 주시면 담당자가 연락드립니다.</p></section><section class="wrap section" aria-labelledby="h-sup"><span class="eyebrow">원스톱 지원</span><h2 id="h-sup">교육부터 상담 지원·정산까지 한곳에서</h2>
+<ul class="sup"><li><i><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" fill="currentColor"/></svg></i><b>자체 콜센터</b><p>자체 콜센터를 운영합니다</p></li><li><i><svg viewBox="0 0 24 24"><path d="M4 5h16v11H4zM2 18h20v1.5H2zM10 8.5v4l3.5-2z" fill="currentColor"/></svg></i><b>영상 교육 약 2시간</b><p>제품·상담 방법을 영상으로 배웁니다</p></li><li><i><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3" fill="currentColor"/><path d="M4 9c0 1.7 3.6 3 8 3s8-1.3 8-3v3c0 1.7-3.6 3-8 3s-8-1.3-8-3zm0 5c0 1.7 3.6 3 8 3s8-1.3 8-3v3c0 1.7-3.6 3-8 3s-8-1.3-8-3z" fill="currentColor"/></svg></i><b>건당 수수료 정산</b><p>계약 1건마다 행복컴퍼니가 정산합니다</p></li><li><i><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5" fill="currentColor"/><rect x="8" y="5" width="8" height="12" fill="#fff"/></svg></i><b>전용 앱</b><p>제품·조건을 외울 필요 없이 앱에서 보고 안내</p></li></ul></section><section class="wrap section" aria-labelledby="h-step"><span class="eyebrow">등록 절차</span><h2 id="h-step">등록은 이 순서로 진행됩니다</h2>
+<ol class="steps mini"><li><span>1</span><b>상담</b></li><li><span>2</span><b>파트너 등록</b></li><li><span>3</span><b>영상 교육</b></li><li><span>4</span><b>활동 시작</b></li></ol><p class="assure" style="margin-top:10px">등록과 활동 방법은 상담에서 안내합니다.</p></section><section class="wrap section" aria-labelledby="h-faq"><span class="eyebrow">자주 묻는 질문</span><h2 id="h-faq">먼저 궁금하신 것</h2>
+<div class="faq"><details><summary>가입비가 있나요?</summary><p>가입비·물품 구매 없이 시작합니다.</p></details><details><summary>경험이 없어도 되나요?</summary><p>영업 경험 없이도 시작할 수 있으며, 영상교육은 약 2시간입니다. 만 20세 이상이면 됩니다.</p></details><details><summary>시간은 어떻게 되나요?</summary><p>재택으로 평일·주말 원하는 시간에 활동할 수 있습니다. 구체적인 활동 조건은 상담에서 확인해 주세요.</p></details><details><summary>수수료 정산은 누가 하나요?</summary><p>건당 수수료는 행복컴퍼니에서 정산하며, 상세 조건은 상담에서 확인해 주세요.</p></details></div></section><section class="wrap final" aria-label="문의"><p class="role-line">부업 문의는 상담 접수를 남겨 주시면 담당자가 연락드립니다.</p><div class="actions"><button type="button" class="btn">상담 연락 요청하기 →</button><a class="btn btn-soft" href="tel:010-2389-4386">☎ 지금 전화 상담 010-2389-4386</a></div></section><footer class="wrap business-footer"><p class="role-line"><b>행복컴퍼니 공식 파트너 모집</b> · 안내·상담 ㈜디비존 · 등록은 상담 후 안내 · 수수료 정산은 행복컴퍼니</p><p>행복컴퍼니 · 대표 곽영애 · 사업자등록번호 695-30-00751</p><p>대구광역시 남구 대명동 1623-2 세아타워 507호 · 업태 소매업 · 종목 전자상거래</p><a href="https://rental.dbzone.kr/privacy/">개인정보 처리방침</a></footer><!-- 상담 접수(2026-10-23 사장: 전화 대신 접수, 문자는 파트너 담당자에게) -->
 <style>
 .tel-line{margin-top:12px;font-size:15px;color:var(--sub,#5d6b62);text-align:center}.tel-line a{text-decoration:underline;text-underline-offset:3px;font-weight:700}
 .header-cta{cursor:pointer;background:transparent;font:inherit}
@@ -220,23 +89,7 @@ footer a{display:inline-flex;align-items:center;min-height:44px;text-decoration:
   });
 })();
 </script>
-<style>
-/* 첫 화면 광고형(2026-10-23 사장: 후킹 강화, 전화 상담 버튼) */
-.hero{text-align:center}
-.strip{display:inline-flex;align-items:center;gap:8px;background:#ff6a2b;color:#fff;font-weight:800;font-size:15px;border-radius:999px;padding:9px 16px;margin-bottom:14px;box-shadow:0 6px 16px rgba(255,106,43,.3)}
-.dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:dotpulse 1.6s infinite}
-@keyframes dotpulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}70%{box-shadow:0 0 0 8px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
-.hero h1 em{font-style:normal;color:var(--green)}
-.chips{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
-.chips li{font-size:14px;font-weight:700;color:var(--green);background:var(--soft,#e9eee5);border-radius:999px;padding:7px 12px}
-.assure{margin:0;font-size:14px;color:var(--sub);flex-basis:100%}
-.app-note{margin:0;font-weight:700;color:var(--green)}
-.chips li{font-size:13px}
-.hero .actions{margin-top:12px}
-@media(prefers-reduced-motion:reduce){.dot{animation:none}}
-</style>
 <script>
 (function(){var el=document.querySelector('[data-month]');if(!el)return;try{el.textContent=new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',month:'numeric'}).format(new Date());}catch(e){el.textContent=(new Date().getMonth()+1)+'월';}})();
 </script>
-</body>
-</html>
+</body></html>
