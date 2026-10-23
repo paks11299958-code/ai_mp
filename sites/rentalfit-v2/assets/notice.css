@@ -20,3 +20,8 @@
 .notice-later{display:block;width:100%;margin-top:10px;border:0;background:transparent;font:inherit;font-size:13px;color:#6b756f;text-decoration:underline;text-underline-offset:3px;cursor:pointer;min-height:40px}
 @media(max-width:360px){.notice-card h2{font-size:25px}.notice-photo{height:176px}}
 @media(prefers-reduced-motion:reduce){.notice-overlay,.notice-card{transition:none}.notice-dot{animation:none}}
+
+/* 머리말 파트너 모집 버튼(2026-10-23 사장: 두 번째 방문엔 팝업이 안 떠서 링크가 없음 → 탑 메뉴에 강조) */
+.hd-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.header-partner{display:inline-flex;align-items:center;gap:8px;background:#ff6a2b;color:#fff;font-weight:700;font-size:15px;letter-spacing:0;line-height:1;border-radius:999px;padding:0 15px;min-height:44px;white-space:nowrap;box-shadow:0 4px 12px rgba(255,106,43,.3)}
+@media(max-width:360px){.header-partner{font-size:13px;padding:0 11px}}
