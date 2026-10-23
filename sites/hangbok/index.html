@@ -132,17 +132,11 @@ footer a{display:inline-flex;align-items:center;min-height:44px;text-decoration:
 <h2 id="h-step">등록은 이 순서로 진행됩니다</h2>
 <ol class="steps">
 <li><span class="num">1단계</span><b>상담</b><p>전화·당근 채팅</p></li>
-<li><span class="num">2단계</span><b>행복컴퍼니 앱(세일즈컴바인) 등록</b><p>행복컴퍼니 앱(세일즈컴바인)</p></li>
+<li><span class="num">2단계</span><b>파트너 등록</b><p>상담 후 등록 방법을 안내드립니다</p></li>
 <li><span class="num">3단계</span><b>영상 교육</b><p>약 2시간</p></li>
 <li><span class="num">4단계</span><b>첫 상담 함께 진행</b><p>첫 계약까지 같이 갑니다</p></li>
 </ol>
-<div class="cta-box" id="app-register">
-<p>상담을 마치셨다면 행복컴퍼니 앱(세일즈컴바인)에서 등록을 이어가세요. 가입할 때 추천인 아이디를 꼭 넣어 주세요.</p>
-<div class="ref"><span class="ref-label">추천인 아이디</span><code class="ref-id" id="ref-id">LJJMJT3Z</code><button type="button" class="ref-copy" data-copy="LJJMJT3Z" aria-label="추천인 아이디 복사">복사</button></div>
-<p class="ref-done" id="ref-done" role="status" aria-live="polite"></p>
-<a class="btn btn-app" href="https://play.google.com/store/apps/details?id=kr.co.appsolution.salescombine" target="_blank" rel="noopener">행복컴퍼니 앱(세일즈컴바인) 다운로드 · 안드로이드 ↗</a>
-<p class="ref-small">아이폰용 앱은 아직 없습니다 — 상담 때 안내드립니다.</p>
-</div>
+<div class="cta-box"><p>상담을 마치시면 등록 방법을 바로 안내드립니다.</p></div>
 </section>
 
 <section class="wrap section" aria-labelledby="h-faq">
@@ -162,7 +156,7 @@ footer a{display:inline-flex;align-items:center;min-height:44px;text-decoration:
 </section>
 </main>
 <footer class="wrap business-footer">
-<p class="role-line">행복컴퍼니 공식 파트너 모집 · 안내·상담 ㈜디비존 · 등록은 행복컴퍼니 앱(세일즈컴바인) · 수수료 정산은 행복컴퍼니</p>
+<p class="role-line">행복컴퍼니 공식 파트너 모집 · 안내·상담 ㈜디비존 · 등록은 상담 후 안내 · 수수료 정산은 행복컴퍼니</p>
 </footer>
 
 <!-- 상담 접수(2026-10-23 사장: 전화 대신 접수, 문자는 파트너 담당자에게) -->
@@ -243,26 +237,6 @@ footer a{display:inline-flex;align-items:center;min-height:44px;text-decoration:
 </style>
 <script>
 (function(){var el=document.querySelector('[data-month]');if(!el)return;try{el.textContent=new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',month:'numeric'}).format(new Date());}catch(e){el.textContent=(new Date().getMonth()+1)+'월';}})();
-</script>
-<style>
-.ref{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:12px 0 4px}
-.ref-label{flex-basis:100%;text-align:center;font-size:14px;color:var(--sub,#5d6b62);font-weight:600}
-.ref-id{font:800 21px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;background:#fff;border:2px dashed var(--green);border-radius:12px;padding:10px 14px;color:var(--green);user-select:all}
-.ref-copy{min-height:44px;padding:0 16px;border:0;border-radius:12px;background:var(--green);color:#fff;font:700 15px/1 inherit;font-family:inherit;cursor:pointer}
-.ref-done{min-height:1.4em;margin:0 0 8px;font-size:14px;font-weight:700;color:var(--green);text-align:center}
-.ref-small{margin:8px 0 0;font-size:13px;color:var(--sub,#5d6b62);text-align:center}
-.cta-box .btn-app{margin-top:6px}
-</style>
-<script>
-(function(){
-  var btn=document.querySelector('.ref-copy'),done=document.getElementById('ref-done'),code=document.getElementById('ref-id');if(!btn)return;
-  function flash(msg){done.textContent=msg;setTimeout(function(){done.textContent='';},1800);}
-  btn.addEventListener('click',function(){
-    var text=btn.getAttribute('data-copy');
-    function fallback(){var r=document.createRange();r.selectNodeContents(code);var s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand('copy');flash('복사됐습니다. 가입 화면에 붙여 넣으세요.');}catch(e){flash('길게 눌러 복사해 주세요.');}}
-    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){flash('복사됐습니다. 가입 화면에 붙여 넣으세요.');},fallback);}else fallback();
-  });
-})();
 </script>
 </body>
 </html>
