@@ -21,15 +21,20 @@
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-labelledby', 'notice-title');
+    // 3차 시안 A(2026-10-23, 코덱스 아린 채점 91): 사진 → 배지 → 후킹 제목 → 활동 한 줄 → 배지 3개 → 비용 안심 → 버튼 하나.
     overlay.innerHTML =
       '<div class="notice-card">' +
+        '<div class="notice-strip"><span class="notice-dot" aria-hidden="true"></span>10월 파트너 모집 중 · 지금 신청 가능</div>' +
+        '<img class="notice-photo" src="assets/notice-family.jpg" width="800" height="367" alt="식탁에서 태블릿으로 렌탈 상품을 살펴보는 가족">' +
         '<button type="button" class="notice-close" aria-label="안내 닫기">×</button>' +
-        '<span class="notice-eyebrow">렌탈 파트너 모집</span>' +
-        '<h2 id="notice-title">우리 집에서 시작하는 렌탈 부업</h2>' +
-        '<p>가입비·물품 구매 없이, 앱과 영상교육으로 시작하는 렌탈 상담 파트너를 모집합니다.</p>' +
-        '<div class="notice-actions">' +
-          '<a class="btn" href="partner/">자세히 보기</a>' +
-          '<button type="button" class="btn btn-ghost" data-notice-close>닫기</button>' +
+        '<div class="notice-body">' +
+          '<span class="notice-eyebrow">행복컴퍼니 공식 파트너 · 안내 ㈜디비존</span>' +
+          '<h2 id="notice-title">내 시간에 맞춰,<br><em>집에서 하는</em> 렌탈 부업</h2>' +
+          '<p>렌탈 상품을 안내하고<br>건당 수수료를 받는 활동입니다.</p>' +
+          '<div class="notice-chips"><span>재택·시간 자유</span><span>영상교육 약 2시간</span><span>경험 없어도 OK</span></div>' +
+          '<p class="notice-assure">✓ 가입비·물품 구매 없이 시작합니다</p>' +
+          '<a class="btn" href="partner/">렌탈 부업, 어떻게 하나요? →</a>' +
+          '<button type="button" class="notice-later" data-notice-close>오늘 하루 보지 않기</button>' +
         '</div>' +
       '</div>';
     return overlay;
