@@ -56,6 +56,18 @@
       "permanent": false
     },
     {
+      "source": "/partner",
+      "has": [{ "type": "host", "value": "rental.dbzone.kr" }],
+      "destination": "/sites/rentalfit-v2/partner/",
+      "permanent": false
+    },
+    {
+      "source": "/partner/",
+      "has": [{ "type": "host", "value": "rental.dbzone.kr" }],
+      "destination": "/sites/rentalfit-v2/partner/",
+      "permanent": false
+    },
+    {
       "source": "/find/",
       "has": [{ "type": "host", "value": "rental.dbzone.kr" }],
       "destination": "/sites/rentalfit-v2/find/",
