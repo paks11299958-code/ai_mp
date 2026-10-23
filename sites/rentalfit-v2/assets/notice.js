@@ -15,6 +15,15 @@
     try { localStorage.setItem(KEY, String(Date.now())); } catch (e) { /* 비공개 창 등 — 그냥 닫는다 */ }
   }
 
+  // 띠의 달은 한국 시간 기준으로 자동(10월 → 11월 …). 사장 2026-10-23 "자동으로 변경되게 해줘, 놓칠 것 같아".
+  function monthLabel() {
+    try {
+      return new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric' }).format(new Date()); // "10월"
+    } catch (e) {
+      return (new Date().getMonth() + 1) + '월';
+    }
+  }
+
   function build() {
     var overlay = document.createElement('div');
     overlay.className = 'notice-overlay';
@@ -24,7 +33,7 @@
     // 3차 시안 A(2026-10-23, 코덱스 아린 채점 91): 사진 → 배지 → 후킹 제목 → 활동 한 줄 → 배지 3개 → 비용 안심 → 버튼 하나.
     overlay.innerHTML =
       '<div class="notice-card">' +
-        '<div class="notice-strip"><span class="notice-dot" aria-hidden="true"></span>10월 파트너 모집 중 · 지금 신청 가능</div>' +
+        '<div class="notice-strip"><span class="notice-dot" aria-hidden="true"></span>' + monthLabel() + ' 파트너 모집 중 · 지금 신청 가능</div>' +
         '<img class="notice-photo" src="assets/notice-family.jpg" width="800" height="367" alt="식탁에서 태블릿으로 렌탈 상품을 살펴보는 가족">' +
         '<button type="button" class="notice-close" aria-label="안내 닫기">×</button>' +
         '<div class="notice-body">' +
