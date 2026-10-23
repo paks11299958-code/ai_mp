@@ -1,0 +1,15 @@
+/* 홈 진입 안내 모달 — 렌탈 파트너 모집 (2026-10-23). 하루 한 번, 닫기 쉬움, 외부 요청 없음. */
+.notice-overlay{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(41,58,51,.48);opacity:0;transition:opacity .25s}
+.notice-overlay.is-open{opacity:1}
+.notice-card{position:relative;width:100%;max-width:420px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:28px 24px 22px;box-shadow:0 18px 50px rgba(41,58,51,.22);transform:translateY(10px);transition:transform .25s}
+.notice-overlay.is-open .notice-card{transform:none}
+.notice-eyebrow{display:block;font-size:13px;color:var(--green);margin-bottom:8px}
+.notice-card h2{font-size:clamp(22px,5.5vw,26px);line-height:1.4}
+.notice-card p{margin-top:10px;font-size:15px;color:var(--sub)}
+.notice-actions{display:grid;gap:10px;margin-top:20px}
+.notice-actions .btn{width:100%}
+.notice-actions .btn-ghost{background:var(--soft);color:var(--green);border:1px solid var(--green)}
+.notice-close{position:absolute;top:8px;right:8px;width:44px;height:44px;border:0;border-radius:12px;background:transparent;color:var(--sub);font-size:22px;line-height:1;cursor:pointer}
+.notice-close:hover{background:var(--soft)}
+@media(min-width:480px){.notice-actions{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){.notice-overlay,.notice-card{transition:none}}
